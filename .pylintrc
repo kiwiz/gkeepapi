@@ -1,0 +1,4 @@
+[BASIC]
+good-names=logger
+[MESSAGES CONTROL]
+disable=len-as-condition,invalid-name,bad-continuation
