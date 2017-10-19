@@ -1,6 +1,8 @@
 gkeepapi
 ========
 
+An unofficial client for the [Google Keep](https://keep.google.com) API.
+
 ```
 import gkeepapi
 
@@ -8,35 +10,23 @@ keep = gkeepapi.Keep()
 success = keep.login('...', '...')
 keep.sync()
 
-note = gkeepapi.Note()
-note.title = 'Todo'
-note.text = 'Eat breakfast'
+note = keep.createNote('Todo', 'Eat breakfast')
 note.pinned = True
 note.color = gkeepapi.COLOR.RED
-keep.add(note)
 keep.sync()
 ```
 
-# Todo
+*gkeepapi is not supported nor endorsed by Google.*
 
-[ ] Calling sync before login
-[ ] Dirtiness isn't propagated correctly
-[-] Adding/Editng/Deleting children
-    [-] List/Annotations
-[-] Conflicts
-[ ] Label
-    [ ] Parse
-    [ ] Generate
-    [ ] Delete
-[ ] Tests
+This is alpha quality code! Don't use in production. The project is under active development, so feel free to open an issue if you see any bugs or have a feature request. PRs are welcome too!
 
-# Issues
+## Todo (Open an issue if you'd like to help!)
 
-[ ] How does `forceFullSync` work?
-
-
-# Not implemented
-
-- Sharing
+- Determine how `forceFullSync` works.
 - Reminders
+    - `reminders`
+- Sharing Notes
+    - `lastModifierEmail`, `roleInfo`, `timestamps.recentSharedChangesSeen`, `shareState`
+- Figure out all possible values for `TaskAssist._suggest`
+- Figure out all possible values for `NodeImage._extraction_status`
 - Blobs (Drawings/Images/Recordings)
