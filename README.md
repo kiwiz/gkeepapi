@@ -1,6 +1,8 @@
 gkeepapi
 ========
 
+[![Documentation Status](https://readthedocs.org/projects/gkeepapi/badge/?version=latest)](http://gkeepapi.readthedocs.io/en/latest/?badge=latest)
+
 An unofficial client for the [Google Keep](https://keep.google.com) API.
 
 ```
