@@ -16,7 +16,7 @@ Welcome to gkeepapi's documentation!
 
     note = gkeepapi.createNote('Todo', 'Eat breakfast')
     note.pinned = True
-    note.color = gkeepapi.node.COLOR.RED
+    note.color = gkeepapi.node.COLOR['RED']
 
     keep.sync()
 
