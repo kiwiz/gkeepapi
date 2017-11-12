@@ -41,7 +41,7 @@ gkeepapi leverages the mobile Google Keep API. To do so, it makes use of :py:mod
 Syncing
 -------
 
-Once the client is authenticated, :py:meth:`Keep.sync` has to be call to retrieve all the notes::
+Once the client is authenticated, :py:meth:`Keep.sync` has to be called to retrieve all the notes::
 
     keep.sync()
 
@@ -50,7 +50,7 @@ This method is also responsible for syncing up changes to the server. Remember t
 Notes and Lists
 ===============
 
-Notes and Lists are the primary types of notes visible to a Google Keep user. gkeepapi exposes these two notes via the :py:class:`Note` and :py:class:`List` classes. For Lists, there's also the :py:class`ListItem` class.
+Notes and Lists are the primary types of notes visible to a Google Keep user. gkeepapi exposes these two notes via the :py:class:`Note` and :py:class:`List` classes. For Lists, there's also the :py:class:`ListItem` class.
 
 Creating Notes
 --------------
@@ -101,7 +101,7 @@ Notes can be searched for via :py:meth:`Keep.find`::
 Manipulating Notes
 ------------------
 
-Note objects have many attributes that can be directly get and set. Here are some non-comprehensive lists of the more interesting ones.
+Note objects have many attributes that can be directly get and set. Here is a non-comprehensive list of the more interesting ones.
 
 Notes and Lists:
 
