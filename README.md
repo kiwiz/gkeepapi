@@ -2,6 +2,7 @@ gkeepapi
 ========
 
 [![Documentation Status](https://readthedocs.org/projects/gkeepapi/badge/?version=latest)](http://gkeepapi.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.org/kiwiz/gkeepapi.svg?branch=master)](https://travis-ci.org/kiwiz/gkeepapi)
 
 An unofficial client for the [Google Keep](https://keep.google.com) API.
 
