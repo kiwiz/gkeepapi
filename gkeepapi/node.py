@@ -738,6 +738,7 @@ class TimestampsMixin(object):
         if edited:
             self.timestamps.edited = dt
 
+    @property
     def trashed(self):
         """Get the trashed state.
 
@@ -746,6 +747,7 @@ class TimestampsMixin(object):
         """
         return self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
 
+    @property
     def deleted(self):
         """Get the deleted state.
 

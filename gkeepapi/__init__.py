@@ -184,13 +184,14 @@ class API(object):
                     {'type': 'DR'}, # Drawing support
                     {'type': 'TR'}, # Trash support (Stop setting the delete timestamp)
 
+                    {'type': 'SNB'}, # Allows modification of shared notes?
+
                     # TODO: Figure out what these do:
                     # {'type': 'CO'}, # VSS_SUCCEEDED when off?
                     # {'type': 'EC'}, # ???
                     # {'type': 'RB'}, # Rollback?
                     # {'type': 'EX'}, # ???
                     # {'type': 'MI'}, # ???
-                    # {'type': 'SNB'}, # ???
                 ]
             },
         }
