@@ -237,6 +237,56 @@ class NodeTests(unittest.TestCase):
         self.assertTrue(n.dirty)
         # FIXME: Node is not done
 
+class TestElement(node.Element, node.TimestampsMixin):
+    def __init__(self):
+        super(TestElement, self).__init__()
+        self.timestamps = node.NodeTimestamps(0)
+
+class TimestampsMixinTests(unittest.TestCase):
+    def test_touch(self):
+        n = TestElement()
+        n.touch()
+        self.assertTrue(n.dirty)
+        self.assertTrue(n.timestamps.updated > node.NodeTimestamps.int_to_dt(0))
+        self.assertTrue(n.timestamps.edited == node.NodeTimestamps.int_to_dt(0))
+
+        n.touch(True)
+        self.assertTrue(n.timestamps.updated > node.NodeTimestamps.int_to_dt(0))
+        self.assertTrue(n.timestamps.edited > node.NodeTimestamps.int_to_dt(0))
+
+    def test_deleted(self):
+        n = TestElement()
+        self.assertFalse(n.deleted)
+
+        n.timestamps.deleted = None
+        self.assertFalse(n.deleted)
+
+        n.timestamps.deleted = node.NodeTimestamps.int_to_dt(0)
+        self.assertFalse(n.deleted)
+
+        n.timestamps.deleted = node.NodeTimestamps.int_to_dt(1)
+        self.assertTrue(n.deleted)
+
+    def test_trashed(self):
+        n = TestElement()
+        self.assertFalse(n.trashed)
+
+        n.timestamps.trashed = None
+        self.assertFalse(n.trashed)
+
+        n.timestamps.trashed = node.NodeTimestamps.int_to_dt(0)
+        self.assertFalse(n.trashed)
+
+        n.timestamps.trashed = node.NodeTimestamps.int_to_dt(1)
+        self.assertTrue(n.trashed)
+
+    def test_delete(self):
+        n = TestElement()
+        n.delete()
+
+        self.assertTrue(n.timestamps.dirty)
+        self.assertTrue(n.timestamps.deleted > node.NodeTimestamps.int_to_dt(0))
+
 class TopLevelNodeTests(unittest.TestCase):
     def test_dirty(self):
         n = node.TopLevelNode()

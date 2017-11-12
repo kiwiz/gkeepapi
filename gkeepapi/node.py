@@ -745,7 +745,7 @@ class TimestampsMixin(object):
         Returns:
             bool: Whether this item is trashed.
         """
-        return self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
+        return self.timestamps.trashed is not None and self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
 
     @property
     def deleted(self):
@@ -754,7 +754,7 @@ class TimestampsMixin(object):
         Returns:
             bool: Whether this item is deleted.
         """
-        return self.timestamps.deleted > NodeTimestamps.int_to_dt(0)
+        return self.timestamps.deleted is not None and self.timestamps.deleted > NodeTimestamps.int_to_dt(0)
 
     def delete(self):
         """Mark the item as deleted."""
