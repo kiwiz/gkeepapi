@@ -23,6 +23,10 @@ keep.sync()
 
 This is alpha quality code! Don't use in production. The project is under active development, so feel free to open an issue if you see any bugs or have a feature request. PRs are welcome too!
 
+## Documentation
+
+The docs are available on [Read the Docs](https://gkeepapi.readthedocs.io/en/latest/).
+
 ## Todo (Open an issue if you'd like to help!)
 
 - Determine how `forceFullSync` works.
