@@ -879,7 +879,7 @@ class Node(Element, TimestampsMixin):
         Returns:
             list[gkeepapi.Node]: Children nodes.
         """
-        return self._children.values()
+        return list(self._children.values())
 
     def get(self, node_id):
         """Get child node with the given ID.
