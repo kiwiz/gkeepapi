@@ -38,6 +38,8 @@ gkeepapi leverages the mobile Google Keep API. To do so, it makes use of :py:mod
     keep = gkeepapi.Keep()
     keep.login('...', '...')
 
+Note: For accounts with Twofactor, you'll need to generate an app password.
+
 Syncing
 -------
 
