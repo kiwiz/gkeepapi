@@ -61,14 +61,14 @@ class API(object):
             password (str): The account password.
             android_id (str): An identifier for this client.
 
-        Returns:
-            bool: True if login was successful.
+        Raises:
+            LoginException: If there was a problem logging in.
         """
         self._email = email
         self._android_id = android_id
         res = gpsoauth.perform_master_login(self._email, password, self._android_id)
         if 'Token' not in res:
-            return False
+            raise LoginException(res.get('Error'), res.get('ErrorDetail'))
         self._master_token = res['Token']
 
         self.refresh()
@@ -93,7 +93,11 @@ class API(object):
         return self._master_token
 
     def refresh(self):
-        """Refresh the OAuth token."""
+        """Refresh the OAuth token.
+
+        Raises:
+            LoginException: If there was a problem refreshing the OAuth token.
+        """
         res = gpsoauth.perform_oauth(
             self._email, self._master_token, self._android_id,
             service='oauth2:https://www.googleapis.com/auth/memento',
@@ -101,7 +105,8 @@ class API(object):
             client_sig='38918a453d07199354f8b19af05ec6562ced5788'
         )
         if 'Auth' not in res:
-            return False
+            if 'Token' not in res:
+                raise LoginException(res.get('Error'))
 
         self._auth_token = res['Auth']
         return True
@@ -252,8 +257,8 @@ class Keep(object):
             email (str): The account to use.
             password (str): The account password.
 
-        Returns:
-            bool: True if login was successful.
+        Raises:
+            LoginException: If there was a problem logging in.
         """
         return self._api.login(username, password, get_mac())
 
