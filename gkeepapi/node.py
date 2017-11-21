@@ -1284,7 +1284,7 @@ class Label(Element, TimestampsMixin):
         self._name = raw['name']
         self.timestamps.load(raw['timestamps'])
         self._revision = raw['revision']
-        self._merged = NodeTimestamps.str_to_dt(raw['lastMerged'])
+        self._merged = NodeTimestamps.str_to_dt(raw['lastMerged']) if 'lastMerged' in raw else NodeTimestamps.int_to_dt(0)
 
     def save(self):
         ret = super(Label, self).save()
