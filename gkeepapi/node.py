@@ -799,7 +799,7 @@ class Node(Element, TimestampsMixin):
         self.parent_id = raw['parentId']
         self._sort = raw['sortValue'] if 'sortValue' in raw else self.sort
         self._version = raw['baseVersion']
-        self._text = raw['text'] if 'text' in raw else ''
+        self._text = raw['text'] if 'text' in raw else self._text
         self.timestamps.load(raw['timestamps'])
         self.settings.load(raw['nodeSettings'])
         self.annotations.load(raw['annotationsGroup'])
@@ -956,7 +956,7 @@ class TopLevelNode(Node):
     def load(self, raw):
         super(TopLevelNode, self).load(raw)
         self._color = raw['color'] if 'color' in raw else COLOR['WHITE']
-        self._archived = raw['isArchived']
+        self._archived = raw['isArchived'] if 'isArchived' in raw else False
         self._pinned = raw['isPinned'] if 'isPinned' in raw else False
         self._title = raw['title']
         self.labels.load(raw['labelIds'] if 'labelIds' in raw else [])
