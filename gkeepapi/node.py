@@ -1161,7 +1161,7 @@ class NodeBlob(Element):
         super(NodeBlob, self).load(raw)
         self._blob_id = raw.get('blob_id')
         self._media_id = raw.get('media_id')
-        self._mimetype = raw['mimetype']
+        self._mimetype = raw.get('mimetype')
         self._byte_size = raw['byte_size']
 
     def save(self):
@@ -1202,8 +1202,8 @@ class NodeImage(NodeBlob):
         super(NodeImage, self).load(raw)
         self._width = raw['width']
         self._height = raw['height']
-        self._extracted_text = raw['extracted_text']
-        self._extraction_status = raw['extraction_status']
+        self._extracted_text = raw.get('extracted_text')
+        self._extraction_status = raw.get('extraction_status')
 
     def save(self):
         ret = super(NodeImage, self).save()
