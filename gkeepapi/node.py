@@ -101,7 +101,7 @@ class Element(object):
                 if key in ['parentServerId', 'lastSavedSessionId']:
                     continue
                 if key not in s_raw:
-                    logger.warning('Missing key for %s key %s', type(self), key)
+                    logger.info('Missing key for %s key %s', type(self), key)
                     continue
 
                 if isinstance(val, (list, dict)):
@@ -120,10 +120,10 @@ class Element(object):
                     except ValueError:
                         pass
                 if val_a != val_b:
-                    logger.warning('Different value for %s key %s: %s != %s', type(self), key, raw[key], s_raw[key])
+                    logger.info('Different value for %s key %s: %s != %s', type(self), key, raw[key], s_raw[key])
         elif isinstance(raw, list):
             if len(raw) != len(s_raw):
-                logger.warning('Different length for %s: %d != %d', type(self), len(raw), len(s_raw))
+                logger.info('Different length for %s: %d != %d', type(self), len(raw), len(s_raw))
 
     def load(self, raw): # pylint: disable=unused-argument
         """Unserialize from raw representation.
