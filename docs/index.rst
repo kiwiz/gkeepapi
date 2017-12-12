@@ -12,7 +12,6 @@ Welcome to gkeepapi's documentation!
 
     keep = gkeepapi.Keep()
     keep.login('...', '...')
-    keep.sync()
 
     note = gkeepapi.createNote('Todo', 'Eat breakfast')
     note.pinned = True
@@ -43,11 +42,9 @@ Note: For accounts with Twofactor, you'll need to generate an app password.
 Syncing
 -------
 
-Once the client is authenticated, :py:meth:`Keep.sync` has to be called to retrieve all the notes::
+gkeepapi automatically pulls down all notes after login. After making any local modifications to notes, make sure to call :py:meth:`Keep.sync` to update them on the server!::
 
     keep.sync()
-
-This method is also responsible for syncing up changes to the server. Remember to call :py:meth:`Keep.sync` after making any local modifications!
 
 Notes and Lists
 ===============

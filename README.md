@@ -11,7 +11,6 @@ import gkeepapi
 
 keep = gkeepapi.Keep()
 success = keep.login('...', '...')
-keep.sync()
 
 note = keep.createNote('Todo', 'Eat breakfast')
 note.pinned = True

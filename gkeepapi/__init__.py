@@ -219,10 +219,9 @@ class API(object):
 class Keep(object):
     """High level Google Keep client.
 
-    Stores a local copy of the Keep node tree. To start, first login and sync Notes::
+    Stores a local copy of the Keep node tree. To start, first login::
 
         keep.login('...', '...')
-        keep.sync()
 
     Individual Notes can be retrieved by id::
 
@@ -260,7 +259,10 @@ class Keep(object):
         Raises:
             LoginException: If there was a problem logging in.
         """
-        return self._api.login(username, password, get_mac())
+        ret = self._api.login(username, password, get_mac())
+        if ret:
+            self.sync()
+        return ret
 
     def get(self, node_id):
         """Get a note with the given ID.
