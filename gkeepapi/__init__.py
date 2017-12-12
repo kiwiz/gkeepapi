@@ -532,7 +532,7 @@ class Keep(object):
         self._labels = labels
 
     def _findDirtyNodes(self):
-        for node in self._nodes.values():
+        for node in list(self._nodes.values()):
             for child in node.children:
                 if not child.id in self._nodes:
                     self._nodes[child.id] = child
