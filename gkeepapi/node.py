@@ -12,82 +12,104 @@ import logging
 import time
 import random
 import six
+import enum
 
 DEBUG = True
 
 logger = logging.getLogger(__name__)
 
-def from_json(raw):
-    """Helper to construct a node from a dict.
+class NodeType(enum.Enum):
+    """Valid note types."""
 
-    Args:
-        raw (dict): Raw node representation.
+    """A Note"""
+    Note = 'NOTE'
+    """A List"""
+    List = 'LIST'
+    """A List item"""
+    ListItem = 'LIST_ITEM'
+    """A blob"""
+    Blob = 'BLOB'
 
-    Returns:
-        Node: A Node object or None.
-    """
-    cls = None
-    _type = raw.get('type')
-    if _type == 'NOTE':
-        cls = Note
-    elif _type == 'LIST':
-        cls = List
-    elif _type == 'LIST_ITEM':
-        cls = ListItem
-    elif _type == 'BLOB':
-        cls = Blob
+class BlobType(enum.Enum):
+    """Valid blob types."""
 
-    if cls is None:
-        logger.warning('Unknown node type: %s', _type)
-        return None
-    node = cls()
-    node.load(raw)
-    return node
+    """Audio"""
+    Audio = 'AUDIO'
+    """Image"""
+    Image = 'IMAGE'
+    """Drawing"""
+    Drawing = 'DRAWING'
 
-COLOR = {
-    'WHITE': 'DEFAULT',
-    'RED': 'RED',
-    'ORANGE': 'ORANGE',
-    'YELLOW': 'YELLOW',
-    'GREEN': 'GREEN',
-    'TEAL': 'TEAL',
-    'BLUE': 'BLUE',
-    'DARKBLUE': 'CERULEAN',
-    'PURPLE': 'PURPLE',
-    'PINK': 'PINK',
-    'BROWN': 'BROWN',
-    'GRAY': 'GRAY',
-}
+class ColorValue(enum.Enum):
+    """Valid note colors."""
 
-TYPE = {
-    'NOTE': 'NOTE',
-    'LIST': 'LIST',
-    'LISTITEM': 'LIST_ITEM',
-    'BLOB': 'BLOB',
-}
+    """White"""
+    White = 'DEFAULT'
+    """Red"""
+    Red = 'RED'
+    """Orange"""
+    Orange = 'ORANGE'
+    """Yellow"""
+    Yellow = 'YELLOW'
+    """Green"""
+    Green = 'GREEN'
+    """Teal"""
+    Teal = 'TEAL'
+    """Blue"""
+    Blue = 'BLUE'
+    """Dark blue"""
+    DarkBlue = 'CERULEAN'
+    """Purple"""
+    Purple = 'PURPLE'
+    """Pink"""
+    Pink = 'PINK'
+    """Brown"""
+    Brown = 'BROWN'
+    """Gray"""
+    Gray = 'GRAY'
 
-CATEGORY = {
-    'BOOKS': 'BOOKS',
-    'FOOD': 'FOOD',
-    'MOVIES': 'MOVIES',
-    'MUSIC': 'MUSIC',
-    'PLACES': 'PLACES',
-    'QUOTES': 'QUOTES',
-    'TRAVEL': 'TRAVEL',
-    'TV': 'TV',
-}
+class CategoryValue(enum.Enum):
+    """Valid note categories."""
 
-NEW_LISTITEM_PLACEMENT = {
-    'TOP': 'TOP',
-    'BOTTOM': 'BOTTOM'
-}
-GRAVEYARD_STATE = {
-    'EXPANDED': 'EXPANDED',
-    'COLLAPSED': 'COLLAPSED',
-}
-CHECKED_LISTITEMS_POLICY = {
-    'GRAVEYARD': 'GRAVEYARD'
-}
+    """Books"""
+    Books = 'BOOKS'
+    """Food"""
+    Food = 'FOOD'
+    """Movies"""
+    Movies = 'MOVIES'
+    """Music"""
+    Music = 'MUSIC'
+    """Places"""
+    Places = 'PLACES'
+    """Quotes"""
+    Quotes = 'QUOTES'
+    """Travel"""
+    Travel = 'TRAVEL'
+    """TV"""
+    TV = 'TV'
+
+class NewListItemPlacementValue(enum.Enum):
+    """Valid locations to put new list items."""
+
+    """Top"""
+    Top = 'TOP'
+    """Bottom"""
+    Bottom = 'BOTTOM'
+
+class GraveyardStateValue(enum.Enum):
+    """Valid visibility list graveyards."""
+
+    """Expanded"""
+    Expanded = 'EXPANDED'
+    """Collapsed"""
+    Collapsed = 'COLLAPSED'
+
+class CheckedListItemsPolicyValue(enum.Enum):
+    """Unknown"""
+
+    """Graveyard"""
+    Graveyard = 'GRAVEYARD'
+
 
 class Element(object):
     """Interface for elements that can be serialized and deserialized."""
@@ -283,12 +305,12 @@ class Category(Annotation):
 
     def load(self, raw):
         super(Category, self).load(raw)
-        self._category = raw['topicCategory']['category']
+        self._category = CategoryValue(raw['topicCategory']['category'])
 
     def save(self):
         ret = super(Category, self).save()
         ret['topicCategory'] = {
-            'category': self._category
+            'category': self._category.value
         }
         return ret
 
@@ -297,7 +319,7 @@ class Category(Annotation):
         """Get the category.
 
         Returns:
-            str: The category.
+            gkeepapi.node.CategoryValue: The category.
         """
         return self._category
 
@@ -396,7 +418,7 @@ class NodeAnnotations(Element):
         """Get the category.
 
         Returns:
-            str: The category or None.
+            Union[gkeepapi.node.CategoryValue, None]: The category or None.
         """
         node = self._get_category_node()
 
@@ -612,21 +634,21 @@ class NodeSettings(Element):
     """Represents the settings associated with a :class:`TopLevelNode`."""
     def __init__(self):
         super(NodeSettings, self).__init__()
-        self._new_listitem_placement = NEW_LISTITEM_PLACEMENT['BOTTOM']
-        self._graveyard_state = GRAVEYARD_STATE['COLLAPSED']
-        self._checked_listitems_policy = CHECKED_LISTITEMS_POLICY['GRAVEYARD']
+        self._new_listitem_placement = NewListItemPlacementValue.Bottom
+        self._graveyard_state = GraveyardStateValue.Collapsed
+        self._checked_listitems_policy = CheckedListItemsPolicyValue.Graveyard
 
     def load(self, raw):
         super(NodeSettings, self).load(raw)
-        self._new_listitem_placement = raw['newListItemPlacement']
-        self._graveyard_state = raw['graveyardState']
-        self._checked_listitems_policy = raw['checkedListItemsPolicy']
+        self._new_listitem_placement = NewListItemPlacementValue(raw['newListItemPlacement'])
+        self._graveyard_state = GraveyardStateValue(raw['graveyardState'])
+        self._checked_listitems_policy = CheckedListItemsPolicyValue(raw['checkedListItemsPolicy'])
 
     def save(self):
         ret = super(NodeSettings, self).save()
-        ret['newListItemPlacement'] = self._new_listitem_placement
-        ret['graveyardState'] = self._graveyard_state
-        ret['checkedListItemsPolicy'] = self._checked_listitems_policy
+        ret['newListItemPlacement'] = self._new_listitem_placement.value
+        ret['graveyardState'] = self._graveyard_state.value
+        ret['checkedListItemsPolicy'] = self._checked_listitems_policy.value
         return ret
 
     @property
@@ -634,7 +656,7 @@ class NodeSettings(Element):
         """Get the default location to insert new listitems.
 
         Returns:
-            str: Placement.
+            gkeepapi.node.NewListItemPlacementValue: Placement.
         """
         return self._new_listitem_placement
 
@@ -648,7 +670,7 @@ class NodeSettings(Element):
         """Get the visibility state for the list graveyard.
 
         Returns:
-            str: Visibility.
+            gkeepapi.node.GraveyardStateValue: Visibility.
         """
         return self._graveyard_state
 
@@ -662,7 +684,7 @@ class NodeSettings(Element):
         """Get the policy for checked listitems.
 
         Returns:
-            str: Policy.
+            gkeepapi.node.CheckedListItemsPolicyValue: Policy.
         """
         return self._checked_listitems_policy
 
@@ -789,8 +811,8 @@ class Node(Element, TimestampsMixin):
 
     def load(self, raw):
         super(Node, self).load(raw)
-        if raw['type'] not in TYPE.values():
-            logger.warning('Unknown node type: %s', raw['type'])
+        # Verify this is a valid type
+        NodeType(raw['type'])
         if raw['kind'] not in ['notes#node']:
             logger.warning('Unknown node kind: %s', raw['kind'])
 
@@ -808,7 +830,7 @@ class Node(Element, TimestampsMixin):
         ret = super(Node, self).save()
         ret['id'] = self.id
         ret['kind'] = 'notes#node'
-        ret['type'] = self.type
+        ret['type'] = self.type.value
         ret['parentId'] = self.parent_id
         ret['sortValue'] = self._sort
         ret['baseVersion'] = self._version
@@ -947,7 +969,7 @@ class TopLevelNode(Node):
     _TYPE = None
     def __init__(self, **kwargs):
         super(TopLevelNode, self).__init__(parent_id=Root.ID, **kwargs)
-        self._color = COLOR['WHITE']
+        self._color = ColorValue.White
         self._archived = False
         self._pinned = False
         self._title = ''
@@ -955,7 +977,7 @@ class TopLevelNode(Node):
 
     def load(self, raw):
         super(TopLevelNode, self).load(raw)
-        self._color = raw['color'] if 'color' in raw else COLOR['WHITE']
+        self._color = ColorValue(raw['color']) if 'color' in raw else ColorValue.White
         self._archived = raw['isArchived'] if 'isArchived' in raw else False
         self._pinned = raw['isPinned'] if 'isPinned' in raw else False
         self._title = raw['title']
@@ -963,7 +985,7 @@ class TopLevelNode(Node):
 
     def save(self):
         ret = super(TopLevelNode, self).save()
-        ret['color'] = self._color
+        ret['color'] = self._color.value
         ret['isArchived'] = self._archived
         ret['isPinned'] = self._pinned
         ret['title'] = self._title
@@ -977,7 +999,7 @@ class TopLevelNode(Node):
         """Get the node color.
 
         Returns:
-            str: Color.
+            gkeepapi.node.Color: Color.
         """
         return self._color
 
@@ -1043,7 +1065,7 @@ class TopLevelNode(Node):
 
 class Note(TopLevelNode):
     """Represents a Google Keep note."""
-    _TYPE = TYPE['NOTE']
+    _TYPE = NodeType.Note
     def __init__(self, **kwargs):
         super(Note, self).__init__(type_=self._TYPE, **kwargs)
 
@@ -1078,7 +1100,7 @@ class Note(TopLevelNode):
 
 class List(TopLevelNode):
     """Represents a Google Keep list."""
-    _TYPE = TYPE['LIST']
+    _TYPE = NodeType.List
     def __init__(self, **kwargs):
         super(List, self).__init__(type_=self._TYPE, **kwargs)
 
@@ -1118,7 +1140,7 @@ class ListItem(Node):
     child :class:`ListItem`.
     """
     def __init__(self, parent_id=None, **kwargs):
-        super(ListItem, self).__init__(type_=TYPE['LISTITEM'], parent_id=parent_id, **kwargs)
+        super(ListItem, self).__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
         self._checked = False
 
     def load(self, raw):
@@ -1159,6 +1181,8 @@ class NodeBlob(Element):
 
     def load(self, raw):
         super(NodeBlob, self).load(raw)
+        # Verify this is a valid type
+        BlobType(raw['type'])
         self._blob_id = raw.get('blob_id')
         self._media_id = raw.get('media_id')
         self._mimetype = raw.get('mimetype')
@@ -1220,7 +1244,7 @@ class NodeDrawing(NodeBlob):
 class Blob(Node):
     """Represents a Google Keep blob."""
     def __init__(self, parent_id=None, **kwargs):
-        super(Blob, self).__init__(type_=TYPE['BLOB'], parent_id=parent_id, **kwargs)
+        super(Blob, self).__init__(type_=NoteType.Blob, parent_id=parent_id, **kwargs)
         self.blob = NodeBlob()
 
     @classmethod
@@ -1235,11 +1259,11 @@ class Blob(Node):
         """
         cls = None
         _type = raw.get('type')
-        if _type == 'AUDIO':
+        if _type == BlobType.Audio.value:
             cls = NodeAudio
-        elif _type == 'IMAGE':
+        elif _type == BlobType.Image.value:
             cls = NodeImage
-        elif _type == 'DRAWING':
+        elif _type == BlobType.Drawing.value:
             cls = NodeDrawing
 
         if cls is None:
@@ -1338,6 +1362,35 @@ class Label(Element, TimestampsMixin):
 
     def __str__(self):
         return self.name
+
+
+_type_map = {
+    NodeType.Note: Note,
+    NodeType.List: List,
+    NodeType.ListItem: ListItem,
+    NodeType.Blob: Blob
+}
+
+def from_json(raw):
+    """Helper to construct a node from a dict.
+
+    Args:
+        raw (dict): Raw node representation.
+
+    Returns:
+        Node: A Node object or None.
+    """
+    cls = None
+    _type = raw.get('type')
+    try:
+        cls = _type_map[NodeType(_type)]
+    except ValueError:
+        logger.warning('Unknown node type: %s', _type)
+        return None
+    node = cls()
+    node.load(raw)
+    return node
+
 
 def _instrument_load(cls):
     cls._load = cls.load # pylint: disable=protected-access

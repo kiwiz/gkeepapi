@@ -28,7 +28,11 @@ class AnnotationTests(unittest.TestCase):
         a, b = generate_save_load(node.WebLink)
         self.assertEqual(a, b)
 
-        a, b = generate_save_load(node.Category)
+        def Category():
+            c = node.Category()
+            c.category = node.CategoryValue.Books
+            return c
+        a, b = generate_save_load(Category)
         self.assertEqual(a, b)
 
     def test_weblink_dirty(self):
@@ -56,6 +60,7 @@ class AnnotationTests(unittest.TestCase):
 
     def test_category(self):
         n = node.Category()
+        n.category = node.CategoryValue.Books
 
         clean_node(n)
         n.category = None
@@ -77,8 +82,8 @@ class NodeAnnotationsTests(unittest.TestCase):
         n = node.NodeAnnotations()
         self.assertIsNone(n.category)
 
-        n.category = node.CATEGORY['BOOKS']
-        self.assertEqual(n.category, node.CATEGORY['BOOKS'])
+        n.category = node.CategoryValue.Books
+        self.assertEqual(n.category, node.CategoryValue.Books)
 
     def test_dirty(self):
         n = node.NodeAnnotations()
@@ -88,6 +93,7 @@ class NodeAnnotationsTests(unittest.TestCase):
         self.assertTrue(n.dirty)
 
         sub = node.Category()
+        sub.category = node.CategoryValue.Books
         clean_node(sub)
 
         clean_node(n)
@@ -95,7 +101,7 @@ class NodeAnnotationsTests(unittest.TestCase):
         self.assertTrue(n.dirty)
 
         clean_node(n)
-        sub.category = None
+        sub.category = node.CategoryValue.TV
         self.assertTrue(n.dirty)
 
         clean_node(n)
@@ -139,15 +145,15 @@ class NodeSettingsTests(unittest.TestCase):
         n = node.NodeSettings()
 
         clean_node(n)
-        n.new_listitem_placement = node.NEW_LISTITEM_PLACEMENT['BOTTOM']
+        n.new_listitem_placement = node.NewListItemPlacementValue.Bottom
         self.assertTrue(n.dirty)
 
         clean_node(n)
-        n.graveyard_state = node.GRAVEYARD_STATE['COLLAPSED']
+        n.graveyard_state = node.GraveyardStateValue.Collapsed
         self.assertTrue(n.dirty)
 
         clean_node(n)
-        n.checked_listitems_policy = node.CHECKED_LISTITEMS_POLICY['GRAVEYARD']
+        n.checked_listitems_policy = node.CheckedListItemsPolicyValue.Graveyard
         self.assertTrue(n.dirty)
 
 class NodeLabelsTests(unittest.TestCase):
@@ -172,10 +178,10 @@ class NodeLabelsTests(unittest.TestCase):
 
 class NodeTests(unittest.TestCase):
     def test_save_load(self):
-        a, b = generate_save_load(node.Node)
+        a, b = generate_save_load(lambda: node.Node(type_=node.NodeType.Note))
         self.assertEqual(a, b)
 
-        a, b = generate_save_load(node.TopLevelNode)
+        a, b = generate_save_load(lambda: node.TopLevelNode(type_=node.NodeType.Note))
         self.assertEqual(a, b)
 
         a, b = generate_save_load(node.Note)
@@ -191,7 +197,7 @@ class NodeTests(unittest.TestCase):
         # self.assertEqual(a, b)
 
     def test_dirty(self):
-        n = node.Node()
+        n = node.Node(type_=node.NodeType.Note)
 
         clean_node(n)
         n.timestamps.created = node.NodeTimestamps.int_to_dt(0)
@@ -206,7 +212,7 @@ class NodeTests(unittest.TestCase):
         self.assertTrue(n.dirty)
 
         clean_node(n)
-        n.settings.new_listitem_placement = node.NEW_LISTITEM_PLACEMENT['BOTTOM']
+        n.settings.new_listitem_placement = node.NewListItemPlacementValue.Bottom
         self.assertTrue(n.dirty)
 
         clean_node(n)
@@ -229,7 +235,7 @@ class NodeTests(unittest.TestCase):
         self.assertTrue(n.dirty)
 
     def test_delete(self):
-        n = node.Node(type_='NOTE')
+        n = node.Node(type_=node.NodeType.Note)
         clean_node(n)
 
         n.delete()
@@ -289,10 +295,10 @@ class TimestampsMixinTests(unittest.TestCase):
 
 class TopLevelNodeTests(unittest.TestCase):
     def test_dirty(self):
-        n = node.TopLevelNode()
+        n = node.TopLevelNode(type_=node.NodeType.Note)
 
         clean_node(n)
-        n.color = node.COLOR['WHITE']
+        n.color = node.ColorValue.White
         self.assertTrue(n.dirty)
 
         clean_node(n)

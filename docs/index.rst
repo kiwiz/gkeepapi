@@ -15,7 +15,7 @@ Welcome to gkeepapi's documentation!
 
     note = gkeepapi.createNote('Todo', 'Eat breakfast')
     note.pinned = True
-    note.color = gkeepapi.node.COLOR['RED']
+    note.color = gkeepapi.node.ColorValue.Red
 
     keep.sync()
 
@@ -92,7 +92,7 @@ Notes can be searched for via :py:meth:`Keep.find`::
     gnotes = keep.find(labels=[keep.findLabel('todo')])
 
     # Find by colors
-    gnotes = keep.find(colors=[gkeepapi.node.COLOR['WHITE']])
+    gnotes = keep.find(colors=[gkeepapi.node.ColorValue.White])
 
     # Find by pinned/archived/trashed state
     gnotes = keep.find(pinned=True, archived=False, trashed=False)
@@ -111,6 +111,7 @@ Notes and Lists:
 * :py:attr:`TopLevelNode.color`
 * :py:attr:`TopLevelNode.archived`
 * :py:attr:`TopLevelNode.pinned`
+* :py:attr:`TopLevelNode.deleted`
 
 ListItems:
 
@@ -118,6 +119,7 @@ ListItems:
 * :py:attr:`TopLevelNode.parent` (Read only)
 * :py:attr:`TopLevelNode.text`
 * :py:attr:`TopLevelNode.checked`
+* :py:attr:`TopLevelNode.deleted`
 
 Getting Note content
 ^^^^^^^^^^^^^^^^^^^^
@@ -145,7 +147,7 @@ Example usage::
 
     gnote.title = 'Title 2'
     gnote.text = 'Text 2'
-    gnote.color = gkeepapi.node.COLOR['WHITE']
+    gnote.color = gkeepapi.node.ColorValue.White
     gnote.archived = True
     gnote.pinned = False
 
@@ -169,7 +171,7 @@ Or deleted::
 Deleting Notes
 --------------
 
-The :py:meth:`TopLevelNode.delete` method marks the note for deletion.
+The :py:meth:`TopLevelNode.delete` method marks the note for deletion::
 
     gnote.delete()
     glist.delete()
@@ -239,6 +241,11 @@ To remove a label from a note::
 
     gnote.labels.remove(label)
 
+Constants
+=========
+
+TODO
+
 Annotations
 ===========
 
@@ -252,8 +259,15 @@ TODO
 Timestamps
 ==========
 
-TODO
+All notes and lists have a `NodeTimestamps` object with timestamp data::
 
+    node.timestamps.created
+    node.timestamps.deleted
+    node.timestamps.trashed
+    node.timestamps.updated
+    node.timestamps.edited
+
+These timestamps are all modifiable, but are automatically managed by the client.
 
 Indices and tables
 ==================
