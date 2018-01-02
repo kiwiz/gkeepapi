@@ -1244,7 +1244,7 @@ class NodeDrawing(NodeBlob):
 class Blob(Node):
     """Represents a Google Keep blob."""
     def __init__(self, parent_id=None, **kwargs):
-        super(Blob, self).__init__(type_=NoteType.Blob, parent_id=parent_id, **kwargs)
+        super(Blob, self).__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
         self.blob = NodeBlob()
 
     @classmethod
