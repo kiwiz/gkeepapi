@@ -47,7 +47,7 @@ class API(object):
     RETRY_CNT = 2
     def __init__(self):
         self._session = requests.Session()
-        self._session.headers.update({'User-Agent': 'gkeepapi/0.1'})
+        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.0'})
         self._auth_token = None
         self._master_token = None
         self._email = None

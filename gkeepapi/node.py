@@ -14,7 +14,7 @@ import random
 import six
 import enum
 
-DEBUG = True
+DEBUG = False
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,13 @@ class NodeType(enum.Enum):
 
     """A Note"""
     Note = 'NOTE'
+
     """A List"""
     List = 'LIST'
+
     """A List item"""
     ListItem = 'LIST_ITEM'
+
     """A blob"""
     Blob = 'BLOB'
 
@@ -35,8 +38,10 @@ class BlobType(enum.Enum):
 
     """Audio"""
     Audio = 'AUDIO'
+
     """Image"""
     Image = 'IMAGE'
+
     """Drawing"""
     Drawing = 'DRAWING'
 
@@ -45,26 +50,37 @@ class ColorValue(enum.Enum):
 
     """White"""
     White = 'DEFAULT'
+
     """Red"""
     Red = 'RED'
+
     """Orange"""
     Orange = 'ORANGE'
+
     """Yellow"""
     Yellow = 'YELLOW'
+
     """Green"""
     Green = 'GREEN'
+
     """Teal"""
     Teal = 'TEAL'
+
     """Blue"""
     Blue = 'BLUE'
+
     """Dark blue"""
     DarkBlue = 'CERULEAN'
+
     """Purple"""
     Purple = 'PURPLE'
+
     """Pink"""
     Pink = 'PINK'
+
     """Brown"""
     Brown = 'BROWN'
+
     """Gray"""
     Gray = 'GRAY'
 
@@ -73,18 +89,25 @@ class CategoryValue(enum.Enum):
 
     """Books"""
     Books = 'BOOKS'
+
     """Food"""
     Food = 'FOOD'
+
     """Movies"""
     Movies = 'MOVIES'
+
     """Music"""
     Music = 'MUSIC'
+
     """Places"""
     Places = 'PLACES'
+
     """Quotes"""
     Quotes = 'QUOTES'
+
     """Travel"""
     Travel = 'TRAVEL'
+
     """TV"""
     TV = 'TV'
 
@@ -93,6 +116,7 @@ class NewListItemPlacementValue(enum.Enum):
 
     """Top"""
     Top = 'TOP'
+
     """Bottom"""
     Bottom = 'BOTTOM'
 
@@ -101,6 +125,7 @@ class GraveyardStateValue(enum.Enum):
 
     """Expanded"""
     Expanded = 'EXPANDED'
+
     """Collapsed"""
     Collapsed = 'COLLAPSED'
 
@@ -1247,6 +1272,12 @@ class Blob(Node):
         super(Blob, self).__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
         self.blob = NodeBlob()
 
+    _blob_type_map = {
+        BlobType.Audio: NodeAudio,
+        BlobType.Image: NodeImage,
+        BlobType.Drawing: NodeDrawing,
+    }
+
     @classmethod
     def from_json(cls, raw):
         """Helper to construct a blob from a dict.
@@ -1259,14 +1290,9 @@ class Blob(Node):
         """
         cls = None
         _type = raw.get('type')
-        if _type == BlobType.Audio.value:
-            cls = NodeAudio
-        elif _type == BlobType.Image.value:
-            cls = NodeImage
-        elif _type == BlobType.Drawing.value:
-            cls = NodeDrawing
-
-        if cls is None:
+        try:
+            cls = BlobType(_type)
+        except ValueError:
             logger.warning('Unknown blob type: %s', _type)
             return None
         blob = cls()
@@ -1363,12 +1389,11 @@ class Label(Element, TimestampsMixin):
     def __str__(self):
         return self.name
 
-
 _type_map = {
     NodeType.Note: Note,
     NodeType.List: List,
     NodeType.ListItem: ListItem,
-    NodeType.Blob: Blob
+    NodeType.Blob: Blob,
 }
 
 def from_json(raw):
