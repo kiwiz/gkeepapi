@@ -38,20 +38,14 @@ class SyncException(KeepException):
     """Keep consistency error."""
     pass
 
-class API(object):
-    """Low level Google Keep API client. Mimics the Android Google Keep app.
-
-    You probably want to use :py:class:`Keep` instead.
-    """
-    API_URL = 'https://www.googleapis.com/notes/v1/'
-    RETRY_CNT = 2
-    def __init__(self):
-        self._session = requests.Session()
-        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.0'})
-        self._auth_token = None
+class APIAuth(object):
+    """Authentication token manager"""
+    def __init__(self, scopes):
         self._master_token = None
+        self._auth_token = None
         self._email = None
         self._android_id = None
+        self._scopes = scopes
 
     def login(self, email, password, android_id):
         """Authenticate to Google with the provided credentials.
@@ -74,7 +68,7 @@ class API(object):
         self.refresh()
         return True
 
-    def setToken(self, master_token):
+    def setMasterToken(self, master_token):
         """Sets the master token. This is useful if you'd like to authenticate
         with the API without providing your username & password.
         Do note that the master token has full access to your account.
@@ -84,13 +78,21 @@ class API(object):
         """
         self._master_token = master_token
 
-    def getToken(self):
+    def getMasterToken(self):
         """Gets the master token.
 
         Returns:
             str: The account master token.
         """
         return self._master_token
+
+    def getAuthToken(self):
+        """Gets the auth token.
+
+        Returns:
+            Union[str, None]: The auth token.
+        """
+        return self._auth_token
 
     def refresh(self):
         """Refresh the OAuth token.
@@ -100,7 +102,7 @@ class API(object):
         """
         res = gpsoauth.perform_oauth(
             self._email, self._master_token, self._android_id,
-            service='oauth2:https://www.googleapis.com/auth/memento',
+            service=self._scopes,
             app='com.google.android.keep',
             client_sig='38918a453d07199354f8b19af05ec6562ced5788'
         )
@@ -118,6 +120,23 @@ class API(object):
         self._email = None
         self._android_id = None
 
+class API(object):
+    """Base API wrapper"""
+    RETRY_CNT = 2
+    def __init__(self, base_url, auth=None):
+        self._session = requests.Session()
+        self._auth = auth
+        self._base_url = base_url
+        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.0'})
+
+    def setAuth(self, auth):
+        """Set authentication details for this API.
+
+        Args:
+            auth (APIAuth): The auth object
+        """
+        self._auth = auth
+
     def send(self, **req_kwargs):
         """Send an authenticated request to the Google Keep API.
         Automatically retries if the access token has expired.
@@ -132,14 +151,15 @@ class API(object):
             APIException: If the server returns an error.
             LoginException: If :py:meth:`login` has not been called.
         """
-        if self._auth_token is None:
+        auth_token = self._auth.getAuthToken()
+        if auth_token is None:
             raise LoginException('Not logged in')
 
         req_kwargs.setdefault('headers', {})
 
         i = 0
         while True:
-            req_kwargs['headers']['Authorization'] = 'OAuth ' + self._auth_token
+            req_kwargs['headers']['Authorization'] = 'OAuth ' + auth_token
 
             response = self._session.request(**req_kwargs).json()
             if 'error' not in response:
@@ -153,10 +173,20 @@ class API(object):
                 raise APIException(error['code'], error)
 
             logger.info('Refreshing access token')
-            self.refresh()
+            auth_token = self._auth.refresh()
             i += 1
 
         return response
+
+class KeepAPI(API):
+    """Low level Google Keep API client. Mimics the Android Google Keep app.
+
+    You probably want to use :py:class:`Keep` instead.
+    """
+    API_URL = 'https://www.googleapis.com/notes/v1/'
+
+    def __init__(self, auth=None):
+        super(KeepAPI, self).__init__(self.API_URL, auth)
 
     def changes(self, target_version=None, nodes=None, labels=None):
         """Sync up (and down) all changes.
@@ -211,7 +241,49 @@ class API(object):
         logger.debug('Syncing %d labels and %d nodes', len(labels), len(nodes))
 
         return self.send(
-            url=self.API_URL + 'changes',
+            url=self._base_url + 'changes',
+            method='POST',
+            json=params
+        )
+
+class RemindersAPI(API):
+    """Low level Google Reminders API client. Mimics the Android Google Keep app.
+
+    You probably want to use :py:class:`Keep` instead.
+    """
+    API_URL = 'https://www.googleapis.com/reminders/v1internal/reminders/'
+
+    def __init__(self, auth=None):
+        super(RemindersAPI, self).__init__(self.API_URL, auth)
+
+    def create(self):
+        params = {}
+        return self.send(
+            url=self._base_url + 'create',
+            method='POST',
+            json=params
+        )
+
+    def list(self):
+        params = {}
+        return self.send(
+            url=self._base_url + 'list',
+            method='POST',
+            json=params
+        )
+
+    def history(self):
+        params = {}
+        return self.send(
+            url=self._base_url + 'history',
+            method='POST',
+            json=params
+        )
+
+    def update(self):
+        params = {}
+        return self.send(
+            url=self._base_url + 'update',
             method='POST',
             json=params
         )
@@ -241,7 +313,8 @@ class Keep(object):
         keep.sync()
     """
     def __init__(self):
-        self._api = API()
+        self._keep_api = KeepAPI()
+        self._reminders_api = RemindersAPI()
         self._version = None
         self._labels = {}
         self._nodes = {}
@@ -259,9 +332,14 @@ class Keep(object):
         Raises:
             LoginException: If there was a problem logging in.
         """
-        ret = self._api.login(username, password, get_mac())
+        auth = APIAuth('oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders')
+
+        ret = auth.login(username, password, get_mac())
         if ret:
+            self._keep_api.setAuth(auth)
+            self._reminders_api.setAuth(auth)
             self.sync()
+
         return ret
 
     def get(self, node_id):
@@ -450,7 +528,7 @@ class Keep(object):
             logger.debug('Starting sync: %s', self._version)
 
             labels_updated = any((i.dirty for i in self._labels.values()))
-            changes = self._api.changes(
+            changes = self._keep_api.changes(
                 target_version=self._version,
                 nodes=[i.save() for i in self._findDirtyNodes()],
                 labels=[i.save() for i in self._labels.values()] if labels_updated else None,
