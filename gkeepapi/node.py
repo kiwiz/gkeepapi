@@ -132,6 +132,9 @@ class GraveyardStateValue(enum.Enum):
 class CheckedListItemsPolicyValue(enum.Enum):
     """Unknown"""
 
+    """Default"""
+    Default = 'DEFAULT'
+
     """Graveyard"""
     Graveyard = 'GRAVEYARD'
 
