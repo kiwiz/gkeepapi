@@ -1271,15 +1271,15 @@ class NodeDrawing(NodeBlob):
 
 class Blob(Node):
     """Represents a Google Keep blob."""
-    def __init__(self, parent_id=None, **kwargs):
-        super(Blob, self).__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
-        self.blob = NodeBlob()
-
     _blob_type_map = {
         BlobType.Audio: NodeAudio,
         BlobType.Image: NodeImage,
         BlobType.Drawing: NodeDrawing,
     }
+
+    def __init__(self, parent_id=None, **kwargs):
+        super(Blob, self).__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
+        self.blob = NodeBlob()
 
     @classmethod
     def from_json(cls, raw):
@@ -1294,7 +1294,7 @@ class Blob(Node):
         cls = None
         _type = raw.get('type')
         try:
-            cls = BlobType(_type)
+            cls = self._blob_type_map[BlobType(_type)]
         except ValueError:
             logger.warning('Unknown blob type: %s', _type)
             return None
