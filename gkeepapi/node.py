@@ -1294,7 +1294,7 @@ class Blob(Node):
         cls = None
         _type = raw.get('type')
         try:
-            cls = self._blob_type_map[BlobType(_type)]
+            cls = Blob._blob_type_map[BlobType(_type)]
         except ValueError:
             logger.warning('Unknown blob type: %s', _type)
             return None
