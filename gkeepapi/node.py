@@ -403,7 +403,7 @@ class NodeAnnotations(Element):
         Returns:
             Node: An Annotation object or None.
         """
-        cls = None
+        bcls = None
         if 'webLink' in raw:
             cls = WebLink
         elif 'topicCategory' in raw:
@@ -1291,14 +1291,14 @@ class Blob(Node):
         Returns:
             NodeBlob: A NodeBlob object or None.
         """
-        cls = None
+        bcls = None
         _type = raw.get('type')
         try:
-            cls = Blob._blob_type_map[BlobType(_type)]
+            bcls = cls._blob_type_map[BlobType(_type)]
         except ValueError:
             logger.warning('Unknown blob type: %s', _type)
             return None
-        blob = cls()
+        blob = bcls()
         blob.load(raw)
         return blob
 
@@ -1408,14 +1408,14 @@ def from_json(raw):
     Returns:
         Node: A Node object or None.
     """
-    cls = None
+    ncls = None
     _type = raw.get('type')
     try:
-        cls = _type_map[NodeType(_type)]
+        ncls = _type_map[NodeType(_type)]
     except ValueError:
         logger.warning('Unknown node type: %s', _type)
         return None
-    node = cls()
+    node = ncls()
     node.load(raw)
     return node
 
