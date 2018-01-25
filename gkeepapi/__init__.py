@@ -127,7 +127,7 @@ class API(object):
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
-        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.0'})
+        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.1'})
 
     def setAuth(self, auth):
         """Set authentication details for this API.
