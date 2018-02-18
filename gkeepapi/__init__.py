@@ -97,6 +97,9 @@ class APIAuth(object):
     def refresh(self):
         """Refresh the OAuth token.
 
+        Returns:
+            string: The auth token.
+
         Raises:
             LoginException: If there was a problem refreshing the OAuth token.
         """
@@ -111,7 +114,7 @@ class APIAuth(object):
                 raise LoginException(res.get('Error'))
 
         self._auth_token = res['Auth']
-        return True
+        return self._auth_token
 
     def logout(self):
         """Log out of the account."""
@@ -127,7 +130,7 @@ class API(object):
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
-        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.1'})
+        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.2'})
 
     def setAuth(self, auth):
         """Set authentication details for this API.
@@ -376,7 +379,7 @@ class Keep(object):
         Args:
             query (Union[_sre.SRE_Pattern, str, None]): A str or regular expression to match against the title and text.
             func (Union[callable, None]): A filter function.
-            labels (Union[List[str], None]): A list of label ids to match.
+            labels (Union[List[str], None]): A list of label ids or objects to match.
             colors (Union[List[str], None]): A list of colors to match.
             pinned (Union[bool, None]): Whether to match pinned notes.
             archived (Union[bool, None]): Whether to match archived notes.
@@ -385,6 +388,9 @@ class Keep(object):
         Return:
             List[gkeepapi.node.TopLevelNode]: Results.
         """
+        if labels is not None:
+            labels = [i.id if isinstance(i, _node.Label) else i for i in labels]
+
         return (node for node in self.all() if
             (query is None or (
                 (isinstance(query, six.string_types) and (query in node.title or query in node.text)) or
