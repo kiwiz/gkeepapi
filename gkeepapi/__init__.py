@@ -442,7 +442,6 @@ class Keep(object):
             node.title = title
         for text, checked in items:
             node.add(text, checked)
-            node.text = text
         self.add(node)
         return node
 
