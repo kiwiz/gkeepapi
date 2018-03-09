@@ -191,6 +191,16 @@ class KeepAPI(API):
     def __init__(self, auth=None):
         super(KeepAPI, self).__init__(self.API_URL, auth)
 
+        create_time = time.time()
+        self._session_id = self._generateId(create_time)
+
+    @classmethod
+    def _generateId(cls, tz):
+        return 's--%d--%d' % (
+            int(tz * 1000),
+            random.randint(1000000000, 9999999999)
+        )
+
     def changes(self, target_version=None, nodes=None, labels=None):
         """Sync up (and down) all changes.
 
@@ -210,9 +220,20 @@ class KeepAPI(API):
         if labels is None:
             labels = []
 
+        current_time = time.time()
+
         params = {
             'nodes': nodes,
             'requestHeader': {
+                'clientTimestamp': _node.NodeTimestamps.int_to_str(current_time),
+                'clientSessionId': self._session_id,
+                'clientPlatform': 'ANDROID',
+                'clientVersion': {
+                    'major': '9',
+                    'minor': '9',
+                    'build': '9',
+                    'revision': '9'
+                },
                 'capabilities': [
                     {'type': 'NC'}, # Color support (Send note color)
                     {'type': 'PI'}, # Pinned support (Send note pinned)
