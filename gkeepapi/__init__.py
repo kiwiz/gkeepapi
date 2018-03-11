@@ -5,6 +5,8 @@
 
 import logging
 import re
+import time
+import random
 
 from uuid import getnode as get_mac
 
@@ -224,8 +226,8 @@ class KeepAPI(API):
 
         params = {
             'nodes': nodes,
+            'clientTimestamp': _node.NodeTimestamps.int_to_str(current_time),
             'requestHeader': {
-                'clientTimestamp': _node.NodeTimestamps.int_to_str(current_time),
                 'clientSessionId': self._session_id,
                 'clientPlatform': 'ANDROID',
                 'clientVersion': {
