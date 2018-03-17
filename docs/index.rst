@@ -269,6 +269,13 @@ All notes and lists have a `NodeTimestamps` object with timestamp data::
 
 These timestamps are all modifiable, but are automatically managed by the client.
 
+Debug
+=====
+
+To enable development debug logs::
+
+    gkeepapi.node.DEBUG = True
+
 Indices and tables
 ==================
 
