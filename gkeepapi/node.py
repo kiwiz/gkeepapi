@@ -848,7 +848,7 @@ class Node(Element, TimestampsMixin):
         self.server_id = raw['serverId'] if 'serverId' in raw else self.server_id
         self.parent_id = raw['parentId']
         self._sort = raw['sortValue'] if 'sortValue' in raw else self.sort
-        self._version = raw['baseVersion']
+        self._version = raw['baseVersion']  if 'baseVersion' in raw else self._version
         self._text = raw['text'] if 'text' in raw else self._text
         self.timestamps.load(raw['timestamps'])
         self.settings.load(raw['nodeSettings'])
