@@ -269,6 +269,13 @@ All notes and lists have a `NodeTimestamps` object with timestamp data::
 
 These timestamps are all modifiable, but are automatically managed by the client.
 
+FAQ
+===
+
+1. I get a "NeedsBrowser" `APIException` when I try to log in.
+
+Your account probably has Two Factor enabled. To get around this, you'll need to generate an App Password for your Google account.
+
 Debug
 =====
 
