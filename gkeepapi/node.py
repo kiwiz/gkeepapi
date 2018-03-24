@@ -14,6 +14,8 @@ import random
 import six
 import enum
 
+import exception
+
 DEBUG = False
 
 logger = logging.getLogger(__name__)
@@ -843,6 +845,9 @@ class Node(Element, TimestampsMixin):
         NodeType(raw['type'])
         if raw['kind'] not in ['notes#node']:
             logger.warning('Unknown node kind: %s', raw['kind'])
+
+        if 'mergeConflict' in raw:
+            raise exception.MergeException(raw)
 
         self.id = raw['id']
         self.server_id = raw['serverId'] if 'serverId' in raw else self.server_id

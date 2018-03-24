@@ -15,30 +15,9 @@ import gpsoauth
 import requests
 
 from . import node as _node
+import exception
 
 logger = logging.getLogger('keep')
-
-class APIException(Exception):
-    """The API server returned an error."""
-    def __init__(self, code, msg):
-        super(APIException, self).__init__(msg)
-        self.code = code
-
-class KeepException(Exception):
-    """Generic Keep error."""
-    pass
-
-class LoginException(KeepException):
-    """Login exception."""
-    pass
-
-class LabelException(KeepException):
-    """Keep label error."""
-    pass
-
-class SyncException(KeepException):
-    """Keep consistency error."""
-    pass
 
 class APIAuth(object):
     """Authentication token manager"""
@@ -64,7 +43,7 @@ class APIAuth(object):
         self._android_id = android_id
         res = gpsoauth.perform_master_login(self._email, password, self._android_id)
         if 'Token' not in res:
-            raise LoginException(res.get('Error'), res.get('ErrorDetail'))
+            raise exception.LoginException(res.get('Error'), res.get('ErrorDetail'))
         self._master_token = res['Token']
 
         self.refresh()
@@ -113,7 +92,7 @@ class APIAuth(object):
         )
         if 'Auth' not in res:
             if 'Token' not in res:
-                raise LoginException(res.get('Error'))
+                raise exception.LoginException(res.get('Error'))
 
         self._auth_token = res['Auth']
         return self._auth_token
@@ -158,7 +137,7 @@ class API(object):
         """
         auth_token = self._auth.getAuthToken()
         if auth_token is None:
-            raise LoginException('Not logged in')
+            raise exception.LoginException('Not logged in')
 
         req_kwargs.setdefault('headers', {})
 
@@ -172,10 +151,10 @@ class API(object):
 
             error = response['error']
             if error['code'] != 401:
-                raise APIException(error['code'], error)
+                raise exception.APIException(error['code'], error)
 
             if i >= self.RETRY_CNT:
-                raise APIException(error['code'], error)
+                raise exception.APIException(error['code'], error)
 
             logger.info('Refreshing access token')
             auth_token = self._auth.refresh()
@@ -391,7 +370,7 @@ class Keep(object):
             SyncException: If the parent node is not found.
         """
         if node.parent_id != _node.Root.ID:
-            raise SyncException('Not a top level node')
+            raise exception.SyncException('Not a top level node')
 
         self._nodes[node.id] = node
         self._nodes[node.parent_id].append(node, False)
@@ -482,7 +461,7 @@ class Keep(object):
         """
         name = name.lower()
         if name in self._labels:
-            raise LabelException('Label exists')
+            raise exception.LabelException('Label exists')
         node = _node.Label()
         node.name = name
         self._labels[node.id] = node
@@ -563,7 +542,7 @@ class Keep(object):
             )
 
             if changes.get('forceFullResync'):
-                raise SyncException('Full resync required')
+                raise exception.SyncException('Full resync required')
 
             if 'userInfo' in changes:
                 self._parseUserInfo(changes['userInfo'])
