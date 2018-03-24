@@ -15,7 +15,7 @@ import gpsoauth
 import requests
 
 from . import node as _node
-import exception
+from . import exception
 
 logger = logging.getLogger('keep')
 

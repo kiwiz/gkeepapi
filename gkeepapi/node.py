@@ -14,7 +14,7 @@ import random
 import six
 import enum
 
-import exception
+from . import exception
 
 DEBUG = False
 
@@ -847,6 +847,9 @@ class Node(Element, TimestampsMixin):
             logger.warning('Unknown node kind: %s', raw['kind'])
 
         if 'mergeConflict' in raw:
+            raise exception.MergeException(raw)
+
+        if 'moved' in raw:
             raise exception.MergeException(raw)
 
         self.id = raw['id']
