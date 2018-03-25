@@ -832,6 +832,9 @@ class Node(Element, TimestampsMixin):
         self.settings = NodeSettings()
         self.annotations = NodeAnnotations()
 
+        # Set if there is no baseVersion in the raw data
+        self.moved = False
+
     @classmethod
     def _generateId(cls, tz):
         return '%x.%016x' % (
@@ -849,18 +852,17 @@ class Node(Element, TimestampsMixin):
         if 'mergeConflict' in raw:
             raise exception.MergeException(raw)
 
-        if 'moved' in raw:
-            raise exception.MergeException(raw)
-
         self.id = raw['id']
         self.server_id = raw['serverId'] if 'serverId' in raw else self.server_id
         self.parent_id = raw['parentId']
         self._sort = raw['sortValue'] if 'sortValue' in raw else self.sort
-        self._version = raw['baseVersion']  if 'baseVersion' in raw else self._version
+        self._version = raw['baseVersion'] if 'baseVersion' in raw else self._version
         self._text = raw['text'] if 'text' in raw else self._text
         self.timestamps.load(raw['timestamps'])
         self.settings.load(raw['nodeSettings'])
         self.annotations.load(raw['annotationsGroup'])
+
+        self.moved = 'moved' in raw
 
     def save(self):
         ret = super(Node, self).save()
@@ -869,7 +871,8 @@ class Node(Element, TimestampsMixin):
         ret['type'] = self.type.value
         ret['parentId'] = self.parent_id
         ret['sortValue'] = self._sort
-        ret['baseVersion'] = self._version
+        if not self.moved:
+            ret['baseVersion'] = self._version
         ret['text'] = self._text
         if self.server_id is not None:
             ret['serverId'] = self.server_id
@@ -1212,7 +1215,6 @@ class NodeBlob(Element):
         self._blob_id = None
         self._media_id = None
         self._mimetype = ''
-        self._byte_size = 0
         self._is_uploaded = False
 
     def load(self, raw):
@@ -1222,7 +1224,6 @@ class NodeBlob(Element):
         self._blob_id = raw.get('blob_id')
         self._media_id = raw.get('media_id')
         self._mimetype = raw.get('mimetype')
-        self._byte_size = raw['byte_size']
 
     def save(self):
         ret = super(NodeBlob, self).save()
@@ -1231,7 +1232,6 @@ class NodeBlob(Element):
         if self._media_id is not None:
             ret['media_id'] = self._media_id
         ret['mimetype'] = self._mimetype
-        ret['byte_size'] = self._byte_size
         return ret
 
 class NodeAudio(NodeBlob):
