@@ -825,7 +825,7 @@ class Node(Element, TimestampsMixin):
         self.parent_id = parent_id
         self.type = type_
         self._sort = random.randint(1000000000, 9999999999)
-        self._version = 1
+        self._version = 0
         self._text = ''
         self._children = {}
         self.timestamps = NodeTimestamps(create_time)
@@ -862,8 +862,6 @@ class Node(Element, TimestampsMixin):
         self.settings.load(raw['nodeSettings'])
         self.annotations.load(raw['annotationsGroup'])
 
-        self.moved = 'moved' in raw
-
     def save(self):
         ret = super(Node, self).save()
         ret['id'] = self.id
@@ -871,7 +869,7 @@ class Node(Element, TimestampsMixin):
         ret['type'] = self.type.value
         ret['parentId'] = self.parent_id
         ret['sortValue'] = self._sort
-        if not self.moved:
+        if not self.moved and self._version > 0:
             ret['baseVersion'] = self._version
         ret['text'] = self._text
         if self.server_id is not None:
@@ -1021,6 +1019,8 @@ class TopLevelNode(Node):
         self._pinned = raw['isPinned'] if 'isPinned' in raw else False
         self._title = raw['title']
         self.labels.load(raw['labelIds'] if 'labelIds' in raw else [])
+
+        self.moved = 'moved' in raw
 
     def save(self):
         ret = super(TopLevelNode, self).save()

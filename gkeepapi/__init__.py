@@ -544,6 +544,9 @@ class Keep(object):
             if changes.get('forceFullResync'):
                 raise exception.SyncException('Full resync required')
 
+            if changes.get('upgradeRecommended'):
+                raise exception.SyncException('Upgrade recommended')
+
             if 'userInfo' in changes:
                 self._parseUserInfo(changes['userInfo'])
 
