@@ -3,6 +3,8 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
+__version__ = '0.10.5'
+
 import logging
 import re
 import time
@@ -111,7 +113,7 @@ class API(object):
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
-        self._session.headers.update({'User-Agent': 'gkeepapi/0.10.4'})
+        self._session.headers.update({'User-Agent': 'gkeepapi/' + __version__})
 
     def setAuth(self, auth):
         """Set authentication details for this API.
