@@ -395,6 +395,9 @@ class NodeAnnotations(Element):
         super(NodeAnnotations, self).__init__()
         self._annotations = {}
 
+    def __len__(self):
+        return len(self._annotations)
+
     @classmethod
     def from_json(cls, raw):
         """Helper to construct an annotation from a dict.
@@ -728,6 +731,9 @@ class NodeLabels(Element):
     def __init__(self):
         super(NodeLabels, self).__init__()
         self._labels = {}
+
+    def __len__(self):
+        return len(self._labels)
 
     def load(self, raw):
         super(NodeLabels, self).load(raw)
