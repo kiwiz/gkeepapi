@@ -856,7 +856,7 @@ class Node(Element, TimestampsMixin):
         self.server_id = raw['serverId'] if 'serverId' in raw else self.server_id
         self.parent_id = raw['parentId']
         self._sort = raw['sortValue'] if 'sortValue' in raw else self.sort
-        self._version = raw['baseVersion'] if 'baseVersion' in raw else self._version
+        self._version = int(raw['baseVersion']) if 'baseVersion' in raw else self._version
         self._text = raw['text'] if 'text' in raw else self._text
         self.timestamps.load(raw['timestamps'])
         self.settings.load(raw['nodeSettings'])
@@ -870,7 +870,7 @@ class Node(Element, TimestampsMixin):
         ret['parentId'] = self.parent_id
         ret['sortValue'] = self._sort
         if not self.moved and self._version > 0:
-            ret['baseVersion'] = self._version
+            ret['baseVersion'] = str(self._version)
         ret['text'] = self._text
         if self.server_id is not None:
             ret['serverId'] = self.server_id

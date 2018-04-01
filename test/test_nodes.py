@@ -243,6 +243,21 @@ class NodeTests(unittest.TestCase):
         self.assertTrue(n.dirty)
         # FIXME: Node is not done
 
+    def test_baseversion(self):
+        n = node.Node(type_=node.NodeType.List)
+        clean_node(n)
+        raw_n = n.save()
+
+        # simulate an upstream version (already existing) which is a string value
+        # presumably this will be an integer, but is that a safe assumption always?
+        raw_n['baseVersion'] = '99'
+
+        n.load(raw_n)
+        saved_n = n.save() # Verify that we handle our internal int rep -> string
+
+        self.assertEqual(saved_n['baseVersion'], '99')
+        
+
 class TestElement(node.Element, node.TimestampsMixin):
     def __init__(self):
         super(TestElement, self).__init__()
