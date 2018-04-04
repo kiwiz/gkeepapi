@@ -831,7 +831,7 @@ class Node(Element, TimestampsMixin):
         self.parent_id = parent_id
         self.type = type_
         self._sort = random.randint(1000000000, 9999999999)
-        self._version = 0
+        self._version = None
         self._text = ''
         self._children = {}
         self.timestamps = NodeTimestamps(create_time)
@@ -875,7 +875,7 @@ class Node(Element, TimestampsMixin):
         ret['type'] = self.type.value
         ret['parentId'] = self.parent_id
         ret['sortValue'] = self._sort
-        if not self.moved and self._version > 0:
+        if not self.moved and self._version is not None:
             ret['baseVersion'] = self._version
         ret['text'] = self._text
         if self.server_id is not None:
