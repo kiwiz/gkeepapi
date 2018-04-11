@@ -319,6 +319,8 @@ class Keep(object):
 
         keep.sync()
     """
+    OAUTH_SCOPES = 'oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders'
+
     def __init__(self):
         self._keep_api = KeepAPI()
         self._reminders_api = RemindersAPI()
@@ -330,7 +332,7 @@ class Keep(object):
         self._nodes[_node.Root.ID] = root_node
 
     def login(self, username, password):
-        """Authenticate to Google with the provided credentials.
+        """Authenticate to Google with the provided credentials & sync.
 
         Args:
             email (str): The account to use.
@@ -339,15 +341,25 @@ class Keep(object):
         Raises:
             LoginException: If there was a problem logging in.
         """
-        auth = APIAuth('oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders')
+        auth = APIAuth(self.OAUTH_SCOPES)
 
         ret = auth.login(username, password, get_mac())
         if ret:
-            self._keep_api.setAuth(auth)
-            self._reminders_api.setAuth(auth)
-            self.sync()
+            self.load(auth)
 
         return ret
+
+    def load(self, auth):
+        """Authenticate to Google with a prepared authentication object & sync.
+        Args:
+            auth (APIAuth): Authentication object.
+
+        Raises:
+            LoginException: If there was a problem logging in.
+        """
+        self._keep_api.setAuth(auth)
+        self._reminders_api.setAuth(auth)
+        self.sync()
 
     def get(self, node_id):
         """Get a note with the given ID.
