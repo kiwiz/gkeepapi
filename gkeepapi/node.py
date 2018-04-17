@@ -1309,7 +1309,7 @@ class Blob(Node):
         _type = raw.get('type')
         try:
             bcls = cls._blob_type_map[BlobType(_type)]
-        except ValueError:
+        except KeyError:
             logger.warning('Unknown blob type: %s', _type)
             return None
         blob = bcls()
@@ -1426,7 +1426,7 @@ def from_json(raw):
     _type = raw.get('type')
     try:
         ncls = _type_map[NodeType(_type)]
-    except ValueError:
+    except KeyError:
         logger.warning('Unknown node type: %s', _type)
         return None
     node = ncls()
