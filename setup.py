@@ -64,6 +64,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'gpsoauth >= 0.4.1',
-        'six >= 1.11.0'
+        'six >= 1.11.0',
+        "enum34 >= 1.1.6; python_version < '3.0'"
     ],
 )
