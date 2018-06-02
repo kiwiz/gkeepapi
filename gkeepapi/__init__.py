@@ -262,6 +262,20 @@ class RemindersAPI(API):
 
     def __init__(self, auth=None):
         super(RemindersAPI, self).__init__(self.API_URL, auth)
+        self.static_params = {
+            "taskList": [
+                {"systemListId": "MEMENTO"},
+            ],
+            "requestParameters": {
+                "userAgentStructured": {
+                    "clientApplication": "KEEP",
+                    "clientApplicationVersion": {
+                        "major": "9", "minor": "9.9.9.9",
+                    },
+                    "clientPlatform": "ANDROID",
+                },
+            },
+        }
 
     def create(self):
         params = {}
@@ -271,16 +285,49 @@ class RemindersAPI(API):
             json=params
         )
 
-    def list(self):
+    def list(self, master=True):
         params = {}
+        params.update(self.static_params)
+
+        if master:
+            params.update({
+                "recurrenceOptions": {
+                    "collapseMode": "MASTER_ONLY",
+                },
+                "includeArchived": True,
+                "includeDeleted": False,
+            })
+        else:
+            current_time = time.time()
+            start_time = int((current_time - (365 * 24 * 60 * 60)) * 1000)
+            end_time = int((current_time + (24 * 60 * 60)) * 1000)
+
+            params.update({
+                "recurrenceOptions": {
+                    "collapseMode":"INSTANCES_ONLY",
+                    "recurrencesOnly": True,
+                },
+                "includeArchived": False,
+                "includeCompleted": False,
+                "includeDeleted": False,
+                "dueAfterMs": start_time,
+                "dueBeforeMs": end_time,
+                "recurrenceId": [],
+            })
+
         return self.send(
             url=self._base_url + 'list',
             method='POST',
             json=params
         )
 
-    def history(self):
-        params = {}
+    def history(self, storage_version):
+        params = {
+            "storageVersion": storage_version,
+            "includeSnoozePresetUpdates": True,
+        }
+        params.update(self.static_params)
+
         return self.send(
             url=self._base_url + 'history',
             method='POST',
@@ -324,7 +371,16 @@ class Keep(object):
     def __init__(self):
         self._keep_api = KeepAPI()
         self._reminders_api = RemindersAPI()
-        self._version = None
+        self._keep_version = None
+        self._reminder_version = None
+        self._labels = {}
+        self._nodes = {}
+
+        self._clear()
+
+    def _clear(self):
+        self._keep_version = None
+        self._reminder_version = None
         self._labels = {}
         self._nodes = {}
 
@@ -359,7 +415,7 @@ class Keep(object):
         """
         self._keep_api.setAuth(auth)
         self._reminders_api.setAuth(auth)
-        self.sync()
+        self.sync(True)
 
     def get(self, node_id):
         """Get a note with the given ID.
@@ -539,18 +595,37 @@ class Keep(object):
         """
         return self._nodes[_node.Root.ID].children
 
-    def sync(self):
-        """Sync the local Keep tree with the server. Local changes to notes and labels will be detected and synced up.
+    def sync(self, resync=False):
+        """Sync the local Keep tree with the server. If resyncing, local changes will be detroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
+
+        Args:
+            resync (bool): Whether to resync data.
 
         Raises:
             SyncException: If there is a consistency issue.
         """
+        if resync:
+            self._clear()
+
         while True:
-            logger.debug('Starting sync: %s', self._version)
+            logger.debug('Starting reminder sync: %s', self._reminder_version)
+            changes = self._reminders_api.list()
+
+            if 'task' in changes:
+                self._parseTasks(changes['task'])
+
+            self._reminder_version = changes['storageVersion']
+            logger.debug('Finishing sync: %s', self._reminder_version)
+            history = self._reminders_api.history(self._reminder_version)
+            if self._reminder_version == history['highestStorageVersion']:
+                break
+
+        while True:
+            logger.debug('Starting keep sync: %s', self._keep_version)
 
             labels_updated = any((i.dirty for i in self._labels.values()))
             changes = self._keep_api.changes(
-                target_version=self._version,
+                target_version=self._keep_version,
                 nodes=[i.save() for i in self._findDirtyNodes()],
                 labels=[i.save() for i in self._labels.values()] if labels_updated else None,
             )
@@ -567,13 +642,16 @@ class Keep(object):
             if 'nodes' in changes:
                 self._parseNodes(changes['nodes'])
 
-            self._version = changes['toVersion']
-            logger.debug('Finishing sync: %s', self._version)
+            self._keep_version = changes['toVersion']
+            logger.debug('Finishing sync: %s', self._keep_version)
             if not changes['truncated']:
                 break
 
         if _node.DEBUG:
             self._clean()
+
+    def _parseTasks(self, raw):
+        pass
 
     def _parseNodes(self, raw):
         updated_nodes = []
