@@ -1335,7 +1335,6 @@ class Label(Element, TimestampsMixin):
         self.id = self._generateId(create_time)
         self._name = ''
         self.timestamps = NodeTimestamps(create_time)
-        self._revision = 0
         self._merged = NodeTimestamps.int_to_dt(0)
 
     @classmethod
@@ -1350,7 +1349,6 @@ class Label(Element, TimestampsMixin):
         self.id = raw['mainId']
         self._name = raw['name']
         self.timestamps.load(raw['timestamps'])
-        self._revision = raw['revision']
         self._merged = NodeTimestamps.str_to_dt(raw['lastMerged']) if 'lastMerged' in raw else NodeTimestamps.int_to_dt(0)
 
     def save(self):
@@ -1358,7 +1356,6 @@ class Label(Element, TimestampsMixin):
         ret['mainId'] = self.id
         ret['name'] = self._name
         ret['timestamps'] = self.timestamps.save()
-        ret['revision'] = self._revision
         ret['lastMerged'] = NodeTimestamps.dt_to_str(self._merged)
         return ret
 
@@ -1375,15 +1372,6 @@ class Label(Element, TimestampsMixin):
     def name(self, value):
         self._name = value
         self.touch(True)
-
-    @property
-    def revision(self):
-        """Get the revision.
-
-        Returns:
-            int: Revision.
-        """
-        return self._revision
 
     @property
     def merged(self):
