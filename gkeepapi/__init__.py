@@ -546,7 +546,7 @@ class Keep(object):
         Returns:
             Union[gkeepapi.node.Label, None]: The label.
         """
-        if (isinstance(query, six.string_types):
+        if isinstance(query, six.string_types):
             query = query.lower()
 
         for label in self._labels.values():
