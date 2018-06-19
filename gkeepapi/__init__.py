@@ -529,8 +529,7 @@ class Keep(object):
         Raises:
             LabelException: If the label exists.
         """
-        name = name.lower()
-        if name in self._labels:
+        if self.findLabel(name):
             raise exception.LabelException('Label exists')
         node = _node.Label()
         node.name = name
@@ -547,8 +546,11 @@ class Keep(object):
         Returns:
             Union[gkeepapi.node.Label, None]: The label.
         """
+        if (isinstance(query, six.string_types):
+            query = query.lower()
+
         for label in self._labels.values():
-            if (isinstance(query, six.string_types) and query == label.name) or \
+            if (isinstance(query, six.string_types) and query == label.name.lower()) or \
                 (isinstance(query, re._pattern_type) and query.search(label.name)): # pylint: disable=protected-access
                 return label
 
