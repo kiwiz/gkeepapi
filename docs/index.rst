@@ -140,6 +140,12 @@ Retrieving the content of a list is slightly more nuanced as they contain multip
     # ListItem objects
     glistitems = glist.items
 
+    # Checked ListItems
+    cglistitems = glist.checked
+
+    # Unchecked ListItems
+    uglistitems = glist.unchecked
+
 Setting Note content
 ^^^^^^^^^^^^^^^^^^^^
 

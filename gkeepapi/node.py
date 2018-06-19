@@ -13,6 +13,7 @@ import time
 import random
 import six
 import enum
+import operator
 
 from . import exception
 
@@ -1167,6 +1168,16 @@ class List(TopLevelNode):
     def text(self):
         return '\n'.join((six.text_type(node) for node in self.children))
 
+    def _items(self, checked=None):
+        i = [node for node in self.children
+            if isinstance(node, ListItem) and not node.deleted and (checked is None or node.checked == checked)
+        ]
+        i.sort(key=operator.attrgetter('sort'))
+        return i
+
+    def __str__(self):
+        return '\n'.join(([self.title] + [six.text_type(node) for node in self.items]))
+
     @property
     def items(self):
         """Get all listitems.
@@ -1174,10 +1185,25 @@ class List(TopLevelNode):
         Returns:
             list[gkeepapi.node.ListItem]: List items.
         """
-        return [node for node in self.children if isinstance(node, ListItem) and not node.deleted]
+        return self._items()
 
-    def __str__(self):
-        return '\n'.join(([self.title] + [six.text_type(node) for node in self.items]))
+    @property
+    def checked(self):
+        """Get all checked listitems.
+
+        Returns:
+            list[gkeepapi.node.ListItem]: List items.
+        """
+        return self._items(True)
+
+    @property
+    def unchecked(self):
+        """Get all unchecked listitems.
+
+        Returns:
+            list[gkeepapi.node.ListItem]: List items.
+        """
+        return self._items(False)
 
 class ListItem(Node):
     """Represents a Google Keep listitem.
