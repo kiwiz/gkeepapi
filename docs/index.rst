@@ -42,7 +42,7 @@ Note: For accounts with Twofactor, you'll need to generate an app password.
 Syncing
 -------
 
-gkeepapi automatically pulls down all notes after login. After making any local modifications to notes, make sure to call :py:meth:`Keep.sync` to update them on the server!::
+gkeepapi automatically pulls down all notes after login. It takes care of refreshing API tokens, so there's no need to call :py:meth:`Keep.login` again. After making any local modifications to notes, make sure to call :py:meth:`Keep.sync` to update them on the server!::
 
     keep.sync()
 
