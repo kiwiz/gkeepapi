@@ -1103,7 +1103,7 @@ class TopLevelNode(Node):
         Returns:
             str: Google Keep url.
         """
-        return 'https://keep.google.com/u/0/#' + self._TYPE + '/' + self.id
+        return 'https://keep.google.com/u/0/#' + self._TYPE.value + '/' + self.id
 
     @property
     def dirty(self):
