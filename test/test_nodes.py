@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 import logging
 
@@ -25,9 +26,11 @@ class AnnotationTests(unittest.TestCase):
         a, b = generate_save_load(node.Annotation)
         self.assertEqual(a, b)
 
+        # Test WebLink
         a, b = generate_save_load(node.WebLink)
         self.assertEqual(a, b)
 
+        # Test Category
         def Category():
             c = node.Category()
             c.category = node.CategoryValue.Books
@@ -35,146 +38,191 @@ class AnnotationTests(unittest.TestCase):
         a, b = generate_save_load(Category)
         self.assertEqual(a, b)
 
-    def test_weblink_dirty(self):
+    def test_weblink_fields(self):
         n = node.WebLink()
 
-        clean_node(n)
-        n.title = ''
-        self.assertTrue(n.dirty)
+        TITLE = 'Title'
+        URL = 'https://url.url'
+        IMAGEURL = 'https://img.url'
+        PROVENANCEURL = 'https://provenance.url'
+        DESCRIPTION = 'Description'
 
         clean_node(n)
-        n.url = ''
+        n.title = TITLE
         self.assertTrue(n.dirty)
+        self.assertEqual(TITLE, n.title)
 
         clean_node(n)
-        n.image_url = None
+        n.url = URL
         self.assertTrue(n.dirty)
+        self.assertEqual(URL, n.url)
 
         clean_node(n)
-        n.provenance_url = ''
+        n.image_url = IMAGEURL
         self.assertTrue(n.dirty)
+        self.assertEqual(IMAGEURL, n.image_url)
 
         clean_node(n)
-        n.description = ''
+        n.provenance_url = PROVENANCEURL
         self.assertTrue(n.dirty)
+        self.assertEqual(PROVENANCEURL, n.provenance_url)
 
-    def test_category(self):
+        clean_node(n)
+        n.description = DESCRIPTION
+        self.assertTrue(n.dirty)
+        self.assertEqual(DESCRIPTION, n.description)
+
+    def test_category_fields(self):
         n = node.Category()
-        n.category = node.CategoryValue.Books
+        n.category = node.CategoryValue.TV
+
+        CATEGORY = node.CategoryValue.Books
 
         clean_node(n)
-        n.category = None
+        n.category = CATEGORY
         self.assertTrue(n.dirty)
+        self.assertEqual(CATEGORY, n.category)
 
-    def test_taskassist(self):
+    def test_taskassist_fields(self):
         n = node.TaskAssist()
 
+        SUGGEST = 'UNKNOWN'
+
         clean_node(n)
-        n.suggest = None
+        n.suggest = SUGGEST
         self.assertTrue(n.dirty)
+        self.assertEqual(SUGGEST, n.suggest)
 
 class NodeAnnotationsTests(unittest.TestCase):
     def test_save_load(self):
         a, b = generate_save_load(node.NodeAnnotations)
         self.assertEqual(a, b)
 
-    def test_category(self):
+    def test_fields(self):
         n = node.NodeAnnotations()
-        self.assertIsNone(n.category)
 
-        n.category = node.CategoryValue.Books
-        self.assertEqual(n.category, node.CategoryValue.Books)
-
-    def test_dirty(self):
-        n = node.NodeAnnotations()
+        CATEGORY = node.CategoryValue.Books
+        CATEGORY_2 = node.CategoryValue.TV
 
         clean_node(n)
         n.category = None
         self.assertTrue(n.dirty)
+        self.assertEqual(None, n.category)
 
         sub = node.Category()
-        sub.category = node.CategoryValue.Books
+        sub.category = CATEGORY
         clean_node(sub)
 
         clean_node(n)
         n.append(sub)
         self.assertTrue(n.dirty)
+        self.assertEqual(CATEGORY, n.category)
 
         clean_node(n)
-        sub.category = node.CategoryValue.TV
+        sub.category = CATEGORY_2
         self.assertTrue(n.dirty)
+        self.assertEqual(CATEGORY_2, n.category)
 
         clean_node(n)
         n.remove(sub)
         self.assertTrue(n.dirty)
+
+        self.assertEqual([], n.links)
+
+        sub = node.WebLink()
+        clean_node(sub)
+
+        clean_node(n)
+        n.append(sub)
+        self.assertTrue(n.dirty)
+        self.assertEqual([sub], n.links)
 
 class NodeTimestampsTests(unittest.TestCase):
     def test_save_load(self):
         a, b = generate_save_load(node.NodeTimestamps)
         self.assertEqual(a, b)
 
-    def test_dirty(self):
+    def test_fields(self):
         n = node.NodeTimestamps(0)
 
-        clean_node(n)
-        n.created = node.NodeTimestamps.int_to_dt(0)
-        self.assertTrue(n.dirty)
+        TZ = node.NodeTimestamps.int_to_dt(0)
 
         clean_node(n)
-        n.deleted = node.NodeTimestamps.int_to_dt(0)
+        n.created = TZ
         self.assertTrue(n.dirty)
+        self.assertEqual(TZ, n.created)
 
         clean_node(n)
-        n.trashed = node.NodeTimestamps.int_to_dt(0)
+        n.deleted = TZ
         self.assertTrue(n.dirty)
+        self.assertEqual(TZ, n.deleted)
 
         clean_node(n)
-        n.updated = node.NodeTimestamps.int_to_dt(0)
+        n.trashed = TZ
         self.assertTrue(n.dirty)
+        self.assertEqual(TZ, n.trashed)
 
         clean_node(n)
-        n.edited = node.NodeTimestamps.int_to_dt(0)
+        n.updated = TZ
         self.assertTrue(n.dirty)
+        self.assertEqual(TZ, n.updated)
+
+        clean_node(n)
+        n.edited = TZ
+        self.assertTrue(n.dirty)
+        self.assertEqual(TZ, n.edited)
 
 class NodeSettingsTests(unittest.TestCase):
     def test_save_load(self):
         a, b = generate_save_load(node.NodeSettings)
         self.assertEqual(a, b)
 
-    def test_dirty(self):
+    def test_fields(self):
         n = node.NodeSettings()
 
-        clean_node(n)
-        n.new_listitem_placement = node.NewListItemPlacementValue.Bottom
-        self.assertTrue(n.dirty)
+        ITEMPLACEMENT = node.NewListItemPlacementValue.Bottom
+        GRAVEYARDSTATE = node.GraveyardStateValue.Collapsed
+        ITEMPOLICY = node.CheckedListItemsPolicyValue.Graveyard
 
         clean_node(n)
-        n.graveyard_state = node.GraveyardStateValue.Collapsed
+        n.new_listitem_placement = ITEMPLACEMENT
         self.assertTrue(n.dirty)
+        self.assertEqual(ITEMPLACEMENT, n.new_listitem_placement)
 
         clean_node(n)
-        n.checked_listitems_policy = node.CheckedListItemsPolicyValue.Graveyard
+        n.graveyard_state = GRAVEYARDSTATE
         self.assertTrue(n.dirty)
+        self.assertEqual(GRAVEYARDSTATE, n.graveyard_state)
+
+        clean_node(n)
+        n.checked_listitems_policy = ITEMPOLICY
+        self.assertTrue(n.dirty)
+        self.assertEqual(ITEMPOLICY, n.checked_listitems_policy)
 
 class NodeLabelsTests(unittest.TestCase):
     def test_save_load(self):
         a, b = generate_save_load(node.NodeLabels)
         self.assertEqual(a, b)
 
-    def test_dirty(self):
+    def test_fields(self):
         n = node.NodeLabels()
 
+        LABEL = 'Label'
+
         sub = node.Label()
-        sub.name = 'x'
+        sub.name = LABEL
         clean_node(sub)
 
         clean_node(n)
         n.add(sub)
         self.assertTrue(n.dirty)
+        self.assertEqual(sub, n.get(sub.id))
+        self.assertEqual([sub], n.all())
 
         clean_node(n)
         n.remove(sub)
         self.assertTrue(n.dirty)
+        self.assertEqual([], n.all())
 
 class NodeTests(unittest.TestCase):
     def test_save_load(self):
@@ -196,28 +244,38 @@ class NodeTests(unittest.TestCase):
         # a, b = generate_save_load(node.Blob) # FIXME: Broken
         # self.assertEqual(a, b)
 
-    def test_dirty(self):
+    def test_fields(self):
         n = node.Node(type_=node.NodeType.Note)
 
-        clean_node(n)
-        n.timestamps.created = node.NodeTimestamps.int_to_dt(0)
-        self.assertTrue(n.dirty)
+        TZ = node.NodeTimestamps.int_to_dt(0)
+        SORT = 1
+        TEXT = 'Text'
+        ITEMPLACEMENT = node.NewListItemPlacementValue.Bottom
 
         clean_node(n)
-        n.sort = 0
+        n.timestamps.created = TZ
         self.assertTrue(n.dirty)
+        self.assertEqual(TZ, n.timestamps.created)
 
         clean_node(n)
-        n.text = ''
+        n.sort = SORT
         self.assertTrue(n.dirty)
+        self.assertEqual(SORT, n.sort)
 
         clean_node(n)
-        n.settings.new_listitem_placement = node.NewListItemPlacementValue.Bottom
+        n.text = TEXT
         self.assertTrue(n.dirty)
+        self.assertEqual(TEXT, n.text)
+
+        clean_node(n)
+        n.settings.new_listitem_placement = ITEMPLACEMENT
+        self.assertTrue(n.dirty)
+        self.assertEqual(ITEMPLACEMENT, n.settings.new_listitem_placement)
 
         clean_node(n)
         n.annotations.category = None
         self.assertTrue(n.dirty)
+        self.assertEqual(None, n.annotations.category)
 
         sub = node.ListItem()
         clean_node(sub)
@@ -227,7 +285,7 @@ class NodeTests(unittest.TestCase):
         self.assertTrue(n.dirty)
 
         clean_node(n)
-        sub.text = ''
+        sub.text = TEXT
         self.assertTrue(n.dirty)
 
         clean_node(n)
@@ -294,27 +352,37 @@ class TimestampsMixinTests(unittest.TestCase):
         self.assertTrue(n.timestamps.deleted > node.NodeTimestamps.int_to_dt(0))
 
 class TopLevelNodeTests(unittest.TestCase):
-    def test_dirty(self):
+    def test_fields(self):
         n = node.TopLevelNode(type_=node.NodeType.Note)
 
-        clean_node(n)
-        n.color = node.ColorValue.White
-        self.assertTrue(n.dirty)
+        COLOR = node.ColorValue.White
+        ARCHIVED = True
+        PINNED = True
+        TITLE = 'Title'
+        LABEL = 'x'
 
         clean_node(n)
-        n.archived = True
+        n.color = COLOR
         self.assertTrue(n.dirty)
+        self.assertEqual(COLOR, n.color)
 
         clean_node(n)
-        n.pinned = True
+        n.archived = ARCHIVED
         self.assertTrue(n.dirty)
+        self.assertEqual(ARCHIVED, n.archived)
 
         clean_node(n)
-        n.title = ''
+        n.pinned = PINNED
         self.assertTrue(n.dirty)
+        self.assertEqual(PINNED, n.pinned)
+
+        clean_node(n)
+        n.title = TITLE
+        self.assertTrue(n.dirty)
+        self.assertEqual(TITLE, n.title)
 
         l = node.Label()
-        l.name = 'x'
+        l.name = LABEL
         clean_node(l)
 
         clean_node(n)
@@ -326,31 +394,48 @@ class TopLevelNodeTests(unittest.TestCase):
         self.assertTrue(n.dirty)
 
 class NoteTests(unittest.TestCase):
-    def test_dirty(self):
-        n = node.Note()
+    def test_fields(self):
+        n = node.Note(id_='3')
+
+        TEXT = 'Text'
 
         clean_node(n)
-        n.text = ''
+        n.text = TEXT
         self.assertTrue(n.dirty)
+        self.assertEqual(TEXT, n.text)
+
+        self.assertEqual('https://keep.google.com/u/0/#NOTE/3', n.url)
 
 class ListTests(unittest.TestCase):
-    def test_dirty(self):
+    def test_fields(self):
         n = node.List()
 
+        TEXT = 'Text'
+
         clean_node(n)
-        n.add('')
+        n.add('Text')
         self.assertTrue(n.dirty)
+        self.assertEqual(u'☐ %s' % TEXT, n.text)
 
 class ListItemTests(unittest.TestCase):
-    def test_dirty(self):
+    def test_fields(self):
         n = node.ListItem()
 
+        TEXT = 'Text'
+        CHECKED = False
+
         clean_node(n)
-        n.checked = True
+        n.text = TEXT
         self.assertTrue(n.dirty)
+        self.assertEqual(TEXT, n.text)
+
+        clean_node(n)
+        n.checked = CHECKED
+        self.assertTrue(n.dirty)
+        self.assertEqual(CHECKED, n.checked)
 
 class BlobTests(unittest.TestCase):
-    def test_dirty(self):
+    def test_fields(self):
         # FIXME: Not implemented
         pass
 
