@@ -1334,6 +1334,9 @@ class Blob(Node):
         Returns:
             NodeBlob: A NodeBlob object or None.
         """
+        if raw is None:
+            return None
+
         bcls = None
         _type = raw.get('type')
         try:
@@ -1347,7 +1350,7 @@ class Blob(Node):
 
     def load(self, raw):
         super(Blob, self).load(raw)
-        self.blob = self.from_json(raw['blob'])
+        self.blob = self.from_json(raw.get('blob'))
 
     def save(self):
         ret = super(Blob, self).save()
