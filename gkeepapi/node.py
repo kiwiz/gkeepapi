@@ -11,9 +11,9 @@ import datetime
 import logging
 import time
 import random
-import six
 import enum
 import operator
+import six
 
 from . import exception
 
@@ -411,16 +411,16 @@ class NodeAnnotations(Element):
         """
         bcls = None
         if 'webLink' in raw:
-            cls = WebLink
+            bcls = WebLink
         elif 'topicCategory' in raw:
-            cls = Category
+            bcls = Category
         elif 'taskAssist' in raw:
-            cls = TaskAssist
+            bcls = TaskAssist
 
-        if cls is None:
+        if bcls is None:
             logger.warning('Unknown annotation type: %s', raw.keys())
             return None
-        annotation = cls()
+        annotation = bcls()
         annotation.load(raw)
         return annotation
 
@@ -1162,7 +1162,7 @@ class List(TopLevelNode):
         node.checked = checked
         node.text = text
         if sort is not None:
-            node._sort = sort
+            node.sort = sort
         self.append(node, True)
         self.touch(True)
         return node
