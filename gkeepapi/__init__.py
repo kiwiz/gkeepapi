@@ -225,6 +225,7 @@ class KeepAPI(API):
                     {'type': 'SH'}, # Sharing support
                     {'type': 'DR'}, # Drawing support
                     {'type': 'TR'}, # Trash support (Stop setting the delete timestamp)
+                    {'type': 'IN'}, # Indentation support (Send listitem parent)
 
                     {'type': 'SNB'}, # Allows modification of shared notes?
 

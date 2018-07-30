@@ -935,7 +935,7 @@ class Node(Element, TimestampsMixin):
 
     @trashed.setter
     def trashed(self, value):
-        self.timestamps.trashed = datetime.datetime.utcnow(0) if value else NodeTimestamps.int_to_dt(0)
+        self.timestamps.trashed = datetime.datetime.utcnow() if value else NodeTimestamps.int_to_dt(0)
         self.touch()
 
     @property
@@ -1213,16 +1213,19 @@ class ListItem(Node):
     Interestingly enough, :class:`Note`s store their content in a single
     child :class:`ListItem`.
     """
-    def __init__(self, parent_id=None, **kwargs):
+    def __init__(self, parent_id=None, super_list_item_id=None, **kwargs):
         super(ListItem, self).__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
+        self.super_list_item_id = super_list_item_id
         self._checked = False
 
     def load(self, raw):
         super(ListItem, self).load(raw)
+        self.super_list_item_id = raw.get('superListItemId', '')
         self._checked = raw['checked']
 
     def save(self):
         ret = super(ListItem, self).save()
+        ret['superListItemId'] = self.super_list_item_id
         ret['checked'] = self.checked
         return ret
 
