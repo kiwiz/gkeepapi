@@ -452,7 +452,7 @@ class Keep(object):
         Args:
             query (Union[_sre.SRE_Pattern, str, None]): A str or regular expression to match against the title and text.
             func (Union[callable, None]): A filter function.
-            labels (Union[List[str], None]): A list of label ids or objects to match.
+            labels (Union[List[str], None]): A list of label ids or objects to match. An empty list matches notes with no labels.
             colors (Union[List[str], None]): A list of colors to match.
             pinned (Union[bool, None]): Whether to match pinned notes.
             archived (Union[bool, None]): Whether to match archived notes.
@@ -472,7 +472,10 @@ class Keep(object):
                 ))
             )) and
             (func is None or func(node)) and \
-            (labels is None or any((node.labels.get(i) is not None for i in labels))) and \
+            (labels is None or \
+             (not len(labels) and not len(node.labels.all())) or \
+             (any((node.labels.get(i) is not None for i in labels)))
+            ) and \
             (colors is None or node.color in colors) and \
             (pinned is None or node.pinned == pinned) and \
             (archived is None or node.archived == archived) and \
