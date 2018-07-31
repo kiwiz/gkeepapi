@@ -20,7 +20,7 @@ keep.sync()
 
 *gkeepapi is not supported nor endorsed by Google.*
 
-This is alpha quality code! Don't use in production. The project is under active development, so feel free to open an issue if you see any bugs or have a feature request. PRs are welcome too!
+This is beta quality code! Don't use in production. The project is under active development, so feel free to open an issue if you have questions, see any bugs or have a feature request. PRs are welcome too!
 
 ## Installation
 
