@@ -148,7 +148,7 @@ class Element(object):
         self._dirty = False
 
     def _find_discrepancies(self, raw):
-        s_raw = self.save()
+        s_raw = self.save(False)
         if isinstance(raw, dict):
             for key, val in raw.items():
                 if key in ['parentServerId', 'lastSavedSessionId']:
@@ -186,13 +186,17 @@ class Element(object):
         """
         self._dirty = False
 
-    def save(self):
-        """Serialize into raw representation
+    def save(self, clean=True):
+        """Serialize into raw representation. Clears the dirty bit by default.
+
+        Args:
+            clean (bool): Whether to clear the dirty bit.
 
         Returns:
             dict: Raw.
         """
-        self._dirty = False
+        if clean:
+            self._dirty = False
         return {}
 
     @property
@@ -214,8 +218,8 @@ class Annotation(Element):
         super(Annotation, self).load(raw)
         self.id = raw['id']
 
-    def save(self):
-        ret = super(Annotation, self).save()
+    def save(self, clean=True):
+        ret = super(Annotation, self).save(clean)
         ret['id'] = self.id
         return ret
 
@@ -247,8 +251,8 @@ class WebLink(Annotation):
         self._provenance_url = raw['webLink']['provenanceUrl']
         self._description = raw['webLink']['description']
 
-    def save(self):
-        ret = super(WebLink, self).save()
+    def save(self, clean=True):
+        ret = super(WebLink, self).save(clean)
         ret['webLink'] = {
             'title': self._title,
             'url': self._url,
@@ -338,8 +342,8 @@ class Category(Annotation):
         super(Category, self).load(raw)
         self._category = CategoryValue(raw['topicCategory']['category'])
 
-    def save(self):
-        ret = super(Category, self).save()
+    def save(self, clean=True):
+        ret = super(Category, self).save(clean)
         ret['topicCategory'] = {
             'category': self._category.value
         }
@@ -369,8 +373,8 @@ class TaskAssist(Annotation):
         super(TaskAssist, self).load(raw)
         self._suggest = raw['taskAssist']['suggestType']
 
-    def save(self):
-        ret = super(TaskAssist, self).save()
+    def save(self, clean=True):
+        ret = super(TaskAssist, self).save(clean)
         ret['taskAssist'] = {
             'suggestType': self._suggest
         }
@@ -434,11 +438,11 @@ class NodeAnnotations(Element):
             annotation = self.from_json(raw_annotation)
             self._annotations[annotation.id] = annotation
 
-    def save(self):
-        ret = super(NodeAnnotations, self).save()
+    def save(self, clean=True):
+        ret = super(NodeAnnotations, self).save(clean)
         ret['kind'] = 'notes#annotationsGroup'
         if self._annotations:
-            ret['annotations'] = [annotation.save() for annotation in self._annotations.values()]
+            ret['annotations'] = [annotation.save(clean) for annotation in self._annotations.values()]
         return ret
 
     def _get_category_node(self):
@@ -539,8 +543,8 @@ class NodeTimestamps(Element):
         self._edited = self.str_to_dt(raw['userEdited']) \
             if 'userEdited' in raw else None
 
-    def save(self):
-        ret = super(NodeTimestamps, self).save()
+    def save(self, clean=True):
+        ret = super(NodeTimestamps, self).save(clean)
         ret['kind'] = 'notes#timestamps'
         ret['created'] = self.dt_to_str(self._created)
         if self._deleted is not None:
@@ -678,8 +682,8 @@ class NodeSettings(Element):
         self._graveyard_state = GraveyardStateValue(raw['graveyardState'])
         self._checked_listitems_policy = CheckedListItemsPolicyValue(raw['checkedListItemsPolicy'])
 
-    def save(self):
-        ret = super(NodeSettings, self).save()
+    def save(self, clean=True):
+        ret = super(NodeSettings, self).save(clean)
         ret['newListItemPlacement'] = self._new_listitem_placement.value
         ret['graveyardState'] = self._graveyard_state.value
         ret['checkedListItemsPolicy'] = self._checked_listitems_policy.value
@@ -742,8 +746,8 @@ class NodeLabels(Element):
         for raw_label in raw:
             self._labels[raw_label['labelId']] = None
 
-    def save(self):
-        super(NodeLabels, self).save()
+    def save(self, clean=True):
+        super(NodeLabels, self).save(clean)
         return [
             {'labelId': label_id, 'deleted': NodeTimestamps.dt_to_str(datetime.datetime.utcnow()) if label is None else NodeTimestamps.int_to_str(0)}
         for label_id, label in self._labels.items()]
@@ -869,8 +873,8 @@ class Node(Element, TimestampsMixin):
         self.settings.load(raw['nodeSettings'])
         self.annotations.load(raw['annotationsGroup'])
 
-    def save(self):
-        ret = super(Node, self).save()
+    def save(self, clean=True):
+        ret = super(Node, self).save(clean)
         ret['id'] = self.id
         ret['kind'] = 'notes#node'
         ret['type'] = self.type.value
@@ -881,9 +885,9 @@ class Node(Element, TimestampsMixin):
         ret['text'] = self._text
         if self.server_id is not None:
             ret['serverId'] = self.server_id
-        ret['timestamps'] = self.timestamps.save()
-        ret['nodeSettings'] = self.settings.save()
-        ret['annotationsGroup'] = self.annotations.save()
+        ret['timestamps'] = self.timestamps.save(clean)
+        ret['nodeSettings'] = self.settings.save(clean)
+        ret['annotationsGroup'] = self.annotations.save(clean)
         return ret
 
     @property
@@ -1029,13 +1033,13 @@ class TopLevelNode(Node):
 
         self.moved = 'moved' in raw
 
-    def save(self):
-        ret = super(TopLevelNode, self).save()
+    def save(self, clean=True):
+        ret = super(TopLevelNode, self).save(clean)
         ret['color'] = self._color.value
         ret['isArchived'] = self._archived
         ret['isPinned'] = self._pinned
         ret['title'] = self._title
-        labels = self.labels.save()
+        labels = self.labels.save(clean)
         if labels:
             ret['labelIds'] = labels
         return ret
@@ -1223,8 +1227,8 @@ class ListItem(Node):
         self.super_list_item_id = raw.get('superListItemId', '')
         self._checked = raw['checked']
 
-    def save(self):
-        ret = super(ListItem, self).save()
+    def save(self, clean=True):
+        ret = super(ListItem, self).save(clean)
         ret['superListItemId'] = self.super_list_item_id
         ret['checked'] = self.checked
         return ret
@@ -1263,8 +1267,8 @@ class NodeBlob(Element):
         self._media_id = raw.get('media_id')
         self._mimetype = raw.get('mimetype')
 
-    def save(self):
-        ret = super(NodeBlob, self).save()
+    def save(self, clean=True):
+        ret = super(NodeBlob, self).save(clean)
         if self._blob_id is not None:
             ret['blob_id'] = self._blob_id
         if self._media_id is not None:
@@ -1282,8 +1286,8 @@ class NodeAudio(NodeBlob):
         super(NodeAudio, self).load(raw)
         self._length = raw['length']
 
-    def save(self):
-        ret = super(NodeAudio, self).save()
+    def save(self, clean=True):
+        ret = super(NodeAudio, self).save(clean)
         ret['length'] = self._length
         return ret
 
@@ -1303,8 +1307,8 @@ class NodeImage(NodeBlob):
         self._extracted_text = raw.get('extracted_text')
         self._extraction_status = raw.get('extraction_status')
 
-    def save(self):
-        ret = super(NodeImage, self).save()
+    def save(self, clean=True):
+        ret = super(NodeImage, self).save(clean)
         ret['width'] = self._width
         ret['height'] = self._height
         ret['extracted_text'] = self._extracted_text
@@ -1355,9 +1359,9 @@ class Blob(Node):
         super(Blob, self).load(raw)
         self.blob = self.from_json(raw.get('blob'))
 
-    def save(self):
-        ret = super(Blob, self).save()
-        ret['blob'] = self.blob.save()
+    def save(self, clean=True):
+        ret = super(Blob, self).save(clean)
+        ret['blob'] = self.blob.save(clean)
         return ret
 
 class Label(Element, TimestampsMixin):
@@ -1386,11 +1390,11 @@ class Label(Element, TimestampsMixin):
         self.timestamps.load(raw['timestamps'])
         self._merged = NodeTimestamps.str_to_dt(raw['lastMerged']) if 'lastMerged' in raw else NodeTimestamps.int_to_dt(0)
 
-    def save(self):
-        ret = super(Label, self).save()
+    def save(self, clean=True):
+        ret = super(Label, self).save(clean)
         ret['mainId'] = self.id
         ret['name'] = self._name
-        ret['timestamps'] = self.timestamps.save()
+        ret['timestamps'] = self.timestamps.save(clean)
         ret['lastMerged'] = NodeTimestamps.dt_to_str(self._merged)
         return ret
 

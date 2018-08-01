@@ -388,12 +388,13 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, username, password):
+    def login(self, username, password, state=None):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
             email (str): The account to use.
             password (str): The account password.
+            state (dict): Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -402,21 +403,54 @@ class Keep(object):
 
         ret = auth.login(username, password, get_mac())
         if ret:
-            self.load(auth)
+            self.load(auth, state)
 
         return ret
 
-    def load(self, auth):
+    def load(self, auth, state=None):
         """Authenticate to Google with a prepared authentication object & sync.
         Args:
             auth (APIAuth): Authentication object.
+            state (dict): Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
         """
         self._keep_api.setAuth(auth)
         self._reminders_api.setAuth(auth)
+        if state is not None:
+            self.restore(state)
         self.sync(True)
+
+    def dump(self):
+        """Serialize note data.
+
+        Args:
+            state (dict): Serialized state to load.
+        """
+        # Find all nodes manually, as the Keep object isn't aware of new ListItems
+        # until they've been synced to the server.
+        nodes = []
+        for node in self.all():
+            nodes.append(node)
+            for child in node.children:
+                nodes.append(child)
+        return {
+            'keep_version': self._keep_version,
+            'labels': [label.save(False) for label in self.labels()],
+            'nodes': [node.save(False) for node in nodes]
+        }
+
+    def restore(self, state):
+        """Unserialize saved note data.
+
+        Args:
+            state (dict): Serialized state to load.
+        """
+        self._clear()
+        self._parseUserInfo({'labels': state['labels']})
+        self._parseNodes(state['nodes'])
+        self._keep_version = state['keep_version']
 
     def get(self, node_id):
         """Get a note with the given ID.
@@ -591,7 +625,7 @@ class Keep(object):
         Returns:
             List[gkeepapi.node.Label]: Labels
         """
-        return self._labels
+        return self._labels.values()
 
     def all(self):
         """Get all Notes.

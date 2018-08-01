@@ -46,6 +46,21 @@ gkeepapi automatically pulls down all notes after login. It takes care of refres
 
     keep.sync()
 
+Caching notes
+-------------
+
+The initial sync can take a while, especially if you have a lot of notes. To mitigate this, you can serialize note data to a file. The next time your program runs, it can resume from this state::
+
+    # Store cache
+    state = keep.dump()
+    fh = open('state', 'w')
+    json.dump(state, fh)
+
+    # Load cache
+    fh = open('state', 'r')
+    state = json.load(fh)
+    keep.restore(state)
+
 Notes and Lists
 ===============
 
@@ -281,6 +296,11 @@ FAQ
 1. I get a "NeedsBrowser" `APIException` when I try to log in.
 
 Your account probably has Two Factor enabled. To get around this, you'll need to generate an App Password for your Google account.
+
+Known Issues
+============
+
+The :py:class:`Keep` class isn't aware of new :py:class:`ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
 
 Debug
 =====
