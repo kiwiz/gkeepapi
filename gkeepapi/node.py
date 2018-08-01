@@ -184,7 +184,7 @@ class Element(object):
         Args:
             raw (dict): Raw.
         """
-        self._dirty = False
+        self._dirty = raw.get('_dirty', False)
 
     def save(self, clean=True):
         """Serialize into raw representation. Clears the dirty bit by default.
@@ -195,9 +195,12 @@ class Element(object):
         Returns:
             dict: Raw.
         """
+        ret = {}
         if clean:
             self._dirty = False
-        return {}
+        else:
+            ret['_dirty'] = self._dirty
+        return ret
 
     @property
     def dirty(self):
@@ -741,16 +744,21 @@ class NodeLabels(Element):
         return len(self._labels)
 
     def load(self, raw):
-        super(NodeLabels, self).load(raw)
+        # Parent method not called.
+        if len(raw) and type(raw[-1]) == bool:
+            self._dirty = raw.pop()
         self._labels = {}
         for raw_label in raw:
             self._labels[raw_label['labelId']] = None
 
     def save(self, clean=True):
-        super(NodeLabels, self).save(clean)
-        return [
+        # Parent method not called.
+        ret = [
             {'labelId': label_id, 'deleted': NodeTimestamps.dt_to_str(datetime.datetime.utcnow()) if label is None else NodeTimestamps.int_to_str(0)}
         for label_id, label in self._labels.items()]
+        if not clean:
+            ret.append(self._dirty)
+        return ret
 
     def add(self, label):
         """Add a label.
