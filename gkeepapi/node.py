@@ -745,7 +745,7 @@ class NodeLabels(Element):
 
     def load(self, raw):
         # Parent method not called.
-        if len(raw) and type(raw[-1]) == bool:
+        if len(raw) and isinstance(raw[-1], bool):
             self._dirty = raw.pop()
         else:
             self._dirty = False
@@ -760,6 +760,8 @@ class NodeLabels(Element):
         for label_id, label in self._labels.items()]
         if not clean:
             ret.append(self._dirty)
+        else:
+            self._dirty = False
         return ret
 
     def add(self, label):
