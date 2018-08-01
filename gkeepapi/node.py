@@ -747,6 +747,8 @@ class NodeLabels(Element):
         # Parent method not called.
         if len(raw) and type(raw[-1]) == bool:
             self._dirty = raw.pop()
+        else:
+            self._dirty = False
         self._labels = {}
         for raw_label in raw:
             self._labels[raw_label['labelId']] = None
