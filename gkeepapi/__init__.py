@@ -388,7 +388,7 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, username, password, state=None):
+    def login(self, username, password, state=None, sync=True):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
@@ -403,11 +403,11 @@ class Keep(object):
 
         ret = auth.login(username, password, get_mac())
         if ret:
-            self.load(auth, state)
+            self.load(auth, state, sync)
 
         return ret
 
-    def load(self, auth, state=None):
+    def load(self, auth, state=None, sync=True):
         """Authenticate to Google with a prepared authentication object & sync.
         Args:
             auth (APIAuth): Authentication object.
@@ -420,7 +420,8 @@ class Keep(object):
         self._reminders_api.setAuth(auth)
         if state is not None:
             self.restore(state)
-        self.sync(True)
+        if sync:
+            self.sync(True)
 
     def dump(self):
         """Serialize note data.
