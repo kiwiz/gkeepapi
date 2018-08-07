@@ -191,8 +191,8 @@ Or deleted::
 
    glistitem.delete()
 
-Indent/dedent ListItems
-^^^^^^^^^^^^^^^^^^^^^^^
+Indent/dedent List items
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 To indent a list item::
 
