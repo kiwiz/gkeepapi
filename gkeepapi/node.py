@@ -12,7 +12,6 @@ import logging
 import time
 import random
 import enum
-import operator
 import six
 
 from . import exception
@@ -22,7 +21,7 @@ DEBUG = False
 logger = logging.getLogger(__name__)
 
 class NodeType(enum.Enum):
-    """Valid note types."""
+    """Valid note types.""" # pylint: disable=pointless-string-statement
 
     """A Note"""
     Note = 'NOTE'
@@ -37,7 +36,7 @@ class NodeType(enum.Enum):
     Blob = 'BLOB'
 
 class BlobType(enum.Enum):
-    """Valid blob types."""
+    """Valid blob types.""" # pylint: disable=pointless-string-statement
 
     """Audio"""
     Audio = 'AUDIO'
@@ -49,7 +48,7 @@ class BlobType(enum.Enum):
     Drawing = 'DRAWING'
 
 class ColorValue(enum.Enum):
-    """Valid note colors."""
+    """Valid note colors.""" # pylint: disable=pointless-string-statement
 
     """White"""
     White = 'DEFAULT'
@@ -88,7 +87,7 @@ class ColorValue(enum.Enum):
     Gray = 'GRAY'
 
 class CategoryValue(enum.Enum):
-    """Valid note categories."""
+    """Valid note categories.""" # pylint: disable=pointless-string-statement
 
     """Books"""
     Books = 'BOOKS'
@@ -115,7 +114,7 @@ class CategoryValue(enum.Enum):
     TV = 'TV'
 
 class NewListItemPlacementValue(enum.Enum):
-    """Valid locations to put new list items."""
+    """Valid locations to put new list items.""" # pylint: disable=pointless-string-statement
 
     """Top"""
     Top = 'TOP'
@@ -124,7 +123,7 @@ class NewListItemPlacementValue(enum.Enum):
     Bottom = 'BOTTOM'
 
 class GraveyardStateValue(enum.Enum):
-    """Valid visibility list graveyards."""
+    """Valid visibility list graveyards.""" # pylint: disable=pointless-string-statement
 
     """Expanded"""
     Expanded = 'EXPANDED'
@@ -133,7 +132,7 @@ class GraveyardStateValue(enum.Enum):
     Collapsed = 'COLLAPSED'
 
 class CheckedListItemsPolicyValue(enum.Enum):
-    """Unknown"""
+    """Unknown""" # pylint: disable=pointless-string-statement
 
     """Default"""
     Default = 'DEFAULT'
@@ -1187,12 +1186,46 @@ class List(TopLevelNode):
     def text(self):
         return '\n'.join((six.text_type(node) for node in self.children))
 
+    @classmethod
+    def items_sort(cls, items):
+        class t(tuple):
+            def __cmp__(self, other):
+                for a, b in six.moves.zip_longest(self, other):
+                    if a != b:
+                        if a is None:
+                            return 1
+                        if b is None:
+                            return -1
+                        return a - b
+                return 0
+
+            def __lt__(self, other):
+                return self.__cmp__(other) < 0
+            def __gt_(self, other):
+                return self.__cmp__(other) > 0
+            def __le__(self, other):
+                return self.__cmp__(other) <= 0
+            def __ge_(self, other):
+                return self.__cmp__(other) >= 0
+            def __eq__(self, other):
+                return self.__cmp__(other) == 0
+            def __ne__(self, other):
+                return self.__cmp__(other) != 0
+
+        def key_func(x):
+            if x.indented:
+                return t((int(x.parent_item.sort), int(x.sort)))
+            return t((int(x.sort), ))
+
+        return sorted(items, key=key_func, reverse=True)
+
     def _items(self, checked=None):
-        i = [node for node in self.children
-            if isinstance(node, ListItem) and not node.deleted and (checked is None or node.checked == checked)
-        ]
-        i.sort(key=operator.attrgetter('sort'))
-        return i
+        return self.items_sort([
+            node for node in self.children
+            if isinstance(node, ListItem) and not node.deleted and (
+                checked is None or node.checked == checked
+            )
+        ])
 
     def __str__(self):
         return '\n'.join(([self.title] + [six.text_type(node) for node in self.items]))
@@ -1231,19 +1264,84 @@ class ListItem(Node):
     """
     def __init__(self, parent_id=None, super_list_item_id=None, **kwargs):
         super(ListItem, self).__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
+        self.parent_item = None
         self.super_list_item_id = super_list_item_id
+        self.prev_super_list_item_id = None
+        self._subitems = {}
         self._checked = False
 
     def load(self, raw):
         super(ListItem, self).load(raw)
-        self.super_list_item_id = raw.get('superListItemId', '')
+        self.prev_super_list_item_id = self.super_list_item_id
+        self.super_list_item_id = raw.get('superListItemId') or None
         self._checked = raw['checked']
 
     def save(self, clean=True):
         ret = super(ListItem, self).save(clean)
         ret['superListItemId'] = self.super_list_item_id
-        ret['checked'] = self.checked
+        ret['checked'] = self._checked
         return ret
+
+    def add(self, text, checked=False, sort=None):
+        """Add a new sub item to the list. This item must already be attached to a list.
+
+        Args:
+            text (str): The text.
+            checked (bool): Whether this item is checked.
+            sort (int): Item id for sorting.
+        """
+        if self.parent is None:
+            raise InvalidException('Item has no parent')
+        node = self.parent.add(text, checked, sort)
+        self.indent(node)
+        return node
+
+    def indent(self, node, dirty=True):
+        """Indent an item. Does nothing if the target has subitems.
+
+        Args:
+            node (gkeepapi.node.ListItem): Item to indent.
+            dirty (bool): Whether this node should be marked dirty.
+        """
+        if len(node.subitems):
+            return
+
+        self._subitems[node.id] = node
+        node.super_list_item_id = self.id
+        node.parent_item = self
+        if dirty:
+            node.touch(True)
+
+    def dedent(self, node, dirty=True):
+        """Dedent an item. Does nothing if the target is not indented under this item.
+
+        Args:
+            node (gkeepapi.node.ListItem): Item to dedent.
+            dirty (bool): Whether this node should be marked dirty.
+        """
+        if node.id not in self._subitems:
+            return
+
+        del self._subitems[node.id]
+        node.super_list_item_id = None
+        node.parent_item = None
+        if dirty:
+            node.touch(True)
+
+    @property
+    def subitems(self):
+        return List.items_sort(
+            self._subitems.values()
+        )
+
+    @property
+    def indented(self):
+        """Get indentation state.
+
+        Returns:
+            bool: Whether this item is indented.
+        """
+        return self.super_list_item_id != None
 
     @property
     def checked(self):
@@ -1260,7 +1358,11 @@ class ListItem(Node):
         self.touch(True)
 
     def __str__(self):
-        return u'%s %s' % (u'☑' if self.checked else u'☐', self.text)
+        return u'%s%s %s' % (
+            '  ' if self.indented else '',
+            u'☑' if self.checked else u'☐',
+            self.text
+        )
 
 class NodeBlob(Element):
     """Represents a blob descriptor."""

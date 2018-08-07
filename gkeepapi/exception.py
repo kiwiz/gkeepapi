@@ -23,3 +23,7 @@ class SyncException(KeepException):
 class MergeException(KeepException):
     """Node consistency error."""
     pass
+
+class InvalidException(KeepException):
+    """Constraint error."""
+    pass

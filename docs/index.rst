@@ -132,6 +132,8 @@ ListItems:
 
 * :py:attr:`TopLevelNode.id` (Read only)
 * :py:attr:`TopLevelNode.parent` (Read only)
+* :py:attr:`TopLevelNode.parent_item` (Read only)
+* :py:attr:`TopLevelNode.indented` (Read only)
 * :py:attr:`TopLevelNode.text`
 * :py:attr:`TopLevelNode.checked`
 * :py:attr:`TopLevelNode.deleted`
@@ -181,13 +183,24 @@ New items can be added via :py:meth:`List.add`::
 
 Existing items can be retrieved and modified directly::
 
-    glistitem = glist.all()[0]
+    glistitem = glist.items[0]
     glistitem.text = 'Item 3'
     glistitem.checked = True
 
 Or deleted::
 
    glistitem.delete()
+
+Indent/dedent ListItems
+^^^^^^^^^^^^^^^^^^^^^^^
+
+To indent a list item::
+
+    parent_item.indent(child_item)
+
+To dedent::
+
+    parent_item.dedent(child_item)
 
 Deleting Notes
 --------------

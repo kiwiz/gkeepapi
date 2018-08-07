@@ -695,9 +695,11 @@ class Keep(object):
         pass
 
     def _parseNodes(self, raw):
-        updated_nodes = []
+        created_nodes = []
         deleted_nodes = []
+        listitem_nodes = []
         for raw_node in raw:
+            # Update nodes
             if raw_node['id'] in self._nodes:
                 node = self._nodes[raw_node['id']]
 
@@ -713,10 +715,30 @@ class Keep(object):
                     logger.debug('Discarded unknown node')
                 else:
                     self._nodes[raw_node['id']] = node
-                    updated_nodes.append(node)
+                    created_nodes.append(node)
                     logger.debug('Created node: %s', raw_node['id'])
 
-        for node in updated_nodes:
+            if isinstance(node, _node.ListItem):
+                listitem_nodes.append(node)
+
+        # Attach list subitems
+        for node in listitem_nodes:
+            prev = node.prev_super_list_item_id
+            curr = node.super_list_item_id
+            if prev == curr:
+                continue
+
+            if curr is None:
+                self._nodes[prev].dedent(node, False)
+                continue
+
+            if prev is not None:
+                self._nodes[prev].dedent(node, False)
+
+            self._nodes[curr].indent(node, False)
+
+        # Attach created nodes to the tree
+        for node in created_nodes:
             logger.debug('Attached node: %s to %s',
                 node.id if node else None,
                 node.parent_id if node else None
@@ -724,6 +746,7 @@ class Keep(object):
             parent_node = self._nodes.get(node.parent_id)
             parent_node.append(node, False)
 
+        # Detach deleted nodes from the tree
         for node in deleted_nodes:
             node.parent.remove(node)
             del self._nodes[node.id]
@@ -777,9 +800,9 @@ class Keep(object):
         for node_id in self._nodes:
             if node_id in found_ids:
                 continue
-            logger.info('Dangling node: %s', node_id)
+            logger.error('Dangling node: %s', node_id)
 
         for node_id in found_ids:
             if node_id in self._nodes:
                 continue
-            logger.info('Unregistered node: %s', node_id)
+            logger.error('Unregistered node: %s', node_id)
