@@ -196,11 +196,11 @@ Indent/dedent List items
 
 To indent a list item::
 
-    parent_item.indent(child_item)
+    gparentlistitem.indent(gchildlistitem)
 
 To dedent::
 
-    parent_item.dedent(child_item)
+    gparentlistitem.dedent(gchildlistitem)
 
 Deleting Notes
 --------------
