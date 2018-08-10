@@ -1184,7 +1184,7 @@ class List(TopLevelNode):
 
     @property
     def text(self):
-        return '\n'.join((six.text_type(node) for node in self.children))
+        return '\n'.join((six.text_type(node) for node in self.items))
 
     @classmethod
     def items_sort(cls, items):
