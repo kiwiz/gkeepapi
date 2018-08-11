@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+.. moduleauthor:: Kai <z@kwi.li>
+"""
+
 class APIException(Exception):
     """The API server returned an error."""
     def __init__(self, code, msg):

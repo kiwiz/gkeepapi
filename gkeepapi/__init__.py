@@ -228,13 +228,13 @@ class KeepAPI(API):
                     {'type': 'IN'}, # Indentation support (Send listitem parent)
 
                     {'type': 'SNB'}, # Allows modification of shared notes?
+                    {'type': 'MI'}, # Concise blob info?
+                    {'type': 'CO'}, # VSS_SUCCEEDED when off?
 
                     # TODO: Figure out what these do:
-                    # {'type': 'CO'}, # VSS_SUCCEEDED when off?
                     # {'type': 'EC'}, # ???
                     # {'type': 'RB'}, # Rollback?
                     # {'type': 'EX'}, # ???
-                    # {'type': 'MI'}, # ???
                 ]
             },
         }
@@ -279,6 +279,8 @@ class RemindersAPI(API):
         }
 
     def create(self):
+        """Create a new reminder.
+        """
         params = {}
         return self.send(
             url=self._base_url + 'create',
@@ -287,6 +289,8 @@ class RemindersAPI(API):
         )
 
     def list(self, master=True):
+        """List current reminders.
+        """
         params = {}
         params.update(self.static_params)
 
@@ -323,6 +327,8 @@ class RemindersAPI(API):
         )
 
     def history(self, storage_version):
+        """Get reminder changes.
+        """
         params = {
             "storageVersion": storage_version,
             "includeSnoozePresetUpdates": True,
@@ -336,6 +342,8 @@ class RemindersAPI(API):
         )
 
     def update(self):
+        """Sync up changes to reminders.
+        """
         params = {}
         return self.send(
             url=self._base_url + 'update',
@@ -508,7 +516,7 @@ class Keep(object):
             )) and
             (func is None or func(node)) and \
             (labels is None or \
-             (not len(labels) and not len(node.labels.all())) or \
+             (not labels and not node.labels.all()) or \
              (any((node.labels.get(i) is not None for i in labels)))
             ) and \
             (colors is None or node.color in colors) and \
@@ -572,7 +580,7 @@ class Keep(object):
             raise exception.LabelException('Label exists')
         node = _node.Label()
         node.name = name
-        self._labels[node.id] = node
+        self._labels[node.id] = node # pylint: disable=protected-access
         return node
 
     def findLabel(self, query, create=False):
@@ -694,7 +702,7 @@ class Keep(object):
     def _parseTasks(self, raw):
         pass
 
-    def _parseNodes(self, raw):
+    def _parseNodes(self, raw): # pylint: disable=too-many-branches
         created_nodes = []
         deleted_nodes = []
         listitem_nodes = []
@@ -728,14 +736,11 @@ class Keep(object):
             if prev == curr:
                 continue
 
-            if curr is None:
-                self._nodes[prev].dedent(node, False)
-                continue
-
             if prev is not None:
                 self._nodes[prev].dedent(node, False)
 
-            self._nodes[curr].indent(node, False)
+            if curr is not None:
+                self._nodes[curr].indent(node, False)
 
         # Attach created nodes to the tree
         for node in created_nodes:
@@ -753,8 +758,8 @@ class Keep(object):
             logger.debug('Deleted node: %s', node.id)
 
         for node in self.all():
-            for label_id in node.labels._labels:
-                node.labels._labels[label_id] = self._labels.get(label_id)
+            for label_id in node.labels._labels: # pylint: disable=protected-access
+                node.labels._labels[label_id] = self._labels.get(label_id) # pylint: disable=protected-access
 
     def _parseUserInfo(self, raw):
         labels = {}

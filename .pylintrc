@@ -1,4 +1,4 @@
 [BASIC]
 good-names=logger
 [MESSAGES CONTROL]
-disable=line-too-long,bad-continuation,too-many-instance-attributes,invalid-name,too-many-lines
+disable=line-too-long,bad-continuation,too-many-instance-attributes,invalid-name,too-many-lines,useless-object-inheritance

@@ -169,7 +169,7 @@ class Element(object):
                         tval_a = NodeTimestamps.str_to_dt(val_a)
                         tval_b = NodeTimestamps.str_to_dt(val_b)
                         val_a, val_b = tval_a, tval_b
-                    except ValueError:
+                    except (KeyError, ValueError):
                         pass
                 if val_a != val_b:
                     logger.info('Different value for %s key %s: %s != %s', type(self), key, raw[key], s_raw[key])
@@ -744,7 +744,7 @@ class NodeLabels(Element):
 
     def load(self, raw):
         # Parent method not called.
-        if len(raw) and isinstance(raw[-1], bool):
+        if raw and isinstance(raw[-1], bool):
             self._dirty = raw.pop()
         else:
             self._dirty = False
@@ -1188,7 +1188,15 @@ class List(TopLevelNode):
 
     @classmethod
     def items_sort(cls, items):
+        """Sort list items, taking into account parent items.
+
+        Args:
+            items (list[gkeepapi.node.ListItem]): Items to sort.
+        Returns:
+            list[gkeepapi.node.ListItem]: Sorted items.
+        """
         class t(tuple):
+            """Tuple with element-based sorting"""
             def __cmp__(self, other):
                 for a, b in six.moves.zip_longest(self, other):
                     if a != b:
@@ -1291,7 +1299,7 @@ class ListItem(Node):
             sort (int): Item id for sorting.
         """
         if self.parent is None:
-            raise InvalidException('Item has no parent')
+            raise exception.InvalidException('Item has no parent')
         node = self.parent.add(text, checked, sort)
         self.indent(node)
         return node
@@ -1303,7 +1311,7 @@ class ListItem(Node):
             node (gkeepapi.node.ListItem): Item to indent.
             dirty (bool): Whether this node should be marked dirty.
         """
-        if len(node.subitems):
+        if node.subitems:
             return
 
         self._subitems[node.id] = node
@@ -1330,6 +1338,11 @@ class ListItem(Node):
 
     @property
     def subitems(self):
+        """Get subitems for this item.
+
+        Returns:
+            list[gkeepapi.node.ListItem]: Subitems.
+        """
         return List.items_sort(
             self._subitems.values()
         )
@@ -1341,7 +1354,7 @@ class ListItem(Node):
         Returns:
             bool: Whether this item is indented.
         """
-        return self.super_list_item_id != None
+        return self.super_list_item_id is not None
 
     @property
     def checked(self):
@@ -1366,9 +1379,11 @@ class ListItem(Node):
 
 class NodeBlob(Element):
     """Represents a blob descriptor."""
-    def __init__(self):
+    _TYPE = None
+    def __init__(self, type_=None):
         super(NodeBlob, self).__init__()
-        self._blob_id = None
+        self.blob_id = None
+        self.type = type_
         self._media_id = None
         self._mimetype = ''
         self._is_uploaded = False
@@ -1377,14 +1392,16 @@ class NodeBlob(Element):
         super(NodeBlob, self).load(raw)
         # Verify this is a valid type
         BlobType(raw['type'])
-        self._blob_id = raw.get('blob_id')
+        self.blob_id = raw.get('blob_id')
         self._media_id = raw.get('media_id')
         self._mimetype = raw.get('mimetype')
 
     def save(self, clean=True):
         ret = super(NodeBlob, self).save(clean)
-        if self._blob_id is not None:
-            ret['blob_id'] = self._blob_id
+        ret['kind'] = 'notes#blob'
+        ret['type'] = self.type.value
+        if self.blob_id is not None:
+            ret['blob_id'] = self.blob_id
         if self._media_id is not None:
             ret['media_id'] = self._media_id
         ret['mimetype'] = self._mimetype
@@ -1392,8 +1409,9 @@ class NodeBlob(Element):
 
 class NodeAudio(NodeBlob):
     """Represents an audio blob."""
+    _TYPE = BlobType.Audio
     def __init__(self):
-        super(NodeAudio, self).__init__()
+        super(NodeAudio, self).__init__(type_=self._TYPE)
         self._length = 0
 
     def load(self, raw):
@@ -1407,10 +1425,12 @@ class NodeAudio(NodeBlob):
 
 class NodeImage(NodeBlob):
     """Represents an image blob."""
+    _TYPE = BlobType.Image
     def __init__(self):
-        super(NodeImage, self).__init__()
+        super(NodeImage, self).__init__(type_=self._TYPE)
         self._width = 0
         self._height = 0
+        self._byte_size = 0
         self._extracted_text = ''
         self._extraction_status = ''
 
@@ -1418,6 +1438,7 @@ class NodeImage(NodeBlob):
         super(NodeImage, self).load(raw)
         self._width = raw['width']
         self._height = raw['height']
+        self._byte_size = raw['byte_size']
         self._extracted_text = raw.get('extracted_text')
         self._extraction_status = raw.get('extraction_status')
 
@@ -1425,13 +1446,70 @@ class NodeImage(NodeBlob):
         ret = super(NodeImage, self).save(clean)
         ret['width'] = self._width
         ret['height'] = self._height
+        ret['byte_size'] = self._byte_size
         ret['extracted_text'] = self._extracted_text
         ret['extraction_status'] = self._extraction_status
         return ret
 
+    @property
+    def url(self):
+        """Get a url to the image.
+        Returns:
+            str: Image url.
+        """
+        raise NotImplementedError()
+
 class NodeDrawing(NodeBlob):
     """Represents a drawing blob."""
-    pass
+    _TYPE = BlobType.Drawing
+    def __init__(self):
+        super(NodeDrawing, self).__init__(type_=self._TYPE)
+        self._extracted_text = ''
+        self._extraction_status = ''
+        self._drawing_info = NodeDrawingInfo()
+
+    def load(self, raw):
+        super(NodeDrawing, self).load(raw)
+        self._extracted_text = raw.get('extracted_text')
+        self._extraction_status = raw.get('extraction_status')
+        self._drawing_info.load(raw['drawingInfo'])
+
+    def save(self, clean=True):
+        ret = super(NodeDrawing, self).save(clean)
+        ret['extracted_text'] = self._extracted_text
+        ret['extraction_status'] = self._extraction_status
+        ret['drawingInfo'] = self._drawing_info.save(clean)
+        return ret
+
+class NodeDrawingInfo(Element):
+    """Represents information about a drawing blob."""
+    def __init__(self):
+        super(NodeDrawingInfo, self).__init__()
+        self.drawing_id = ''
+        self.snapshot = NodeImage()
+        self._snapshot_fingerprint = ''
+        self._thumbnail_generated_time = NodeTimestamps.int_to_dt(0)
+        self._ink_hash = ''
+        self._snapshot_proto_fprint = ''
+
+    def load(self, raw):
+        super(NodeDrawingInfo, self).load(raw)
+        self.drawing_id = raw['drawingId']
+        self.snapshot.load(raw['snapshotData'])
+        self._snapshot_fingerprint = raw['snapshotFingerprint']
+        self._thumbnail_generated_time = NodeTimestamps.str_to_dt(raw['thumbnailGeneratedTime'])
+        self._ink_hash = raw['inkHash']
+        self._snapshot_proto_fprint = raw['snapshotProtoFprint']
+
+    def save(self, clean=True):
+        ret = super(NodeDrawingInfo, self).save(clean)
+        ret['drawingId'] = self.drawing_id
+        ret['snapshotData'] = self.snapshot.save(clean)
+        ret['snapshotFingerprint'] = self._snapshot_fingerprint
+        ret['thumbnailGeneratedTime'] = NodeTimestamps.dt_to_str(self._thumbnail_generated_time)
+        ret['inkHash'] = self._ink_hash
+        ret['snapshotProtoFprint'] = self._snapshot_proto_fprint
+        return ret
 
 class Blob(Node):
     """Represents a Google Keep blob."""
@@ -1443,7 +1521,7 @@ class Blob(Node):
 
     def __init__(self, parent_id=None, **kwargs):
         super(Blob, self).__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
-        self.blob = NodeBlob()
+        self.blob = None
 
     @classmethod
     def from_json(cls, raw):
@@ -1462,7 +1540,7 @@ class Blob(Node):
         _type = raw.get('type')
         try:
             bcls = cls._blob_type_map[BlobType(_type)]
-        except KeyError:
+        except (KeyError, ValueError):
             logger.warning('Unknown blob type: %s', _type)
             return None
         blob = bcls()

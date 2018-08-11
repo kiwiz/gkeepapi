@@ -435,6 +435,16 @@ class ListItemTests(unittest.TestCase):
         self.assertEqual(CHECKED, n.checked)
 
 class BlobTests(unittest.TestCase):
+    def test_save_load(self):
+        a, b = generate_save_load(node.NodeImage)
+        self.assertEqual(a, b)
+
+        a, b = generate_save_load(node.NodeDrawing)
+        self.assertEqual(a, b)
+
+        a, b = generate_save_load(node.NodeAudio)
+        self.assertEqual(a, b)
+
     def test_fields(self):
         # FIXME: Not implemented
         pass
