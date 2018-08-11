@@ -733,6 +733,68 @@ class NodeSettings(Element):
         self._checked_listitems_policy = value
         self._dirty = True
 
+class NodeCollaborators(Element):
+    """Represents the collaborators on a :class:`TopLevelNode`."""
+    def __init__(self):
+        super(NodeCollaborators, self).__init__()
+        self._emails = []
+        self._emails_added = []
+        self._emails_removed = []
+
+    def __len__(self):
+        return len(self._emails)
+
+    def load(self, raw):
+        # Parent method not called.
+        if len(raw) and isinstance(raw[-1], bool):
+            self._dirty = raw.pop()
+        else:
+            self._dirty = False
+        self._collaborators = []
+        for role_info in raw:
+            self._collaborators.append(role_info['email'])
+
+    def save(self, clean=True):
+        # Parent method not called.
+        ret = []
+        for email in self._emails_added:
+          ret.append({"email": email, "type": "WR" })
+        for email in self._emails_removed:
+          ret.append({"email": email, "type": "RM" })
+        if not clean:
+            ret.append(self._dirty)
+        else:
+            self._dirty = False
+        return ret
+
+    def add(self, email):
+        """Add a collaborator.
+
+        Args:
+            str : Collaborator email address.
+        """
+        if email not in self._emails:
+            self._emails_added.append(email)
+        self._dirty = True
+
+    def remove(self, email):
+        """Remove a Collaborator.
+
+        Args:
+            str : Collaborator email address.
+        """
+        if email in _emails:
+          _emails_removed.append(email)
+        self._dirty = True
+
+    def all(self):
+        """Get all collaborators.
+
+        Returns:
+            List[str]: Collaborators.
+        """
+        return _emails
+
 class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
     def __init__(self):
@@ -1033,6 +1095,7 @@ class TopLevelNode(Node):
         self._pinned = False
         self._title = ''
         self.labels = NodeLabels()
+        self.collaborators = NodeCollaborators()
 
     def load(self, raw):
         super(TopLevelNode, self).load(raw)
@@ -1042,6 +1105,7 @@ class TopLevelNode(Node):
         self._title = raw['title']
         self.labels.load(raw['labelIds'] if 'labelIds' in raw else [])
 
+        self.collaborators.load(raw['roleInfo'] if 'roleInfo' in raw else [])
         self.moved = 'moved' in raw
 
     def save(self, clean=True):
@@ -1051,8 +1115,11 @@ class TopLevelNode(Node):
         ret['isPinned'] = self._pinned
         ret['title'] = self._title
         labels = self.labels.save(clean)
+        collaborators = self.collaborators.save(clean)
         if labels:
             ret['labelIds'] = labels
+        if collaborators:
+            ret['shareRequests'] = collaborators
         return ret
 
     @property
@@ -1586,6 +1653,7 @@ if DEBUG:
     _instrumentable_classes = [
         WebLink, Category, TaskAssist, NodeAnnotations, NodeTimestamps,
         NodeSettings, NodeLabels, Note, List, ListItem, NodeAudio,
+        NodeSettings, NodeLabels, NodeCollaborators, Note, List, ListItem, NodeAudio,
         NodeImage, NodeDrawing, Blob, Label
     ]
     for icls in _instrumentable_classes:
