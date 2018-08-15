@@ -1282,7 +1282,7 @@ class ListItem(Node):
         super(ListItem, self).load(raw)
         self.prev_super_list_item_id = self.super_list_item_id
         self.super_list_item_id = raw.get('superListItemId') or None
-        self._checked = raw['checked']
+        self._checked = raw.get('checked', False)
 
     def save(self, clean=True):
         ret = super(ListItem, self).save(clean)
