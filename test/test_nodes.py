@@ -434,6 +434,20 @@ class ListItemTests(unittest.TestCase):
         self.assertTrue(n.dirty)
         self.assertEqual(CHECKED, n.checked)
 
+class CollaboratorsTests(unittest.TestCase):
+    def test_fields(self):
+        n = node.TopLevelNode(type_=node.NodeType.Note)
+
+        COLLAB1 = "1@keep"
+
+        clean_node(n)
+        n.collaborators.add(COLLAB1)
+        self.assertTrue(n.dirty)
+
+        clean_node(n)
+        n.collaborators.remove(COLLAB1)
+        self.assertTrue(n.dirty)
+
 class BlobTests(unittest.TestCase):
     def test_fields(self):
         # FIXME: Not implemented

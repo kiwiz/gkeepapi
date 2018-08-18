@@ -1189,7 +1189,7 @@ class TopLevelNode(Node):
 
     @property
     def dirty(self):
-        return super(TopLevelNode, self).dirty or self.labels.dirty
+        return super(TopLevelNode, self).dirty or self.labels.dirty or self.collaborators.dirty
 
 class Note(TopLevelNode):
     """Represents a Google Keep note."""
