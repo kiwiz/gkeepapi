@@ -783,7 +783,7 @@ class NodeCollaborators(Element):
         Args:
             str : Collaborator email address.
         """
-        if email in _emails:
+        if email in self._emails:
           _emails_removed.append(email)
         self._dirty = True
 
