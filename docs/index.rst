@@ -27,7 +27,7 @@ The client is mostly complete and ready for use, but there are some hairy spots.
 Client Usage
 ============
 
-All interaction with Google Keep is done through a :py:class:`Keep` object, which is responsible for authenticating, syncing changes and tracking modifications.
+All interaction with Google Keep is done through a :py:class:`gkeepapi.Keep` object, which is responsible for authenticating, syncing changes and tracking modifications.
 
 Logging in
 ----------
@@ -36,6 +36,20 @@ gkeepapi leverages the mobile Google Keep API. To do so, it makes use of :py:mod
 
     keep = gkeepapi.Keep()
     keep.login('...', '...')
+
+To reduce the number of logins you make to the server, you can store the master token after logging in. Protect this like a password, as it grants full access to your account::
+
+    import keyring
+    # <snip>
+    token = keep.getMasterToken()
+    keyring.set_password('google-keep-token', username, token)
+
+You can load this token at a later point::
+
+    import keyring
+    # <snip>
+    token = keyring.get_password('google-keep-token', username)
+    keep.resume(email, master_token)
 
 Note: Enabling TwoFactor and logging via an app password is recommended.
 
@@ -60,6 +74,11 @@ The initial sync can take a while, especially if you have a lot of notes. To mit
     fh = open('state', 'r')
     state = json.load(fh)
     keep.restore(state)
+
+You can also pass the state directly to the :py:meth:`Keep.login` and :py:meth:`Keep.resume` methods::
+
+    keep.login(username, password, state=state)
+    keep.resume(username, master_token, state=state)
 
 Notes and Lists
 ===============
@@ -313,7 +332,7 @@ Your account probably has Two Factor enabled. To get around this, you'll need to
 Known Issues
 ============
 
-The :py:class:`Keep` class isn't aware of new :py:class:`ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
+The :py:class:`gkeepapi.Keep` class isn't aware of new :py:class:`ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
 
 Debug
 =====

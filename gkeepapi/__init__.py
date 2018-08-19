@@ -30,7 +30,7 @@ class APIAuth(object):
         self._android_id = None
         self._scopes = scopes
 
-    def login(self, email=None, password=None, master_token=None, android_id=None):
+    def login(self, email, password, android_id):
         """Authenticate to Google with the provided credentials.
 
         Args:
@@ -43,17 +43,39 @@ class APIAuth(object):
         """
         self._email = email
         self._android_id = android_id
-        if master_token == None:
-            res = gpsoauth.perform_master_login(self._email, password, self._android_id)
-            if 'Token' not in res:
-                raise exception.LoginException(res.get('Error'), res.get('ErrorDetail'))
-        else:
-            res = {'Token': master_token}
-
+        res = gpsoauth.perform_master_login(self._email, password, self._android_id)
+        if 'Token' not in res:
+            raise exception.LoginException(res.get('Error'), res.get('ErrorDetail'))
         self._master_token = res['Token']
 
         self.refresh()
         return True
+
+    def load(self, email, master_token, android_id):
+        """Authenticate to Google with the provided master token.
+
+        Args:
+            email (str): The account to use.
+            master_token (str): The master token.
+            android_id (str): An identifier for this client.
+
+        Raises:
+            LoginException: If there was a problem logging in.
+        """
+        self._email = email
+        self._android_id = android_id
+        self._master_token = master_token
+
+        self.refresh()
+        return True
+
+    def getMasterToken(self):
+        """Gets the master token.
+
+        Returns:
+            str: The account master token.
+        """
+        return self._master_token
 
     def setMasterToken(self, master_token):
         """Sets the master token. This is useful if you'd like to authenticate
@@ -65,16 +87,37 @@ class APIAuth(object):
         """
         self._master_token = master_token
 
-    def setEmail(self, email):
-        self._email = email
-
-    def getMasterToken(self):
-        """Gets the master token.
+    def getEmail(self):
+        """Gets the account email.
 
         Returns:
-            str: The account master token.
+            str: The account email.
         """
-        return self._master_token
+        return self._email
+
+    def setEmail(self, email):
+        """Gets the account email.
+
+        Args:
+            email (str): The account email.
+        """
+        self._email = email
+
+    def getAndroidId(self):
+        """Gets the device id.
+
+        Returns:
+            str: The device id.
+        """
+        return self._android_id
+
+    def setAndroidId(self, android_id):
+        """Sets the device id.
+
+        Args:
+            android_id (str): The device id.
+        """
+        self._android_id = android_id
 
     def getAuthToken(self):
         """Gets the auth token.
@@ -121,6 +164,14 @@ class API(object):
         self._auth = auth
         self._base_url = base_url
         self._session.headers.update({'User-Agent': 'gkeepapi/' + __version__})
+
+    def getAuth(self):
+        """Get authentication details for this API.
+
+        Args:
+            auth (APIAuth): The auth object
+        """
+        return self._auth
 
     def setAuth(self, auth):
         """Set authentication details for this API.
@@ -416,18 +467,18 @@ class Keep(object):
         """
         auth = APIAuth(self.OAUTH_SCOPES)
 
-        ret = auth.login(username=username, password=password, android_id=get_mac())
+        ret = auth.login(username, password, get_mac())
         if ret:
             self.load(auth, state, sync)
 
         return ret
 
-    def login_with_master_token(self, email, master_token, state=None, sync=True):
+    def resume(self, email, master_token, state=None, sync=True):
         """Authenticate to Google with the provided master token & sync.
 
         Args:
             email (str): The account to use.
-            master_token (str): The Master Token.
+            master_token (str): The master token.
             state (dict): Serialized state to load.
 
         Raises:
@@ -435,11 +486,19 @@ class Keep(object):
         """
         auth = APIAuth(self.OAUTH_SCOPES)
 
-        ret = auth.login(master_token=master_token, android_id=get_mac())
+        ret = auth.load(email, master_token, android_id=get_mac())
         if ret:
             self.load(auth, state, sync)
 
         return ret
+
+    def getMasterToken(self):
+        """Get master token for resuming.
+
+        Returns:
+            str: The master token.
+        """
+        return self._keep_api.getAuth().getMasterToken()
 
     def load(self, auth, state=None, sync=True):
         """Authenticate to Google with a prepared authentication object & sync.
@@ -452,19 +511,10 @@ class Keep(object):
         """
         self._keep_api.setAuth(auth)
         self._reminders_api.setAuth(auth)
-        self._auth = auth
         if state is not None:
             self.restore(state)
         if sync:
             self.sync(True)
-
-    def getAuth(self):
-        """Get authentication details for this API.
-
-        Returns:
-            auth (APIAuth): The auth object
-        """
-        return self._auth
 
     def dump(self):
         """Serialize note data.
