@@ -2,6 +2,7 @@
    sphinx-quickstart on Sat Oct 14 10:43:15 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
+.. py:currentmodule:: gkeepapi
 
 Welcome to gkeepapi's documentation!
 ====================================
@@ -27,7 +28,7 @@ The client is mostly complete and ready for use, but there are some hairy spots.
 Client Usage
 ============
 
-All interaction with Google Keep is done through a :py:class:`gkeepapi.Keep` object, which is responsible for authenticating, syncing changes and tracking modifications.
+All interaction with Google Keep is done through a :py:class:`Keep` object, which is responsible for authenticating, syncing changes and tracking modifications.
 
 Logging in
 ----------
@@ -332,7 +333,7 @@ Your account probably has Two Factor enabled. To get around this, you'll need to
 Known Issues
 ============
 
-The :py:class:`gkeepapi.Keep` class isn't aware of new :py:class:`ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
+The :py:class:`Keep` class isn't aware of new :py:class:`ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
 
 Debug
 =====
