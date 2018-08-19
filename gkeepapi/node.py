@@ -21,124 +21,124 @@ DEBUG = False
 logger = logging.getLogger(__name__)
 
 class NodeType(enum.Enum):
-    """Valid note types.""" # pylint: disable=pointless-string-statement
+    """Valid note types."""
 
-    """A Note"""
     Note = 'NOTE'
+    """A Note"""
 
-    """A List"""
     List = 'LIST'
+    """A List"""
 
-    """A List item"""
     ListItem = 'LIST_ITEM'
+    """A List item"""
 
-    """A blob"""
     Blob = 'BLOB'
+    """A blob"""
 
 class BlobType(enum.Enum):
-    """Valid blob types.""" # pylint: disable=pointless-string-statement
+    """Valid blob types."""
 
-    """Audio"""
     Audio = 'AUDIO'
+    """Audio"""
 
-    """Image"""
     Image = 'IMAGE'
+    """Image"""
 
-    """Drawing"""
     Drawing = 'DRAWING'
+    """Drawing"""
 
 class ColorValue(enum.Enum):
-    """Valid note colors.""" # pylint: disable=pointless-string-statement
+    """Valid note colors."""
 
-    """White"""
     White = 'DEFAULT'
+    """White"""
 
-    """Red"""
     Red = 'RED'
+    """Red"""
 
-    """Orange"""
     Orange = 'ORANGE'
+    """Orange"""
 
-    """Yellow"""
     Yellow = 'YELLOW'
+    """Yellow"""
 
-    """Green"""
     Green = 'GREEN'
+    """Green"""
 
-    """Teal"""
     Teal = 'TEAL'
+    """Teal"""
 
-    """Blue"""
     Blue = 'BLUE'
+    """Blue"""
 
-    """Dark blue"""
     DarkBlue = 'CERULEAN'
+    """Dark blue"""
 
-    """Purple"""
     Purple = 'PURPLE'
+    """Purple"""
 
-    """Pink"""
     Pink = 'PINK'
+    """Pink"""
 
-    """Brown"""
     Brown = 'BROWN'
+    """Brown"""
 
-    """Gray"""
     Gray = 'GRAY'
+    """Gray"""
 
 class CategoryValue(enum.Enum):
-    """Valid note categories.""" # pylint: disable=pointless-string-statement
+    """Valid note categories."""
 
-    """Books"""
     Books = 'BOOKS'
+    """Books"""
 
-    """Food"""
     Food = 'FOOD'
+    """Food"""
 
-    """Movies"""
     Movies = 'MOVIES'
+    """Movies"""
 
-    """Music"""
     Music = 'MUSIC'
+    """Music"""
 
-    """Places"""
     Places = 'PLACES'
+    """Places"""
 
-    """Quotes"""
     Quotes = 'QUOTES'
+    """Quotes"""
 
-    """Travel"""
     Travel = 'TRAVEL'
+    """Travel"""
 
-    """TV"""
     TV = 'TV'
+    """TV"""
 
 class NewListItemPlacementValue(enum.Enum):
-    """Valid locations to put new list items.""" # pylint: disable=pointless-string-statement
+    """Valid locations to put new list items."""
 
-    """Top"""
     Top = 'TOP'
+    """Top"""
 
-    """Bottom"""
     Bottom = 'BOTTOM'
+    """Bottom"""
 
 class GraveyardStateValue(enum.Enum):
-    """Valid visibility list graveyards.""" # pylint: disable=pointless-string-statement
+    """Valid visibility list graveyards."""
 
-    """Expanded"""
     Expanded = 'EXPANDED'
+    """Expanded"""
 
-    """Collapsed"""
     Collapsed = 'COLLAPSED'
+    """Collapsed"""
 
 class CheckedListItemsPolicyValue(enum.Enum):
-    """Unknown""" # pylint: disable=pointless-string-statement
+    """Unknown"""
 
-    """Default"""
     Default = 'DEFAULT'
+    """Default"""
 
-    """Graveyard"""
     Graveyard = 'GRAVEYARD'
+    """Graveyard"""
 
 
 class Element(object):
