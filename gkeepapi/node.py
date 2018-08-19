@@ -33,7 +33,7 @@ class NodeType(enum.Enum):
     """A List item"""
 
     Blob = 'BLOB'
-    """A blob"""
+    """A blob (attachment)"""
 
 class BlobType(enum.Enum):
     """Valid blob types."""
@@ -114,7 +114,7 @@ class CategoryValue(enum.Enum):
     """TV"""
 
 class NewListItemPlacementValue(enum.Enum):
-    """Valid locations to put new list items."""
+    """Target location to put new list items."""
 
     Top = 'TOP'
     """Top"""
@@ -123,7 +123,7 @@ class NewListItemPlacementValue(enum.Enum):
     """Bottom"""
 
 class GraveyardStateValue(enum.Enum):
-    """Valid visibility list graveyards."""
+    """Visibility setting for the graveyard."""
 
     Expanded = 'EXPANDED'
     """Expanded"""
@@ -132,7 +132,7 @@ class GraveyardStateValue(enum.Enum):
     """Collapsed"""
 
 class CheckedListItemsPolicyValue(enum.Enum):
-    """Unknown"""
+    """Movement setting for checked list items."""
 
     Default = 'DEFAULT'
     """Default"""
@@ -177,7 +177,7 @@ class Element(object):
             if len(raw) != len(s_raw):
                 logger.info('Different length for %s: %d != %d', type(self), len(raw), len(s_raw))
 
-    def load(self, raw): # pylint: disable=unused-argument
+    def load(self, raw):
         """Unserialize from raw representation.
 
         Args:
@@ -218,11 +218,14 @@ class Annotation(Element):
 
     def load(self, raw):
         super(Annotation, self).load(raw)
-        self.id = raw['id']
+        self.id = raw.get('id')
 
     def save(self, clean=True):
-        ret = super(Annotation, self).save(clean)
-        ret['id'] = self.id
+        ret = {}
+        if self.id is not None:
+            ret = super(Annotation, self).save(clean)
+        if self.id is not None:
+            ret['id'] = self.id
         return ret
 
     @classmethod
@@ -396,6 +399,38 @@ class TaskAssist(Annotation):
         self._suggest = value
         self._dirty = True
 
+class Context(Annotation):
+    """Represents a context annotation, which may contain other annotations."""
+    def __init__(self):
+        super(Context, self).__init__()
+        self._entries = {}
+
+    def load(self, raw):
+        super(Context, self).load(raw)
+        self._entries = {}
+        for key, entry in raw.get('context', {}).items():
+            self._entries[key] = NodeAnnotations.from_json({key: entry})
+
+    def save(self, clean=True):
+        ret = super(Context, self).save(clean)
+        context = {}
+        for entry in self._entries.values():
+            context.update(entry.save(clean))
+        ret['context'] = context
+        return ret
+
+    def all(self):
+        """Get all sub annotations.
+
+        Returns:
+            List[gkeepapi.node.Annotation]: Sub Annotations.
+        """
+        return self._entries.values()
+
+    @property
+    def dirty(self):
+        return super(Context, self).dirty or any((annotation.dirty for annotation in self._entries.values()))
+
 class NodeAnnotations(Element):
     """Represents the annotation container on a :class:`TopLevelNode`."""
     def __init__(self):
@@ -422,6 +457,8 @@ class NodeAnnotations(Element):
             bcls = Category
         elif 'taskAssist' in raw:
             bcls = TaskAssist
+        elif 'context' in raw:
+            bcls = Context
 
         if bcls is None:
             logger.warning('Unknown annotation type: %s', raw.keys())
@@ -429,6 +466,14 @@ class NodeAnnotations(Element):
         annotation = bcls()
         annotation.load(raw)
         return annotation
+
+    def all(self):
+        """Get all annotations.
+
+        Returns:
+            List[gkeepapi.node.Annotation]: Annotations.
+        """
+        return self._annotations.values()
 
     def load(self, raw):
         super(NodeAnnotations, self).load(raw)

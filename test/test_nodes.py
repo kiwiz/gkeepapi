@@ -93,6 +93,23 @@ class AnnotationTests(unittest.TestCase):
         self.assertTrue(n.dirty)
         self.assertEqual(SUGGEST, n.suggest)
 
+class ContextTests(unittest.TestCase):
+    def test_save_load(self):
+        a, b = generate_save_load(node.Context)
+        self.assertEqual(a, b)
+
+    def test_subannotations(self):
+        n = node.Context()
+        sub = node.WebLink()
+        sub.id = None
+
+        n._entries['x'] = sub
+
+        data = n.save()
+
+        n.load(data)
+        self.assertEqual(1, len(n._entries))
+
 class NodeAnnotationsTests(unittest.TestCase):
     def test_save_load(self):
         a, b = generate_save_load(node.NodeAnnotations)
