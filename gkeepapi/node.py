@@ -14,6 +14,7 @@ import random
 import enum
 import six
 
+from future.utils import raise_from
 from . import exception
 
 DEBUG = False
@@ -178,7 +179,20 @@ class Element(object):
                 logger.info('Different length for %s: %d != %d', type(self), len(raw), len(s_raw))
 
     def load(self, raw):
-        """Unserialize from raw representation.
+        """Unserialize from raw representation. (Wrapper)
+
+        Args:
+            raw (dict): Raw.
+        Raises:
+            ParseException: If there was an error parsing data.
+        """
+        try:
+            self._load(raw)
+        except (KeyError, ValueError) as e:
+            raise_from(exception.ParseException('Parse error in %s' % (type(self)), raw), e)
+
+    def _load(self, raw):
+        """Unserialize from raw representation. (Implementation logic)
 
         Args:
             raw (dict): Raw.
@@ -216,8 +230,8 @@ class Annotation(Element):
         super(Annotation, self).__init__()
         self.id = self._generateAnnotationId()
 
-    def load(self, raw):
-        super(Annotation, self).load(raw)
+    def _load(self, raw):
+        super(Annotation, self)._load(raw)
         self.id = raw.get('id')
 
     def save(self, clean=True):
@@ -248,8 +262,8 @@ class WebLink(Annotation):
         self._provenance_url = ''
         self._description = ''
 
-    def load(self, raw):
-        super(WebLink, self).load(raw)
+    def _load(self, raw):
+        super(WebLink, self)._load(raw)
         self._title = raw['webLink']['title']
         self._url = raw['webLink']['url']
         self._image_url = raw['webLink']['imageUrl'] if 'imageUrl' in raw['webLink'] else self.image_url
@@ -343,8 +357,8 @@ class Category(Annotation):
         super(Category, self).__init__()
         self._category = None
 
-    def load(self, raw):
-        super(Category, self).load(raw)
+    def _load(self, raw):
+        super(Category, self)._load(raw)
         self._category = CategoryValue(raw['topicCategory']['category'])
 
     def save(self, clean=True):
@@ -374,8 +388,8 @@ class TaskAssist(Annotation):
         super(TaskAssist, self).__init__()
         self._suggest = None
 
-    def load(self, raw):
-        super(TaskAssist, self).load(raw)
+    def _load(self, raw):
+        super(TaskAssist, self)._load(raw)
         self._suggest = raw['taskAssist']['suggestType']
 
     def save(self, clean=True):
@@ -405,8 +419,8 @@ class Context(Annotation):
         super(Context, self).__init__()
         self._entries = {}
 
-    def load(self, raw):
-        super(Context, self).load(raw)
+    def _load(self, raw):
+        super(Context, self)._load(raw)
         self._entries = {}
         for key, entry in raw.get('context', {}).items():
             self._entries[key] = NodeAnnotations.from_json({key: entry})
@@ -465,6 +479,7 @@ class NodeAnnotations(Element):
             return None
         annotation = bcls()
         annotation.load(raw)
+
         return annotation
 
     def all(self):
@@ -475,8 +490,8 @@ class NodeAnnotations(Element):
         """
         return self._annotations.values()
 
-    def load(self, raw):
-        super(NodeAnnotations, self).load(raw)
+    def _load(self, raw):
+        super(NodeAnnotations, self)._load(raw)
         self._annotations = {}
         if 'annotations' not in raw:
             return
@@ -579,8 +594,8 @@ class NodeTimestamps(Element):
         self._updated = self.int_to_dt(create_time)
         self._edited = self.int_to_dt(create_time)
 
-    def load(self, raw):
-        super(NodeTimestamps, self).load(raw)
+    def _load(self, raw):
+        super(NodeTimestamps, self)._load(raw)
         self._created = self.str_to_dt(raw['created'])
         self._deleted = self.str_to_dt(raw['deleted']) \
             if 'deleted' in raw else None
@@ -723,8 +738,8 @@ class NodeSettings(Element):
         self._graveyard_state = GraveyardStateValue.Collapsed
         self._checked_listitems_policy = CheckedListItemsPolicyValue.Graveyard
 
-    def load(self, raw):
-        super(NodeSettings, self).load(raw)
+    def _load(self, raw):
+        super(NodeSettings, self)._load(raw)
         self._new_listitem_placement = NewListItemPlacementValue(raw['newListItemPlacement'])
         self._graveyard_state = GraveyardStateValue(raw['graveyardState'])
         self._checked_listitems_policy = CheckedListItemsPolicyValue(raw['checkedListItemsPolicy'])
@@ -787,7 +802,7 @@ class NodeLabels(Element):
     def __len__(self):
         return len(self._labels)
 
-    def load(self, raw):
+    def _load(self, raw):
         # Parent method not called.
         if raw and isinstance(raw[-1], bool):
             self._dirty = raw.pop()
@@ -909,8 +924,8 @@ class Node(Element, TimestampsMixin):
             random.randint(0x0000000000000000, 0xffffffffffffffff)
         )
 
-    def load(self, raw):
-        super(Node, self).load(raw)
+    def _load(self, raw):
+        super(Node, self)._load(raw)
         # Verify this is a valid type
         NodeType(raw['type'])
         if raw['kind'] not in ['notes#node']:
@@ -1079,8 +1094,8 @@ class TopLevelNode(Node):
         self._title = ''
         self.labels = NodeLabels()
 
-    def load(self, raw):
-        super(TopLevelNode, self).load(raw)
+    def _load(self, raw):
+        super(TopLevelNode, self)._load(raw)
         self._color = ColorValue(raw['color']) if 'color' in raw else ColorValue.White
         self._archived = raw['isArchived'] if 'isArchived' in raw else False
         self._pinned = raw['isPinned'] if 'isPinned' in raw else False
@@ -1323,8 +1338,8 @@ class ListItem(Node):
         self._subitems = {}
         self._checked = False
 
-    def load(self, raw):
-        super(ListItem, self).load(raw)
+    def _load(self, raw):
+        super(ListItem, self)._load(raw)
         self.prev_super_list_item_id = self.super_list_item_id
         self.super_list_item_id = raw.get('superListItemId') or None
         self._checked = raw.get('checked', False)
@@ -1433,8 +1448,8 @@ class NodeBlob(Element):
         self._mimetype = ''
         self._is_uploaded = False
 
-    def load(self, raw):
-        super(NodeBlob, self).load(raw)
+    def _load(self, raw):
+        super(NodeBlob, self)._load(raw)
         # Verify this is a valid type
         BlobType(raw['type'])
         self.blob_id = raw.get('blob_id')
@@ -1459,8 +1474,8 @@ class NodeAudio(NodeBlob):
         super(NodeAudio, self).__init__(type_=self._TYPE)
         self._length = 0
 
-    def load(self, raw):
-        super(NodeAudio, self).load(raw)
+    def _load(self, raw):
+        super(NodeAudio, self)._load(raw)
         self._length = raw['length']
 
     def save(self, clean=True):
@@ -1479,8 +1494,8 @@ class NodeImage(NodeBlob):
         self._extracted_text = ''
         self._extraction_status = ''
 
-    def load(self, raw):
-        super(NodeImage, self).load(raw)
+    def _load(self, raw):
+        super(NodeImage, self)._load(raw)
         self._width = raw['width']
         self._height = raw['height']
         self._byte_size = raw['byte_size']
@@ -1513,8 +1528,8 @@ class NodeDrawing(NodeBlob):
         self._extraction_status = ''
         self._drawing_info = NodeDrawingInfo()
 
-    def load(self, raw):
-        super(NodeDrawing, self).load(raw)
+    def _load(self, raw):
+        super(NodeDrawing, self)._load(raw)
         self._extracted_text = raw.get('extracted_text')
         self._extraction_status = raw.get('extraction_status')
         self._drawing_info.load(raw['drawingInfo'])
@@ -1537,8 +1552,8 @@ class NodeDrawingInfo(Element):
         self._ink_hash = ''
         self._snapshot_proto_fprint = ''
 
-    def load(self, raw):
-        super(NodeDrawingInfo, self).load(raw)
+    def _load(self, raw):
+        super(NodeDrawingInfo, self)._load(raw)
         self.drawing_id = raw['drawingId']
         self.snapshot.load(raw['snapshotData'])
         self._snapshot_fingerprint = raw['snapshotFingerprint']
@@ -1590,10 +1605,11 @@ class Blob(Node):
             return None
         blob = bcls()
         blob.load(raw)
+
         return blob
 
-    def load(self, raw):
-        super(Blob, self).load(raw)
+    def _load(self, raw):
+        super(Blob, self)._load(raw)
         self.blob = self.from_json(raw.get('blob'))
 
     def save(self, clean=True):
@@ -1620,8 +1636,8 @@ class Label(Element, TimestampsMixin):
             int(tz * 1000)
         )
 
-    def load(self, raw):
-        super(Label, self).load(raw)
+    def _load(self, raw):
+        super(Label, self)._load(raw)
         self.id = raw['mainId']
         self._name = raw['name']
         self.timestamps.load(raw['timestamps'])
@@ -1695,21 +1711,12 @@ def from_json(raw):
         return None
     node = ncls()
     node.load(raw)
+
     return node
 
-
-def _instrument_load(cls):
-    cls._load = cls.load # pylint: disable=protected-access
-    def load(self, raw): # pylint: disable=missing-docstring
-        self._load(raw) # pylint: disable=protected-access
-        self._find_discrepancies(raw) # pylint: disable=protected-access
-    cls.load = load
-
 if DEBUG:
-    _instrumentable_classes = [
-        WebLink, Category, TaskAssist, NodeAnnotations, NodeTimestamps,
-        NodeSettings, NodeLabels, Note, List, ListItem, NodeAudio,
-        NodeImage, NodeDrawing, Blob, Label
-    ]
-    for icls in _instrumentable_classes:
-        _instrument_load(icls)
+    Node.__load = cls._load # pylint: disable=protected-access
+    def _load(self, raw): # pylint: disable=missing-docstring
+        self.__load(raw) # pylint: disable=protected-access
+        self._find_discrepancies(raw) # pylint: disable=protected-access
+    cls._load = load

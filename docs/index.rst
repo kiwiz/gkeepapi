@@ -342,6 +342,17 @@ To enable development debug logs::
 
     gkeepapi.node.DEBUG = True
 
+Reporting errors
+----------------
+
+Google occasionally ramps up changes to the Keep data format. When this happens, you'll likely get a :py:class:`ParseException`. Please report this on Github with the raw data, which you can grab like so::
+
+    try:
+        # Code that raises the exception
+    except gkeepapi.exception.ParseException as e:
+        print(e.raw)
+
+
 Indices and tables
 ==================
 

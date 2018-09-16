@@ -32,3 +32,9 @@ class MergeException(KeepException):
 class InvalidException(KeepException):
     """Constraint error."""
     pass
+
+class ParseException(KeepException):
+    """Parse error."""
+    def __init__(self, msg, raw):
+        super(ParseException, self).__init__(msg)
+        self.raw = raw
