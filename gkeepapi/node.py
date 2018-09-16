@@ -114,6 +114,12 @@ class CategoryValue(enum.Enum):
     TV = 'TV'
     """TV"""
 
+class SuggestValue(enum.Enum):
+    """Valid task suggestion categories."""
+
+    GroceryItem = 'GROCERY_ITEM'
+    """Grocery item"""
+
 class NewListItemPlacementValue(enum.Enum):
     """Target location to put new list items."""
 
