@@ -1084,7 +1084,7 @@ class TopLevelNode(Node):
         self._color = ColorValue(raw['color']) if 'color' in raw else ColorValue.White
         self._archived = raw['isArchived'] if 'isArchived' in raw else False
         self._pinned = raw['isPinned'] if 'isPinned' in raw else False
-        self._title = raw['title']
+        self._title = raw['title'] if 'title' in raw else ''
         self.labels.load(raw['labelIds'] if 'labelIds' in raw else [])
 
         self.moved = 'moved' in raw
