@@ -303,6 +303,7 @@ TODO
 Annotations
 ===========
 
+READ ONLY
 TODO
 
 Settings
@@ -313,6 +314,7 @@ TODO
 Timestamps
 ==========
 
+READ ONLY
 All notes and lists have a `NodeTimestamps` object with timestamp data::
 
     node.timestamps.created
