@@ -1563,7 +1563,7 @@ class NodeDrawingInfo(Element):
         self.drawing_id = raw['drawingId']
         self.snapshot.load(raw['snapshotData'])
         self._snapshot_fingerprint = raw['snapshotFingerprint']
-        self._thumbnail_generated_time = NodeTimestamps.str_to_dt(raw['thumbnailGeneratedTime'])
+        self._thumbnail_generated_time = NodeTimestamps.str_to_dt(raw.get('thumbnailGeneratedTime') or 0)
         self._ink_hash = raw['inkHash']
         self._snapshot_proto_fprint = raw['snapshotProtoFprint']
 
