@@ -451,6 +451,20 @@ class ListItemTests(unittest.TestCase):
         self.assertTrue(n.dirty)
         self.assertEqual(CHECKED, n.checked)
 
+class CollaboratorsTests(unittest.TestCase):
+    def test_fields(self):
+        n = node.TopLevelNode(type_=node.NodeType.Note)
+
+        collab = "user@google.com"
+
+        clean_node(n)
+        n.collaborators.add(collab)
+        self.assertTrue(n.dirty)
+
+        clean_node(n)
+        n.collaborators.remove(collab)
+        self.assertTrue(n.dirty)
+
 class BlobTests(unittest.TestCase):
     def test_save_load(self):
         a, b = generate_save_load(node.NodeImage)
