@@ -1608,6 +1608,8 @@ class Blob(Node):
             bcls = cls._blob_type_map[BlobType(_type)]
         except (KeyError, ValueError):
             logger.warning('Unknown blob type: %s', _type)
+            if DEBUG:
+                raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
             return None
         blob = bcls()
         blob.load(raw)
@@ -1714,6 +1716,8 @@ def from_json(raw):
         ncls = _type_map[NodeType(_type)]
     except KeyError:
         logger.warning('Unknown node type: %s', _type)
+        if DEBUG:
+            raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
         return None
     node = ncls()
     node.load(raw)

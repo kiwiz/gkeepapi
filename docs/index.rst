@@ -354,6 +354,8 @@ Google occasionally ramps up changes to the Keep data format. When this happens,
     except gkeepapi.exception.ParseException as e:
         print(e.raw)
 
+If you're not getting an :py:class:`ParseException`, just a log line, make sure you've enabled debug mode.
+
 
 Indices and tables
 ==================
