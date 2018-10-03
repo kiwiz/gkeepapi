@@ -1808,7 +1808,7 @@ def from_json(raw):
     _type = raw.get('type')
     try:
         ncls = _type_map[NodeType(_type)]
-    except KeyError:
+    except (KeyError, ValueError):
         logger.warning('Unknown node type: %s', _type)
         if DEBUG:
             raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
