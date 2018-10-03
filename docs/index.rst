@@ -84,7 +84,7 @@ You can also pass the state directly to the :py:meth:`Keep.login` and :py:meth:`
 Notes and Lists
 ===============
 
-Notes and Lists are the primary types of notes visible to a Google Keep user. gkeepapi exposes these two notes via the :py:class:`Note` and :py:class:`List` classes. For Lists, there's also the :py:class:`ListItem` class.
+Notes and Lists are the primary types of notes visible to a Google Keep user. gkeepapi exposes these two notes via the :py:class:`node.Note` and :py:class:`node.List` classes. For Lists, there's also the :py:class:`node.ListItem` class.
 
 Creating Notes
 --------------
@@ -171,7 +171,7 @@ Example usage::
 Getting List content
 ^^^^^^^^^^^^^^^^^^^^
 
-Retrieving the content of a list is slightly more nuanced as they contain multiple entries. To get a serialized version of the contents, simply access :py:attr:`List.text` as usual. To get the individual :py:class:`ListItem` objects, access :py:attr:`List.items`::
+Retrieving the content of a list is slightly more nuanced as they contain multiple entries. To get a serialized version of the contents, simply access :py:attr:`node.List.text` as usual. To get the individual :py:class:`node.ListItem` objects, access :py:attr:`node.List.items`::
 
     # Serialized content
     print glist.text
@@ -199,7 +199,7 @@ Example usage::
 Setting List content
 ^^^^^^^^^^^^^^^^^^^^
 
-New items can be added via :py:meth:`List.add`::
+New items can be added via :py:meth:`node.List.add`::
 
     glist.add('Item 2', True)
 
@@ -227,7 +227,7 @@ To dedent::
 Deleting Notes
 --------------
 
-The :py:meth:`TopLevelNode.delete` method marks the note for deletion::
+The :py:meth:`node.TopLevelNode.delete` method marks the note for deletion::
 
     gnote.delete()
     glist.delete()
@@ -283,7 +283,7 @@ A label can be deleted with :py:meth:`Keep.deleteLabel`. This method ensures the
 Manipulating Labels on Notes
 ----------------------------
 
-When working with labels and notes, the key point to remember is that we're always working with Label objects or IDs. Interaction is done through the :py:class:`NodeLabels` class.
+When working with labels and notes, the key point to remember is that we're always working with Label objects or IDs. Interaction is done through the :py:class:`node.NodeLabels` class.
 
 To add a label to a note::
 
@@ -316,7 +316,7 @@ TODO
 Collaborators
 =============
 
-Collaborators are users you've shared notes with. Access can be granted or revoked per note. Interaction is done through the :py:class:`NodeCollaborators` class.
+Collaborators are users you've shared notes with. Access can be granted or revoked per note. Interaction is done through the :py:class:`node.NodeCollaborators` class.
 
 To add a collaborator to a note::
 
@@ -333,7 +333,7 @@ To remove a collaborator from a note::
 Timestamps
 ==========
 
-All notes and lists have a `NodeTimestamps` object with timestamp data::
+All notes and lists have a `node.NodeTimestamps` object with timestamp data::
 
     node.timestamps.created
     node.timestamps.deleted
@@ -346,14 +346,14 @@ These timestamps are all read-only.
 FAQ
 ===
 
-1. I get a "NeedsBrowser" `APIException` when I try to log in.
+1. I get a "NeedsBrowser" `exception.APIException` when I try to log in.
 
 Your account probably has Two Factor enabled. To get around this, you'll need to generate an App Password for your Google account.
 
 Known Issues
 ============
 
-The :py:class:`Keep` class isn't aware of new :py:class:`ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
+The :py:class:`Keep` class isn't aware of new :py:class:`node.ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
 
 Debug
 =====
@@ -365,14 +365,14 @@ To enable development debug logs::
 Reporting errors
 ----------------
 
-Google occasionally ramps up changes to the Keep data format. When this happens, you'll likely get a :py:class:`ParseException`. Please report this on Github with the raw data, which you can grab like so::
+Google occasionally ramps up changes to the Keep data format. When this happens, you'll likely get a :py:class:`exception.ParseException`. Please report this on Github with the raw data, which you can grab like so::
 
     try:
         # Code that raises the exception
     except gkeepapi.exception.ParseException as e:
         print(e.raw)
 
-If you're not getting an :py:class:`ParseException`, just a log line, make sure you've enabled debug mode.
+If you're not getting an :py:class:`exception.ParseException`, just a log line, make sure you've enabled debug mode.
 
 
 Indices and tables
