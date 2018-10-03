@@ -147,6 +147,23 @@ class CheckedListItemsPolicyValue(enum.Enum):
     Graveyard = 'GRAVEYARD'
     """Graveyard"""
 
+class ShareRequestValue(enum.Enum):
+    """Collaborator change type."""
+
+    Add = 'WR'
+    """Grant access."""
+
+    Remove = 'RM'
+    """Remove access."""
+
+class RoleValue(enum.Enum):
+    """Collaborator role type."""
+
+    Owner = 'O'
+    """Note owner."""
+
+    User = 'W'
+    """Note collaborator."""
 
 class Element(object):
     """Interface for elements that can be serialized and deserialized."""
@@ -803,35 +820,37 @@ class NodeCollaborators(Element):
     """Represents the collaborators on a :class:`TopLevelNode`."""
     def __init__(self):
         super(NodeCollaborators, self).__init__()
-        self._emails = []
-        self._emails_added = []
-        self._emails_removed = []
+        self._collaborators = {}
 
     def __len__(self):
-        return len(self._emails)
+        return len(self._collaborators)
 
-    def load(self, raw):
+    def load(self, collaborators_raw, requests_raw):
         # Parent method not called.
-        if len(raw) and isinstance(raw[-1], bool):
+        if len(requests_raw) and isinstance(requests_raw[-1], bool):
             self._dirty = raw.pop()
         else:
             self._dirty = False
-        self._collaborators = []
-        for role_info in raw:
-            self._collaborators.append(role_info['email'])
+        self._collaborators = {}
+        for collaborator in collaborators_raw:
+            self._collaborators[collaborator['email']] = RoleValue(collaborator['role'])
+        for collaborator in requests_raw:
+            self._collaborators[collaborator['email']] = ShareRequestValue(collaborator['type'])
 
     def save(self, clean=True):
         # Parent method not called.
-        ret = []
-        for email in self._emails_added:
-          ret.append({"email": email, "type": "WR" })
-        for email in self._emails_removed:
-          ret.append({"email": email, "type": "RM" })
+        collaborators = []
+        requests = []
+        for email, action in self._collaborators.items():
+            if isinstance(action, ShareRequestValue):
+                requests.append({'email': email, 'type': action.value})
+            else:
+                collaborators.append({'email': email, 'role': action.value, 'auxiliary_type': 'None'})
         if not clean:
-            ret.append(self._dirty)
+            requests.append(self._dirty)
         else:
             self._dirty = False
-        return ret
+        return (collaborators, requests)
 
     def add(self, email):
         """Add a collaborator.
@@ -839,8 +858,8 @@ class NodeCollaborators(Element):
         Args:
             str : Collaborator email address.
         """
-        if email not in self._emails:
-            self._emails_added.append(email)
+        if email not in self._collaborators:
+            self._collaborators[email] = ShareRequestValue.Add
         self._dirty = True
 
     def remove(self, email):
@@ -849,8 +868,11 @@ class NodeCollaborators(Element):
         Args:
             str : Collaborator email address.
         """
-        if email in self._emails:
-          _emails_removed.append(email)
+        if email in self._collaborators:
+            if self._collaborators[email] == ShareRequestValue.Add:
+                del self._collaborators[email]
+            else:
+                self._collaborators[email] = ShareRequestValue.Remove
         self._dirty = True
 
     def all(self):
@@ -859,7 +881,7 @@ class NodeCollaborators(Element):
         Returns:
             List[str]: Collaborators.
         """
-        return _emails
+        return [email for email, action in self._collaborators.items() if action in [RoleValue.Owner, RoleValue.User, ShareRequestValue.Add]]
 
 class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
@@ -1171,7 +1193,10 @@ class TopLevelNode(Node):
         self._title = raw['title'] if 'title' in raw else ''
         self.labels.load(raw['labelIds'] if 'labelIds' in raw else [])
 
-        self.collaborators.load(raw['roleInfo'] if 'roleInfo' in raw else [])
+        self.collaborators.load(
+            raw['roleInfo'] if 'roleInfo' in raw else [],
+            raw['shareRequests'] if 'shareRequests' in raw else [],
+        )
         self.moved = 'moved' in raw
 
     def save(self, clean=True):
@@ -1181,11 +1206,13 @@ class TopLevelNode(Node):
         ret['isPinned'] = self._pinned
         ret['title'] = self._title
         labels = self.labels.save(clean)
-        collaborators = self.collaborators.save(clean)
+
+        collaborators, requests = self.collaborators.save(clean)
         if labels:
             ret['labelIds'] = labels
-        if collaborators:
-            ret['shareRequests'] = collaborators
+        ret['collaborators'] = collaborators
+        if requests:
+            ret['shareRequests'] = requests
         return ret
 
     @property

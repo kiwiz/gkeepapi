@@ -36,8 +36,6 @@ The docs are available on [Read the Docs](https://gkeepapi.readthedocs.io/en/lat
 - Determine how `forceFullSync` works.
 - Reminders
     - `reminders`
-- Sharing Notes
-    - `lastModifierEmail`, `roleInfo`, `timestamps.recentSharedChangesSeen`, `shareState`
 - Figure out all possible values for `TaskAssist._suggest`
 - Figure out all possible values for `NodeImage._extraction_status`
 - Blobs (Drawings/Images/Recordings)

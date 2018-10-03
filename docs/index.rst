@@ -146,7 +146,10 @@ Notes and Lists:
 * :py:attr:`TopLevelNode.color`
 * :py:attr:`TopLevelNode.archived`
 * :py:attr:`TopLevelNode.pinned`
-* :py:attr:`TopLevelNode.deleted`
+* :py:attr:`TopLevelNode.labels`
+* :py:attr:`TopLevelNode.annotations`
+* :py:attr:`TopLevelNode.timestamps`
+* :py:attr:`TopLevelNode.collaborators`
 
 ListItems:
 
@@ -156,7 +159,6 @@ ListItems:
 * :py:attr:`TopLevelNode.indented` (Read only)
 * :py:attr:`TopLevelNode.text`
 * :py:attr:`TopLevelNode.checked`
-* :py:attr:`TopLevelNode.deleted`
 
 Getting Note content
 ^^^^^^^^^^^^^^^^^^^^
@@ -233,7 +235,7 @@ The :py:meth:`TopLevelNode.delete` method marks the note for deletion::
 Labels
 ======
 
-Labels are short identifiers that can be assigned to notes. Label management is a bit unweildy right now and is done via the :py:class:`Keep` object. Like notes, labels are automatically tracked and changes are synced to the server.
+Labels are short identifiers that can be assigned to notes. Label management is a bit unwieldy right now and is done via the :py:class:`Keep` object. Like notes, labels are automatically tracked and changes are synced to the server.
 
 Getting Labels
 --------------
@@ -281,7 +283,7 @@ A label can be deleted with :py:meth:`Keep.deleteLabel`. This method ensures the
 Manipulating Labels on Notes
 ----------------------------
 
-When working with labels and notes, the key point to remember is that we're always working with Label objects or IDs.
+When working with labels and notes, the key point to remember is that we're always working with Label objects or IDs. Interaction is done through the :py:class:`NodeLabels` class.
 
 To add a label to a note::
 
@@ -311,10 +313,26 @@ Settings
 
 TODO
 
+Collaborators
+=============
+
+Collaborators are users you've shared notes with. Access can be granted or revoked per note. Interaction is done through the :py:class:`NodeCollaborators` class.
+
+To add a collaborator to a note::
+
+    gnote.collaborator.add(email)
+
+To check if a collaborator has access to a note::
+
+    email in gnote.collaborator.all()
+
+To remove a collaborator from a note::
+
+    gnote.collaborator.remove(email)
+
 Timestamps
 ==========
 
-READ ONLY
 All notes and lists have a `NodeTimestamps` object with timestamp data::
 
     node.timestamps.created
@@ -323,7 +341,7 @@ All notes and lists have a `NodeTimestamps` object with timestamp data::
     node.timestamps.updated
     node.timestamps.edited
 
-These timestamps are all modifiable, but are automatically managed by the client.
+These timestamps are all read-only.
 
 FAQ
 ===

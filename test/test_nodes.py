@@ -451,7 +451,13 @@ class ListItemTests(unittest.TestCase):
         self.assertTrue(n.dirty)
         self.assertEqual(CHECKED, n.checked)
 
-class CollaboratorsTests(unittest.TestCase):
+class CollaboratorTests(unittest.TestCase):
+    def test_save_load(self):
+        a = node.NodeCollaborators()
+        b = node.NodeCollaborators()
+        b.load(*a.save())
+        self.assertEqual(a.save(), b.save())
+
     def test_fields(self):
         n = node.TopLevelNode(type_=node.NodeType.Note)
 
@@ -485,8 +491,9 @@ class LabelTests(unittest.TestCase):
         a, b = generate_save_load(node.Label)
         self.assertEqual(a, b)
 
-    # FIXME: Not implemented
-    pass
+    def test_fields(self):
+        # FIXME: Not implemented
+        pass
 
 if __name__ == '__main__':
     unittest.main()
