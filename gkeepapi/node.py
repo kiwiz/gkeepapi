@@ -1808,7 +1808,7 @@ def from_json(raw):
     _type = raw.get('type')
     try:
         ncls = _type_map[NodeType(_type)]
-    except (KeyError, ValueError):
+    except (KeyError, ValueError) as e:
         logger.warning('Unknown node type: %s', _type)
         if DEBUG:
             raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
@@ -1819,8 +1819,8 @@ def from_json(raw):
     return node
 
 if DEBUG:
-    Node.__load = cls._load # pylint: disable=protected-access
+    Node.__load = Node._load # pylint: disable=protected-access
     def _load(self, raw): # pylint: disable=missing-docstring
         self.__load(raw) # pylint: disable=protected-access
         self._find_discrepancies(raw) # pylint: disable=protected-access
-    cls._load = load
+    Node._load = _load # pylint: disable=protected-access
