@@ -1284,6 +1284,10 @@ class TopLevelNode(Node):
     def dirty(self):
         return super(TopLevelNode, self).dirty or self.labels.dirty or self.collaborators.dirty
 
+    @property
+    def blobs(self, checked=None):
+        return [node for node in self.children if isinstance(node, Blob)]
+
 class Note(TopLevelNode):
     """Represents a Google Keep note."""
     _TYPE = NodeType.Note

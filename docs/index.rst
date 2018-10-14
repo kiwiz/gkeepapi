@@ -150,6 +150,7 @@ Notes and Lists:
 * :py:attr:`TopLevelNode.annotations`
 * :py:attr:`TopLevelNode.timestamps`
 * :py:attr:`TopLevelNode.collaborators`
+* :py:attr:`TopLevelNode.blobs`
 
 ListItems:
 
@@ -231,6 +232,14 @@ The :py:meth:`node.TopLevelNode.delete` method marks the note for deletion::
 
     gnote.delete()
     glist.delete()
+
+Getting media
+-------------
+
+To fetch media (images, audio, etc) files, you can use the :py:meth:`Keep.getMediaLink` method to get a link::
+
+    blob = gnote.blobs[0]
+    keep.getMediaLink(blob)
 
 Labels
 ======

@@ -182,7 +182,7 @@ class API(object):
         self._auth = auth
 
     def send(self, **req_kwargs):
-        """Send an authenticated request to the Google Keep API.
+        """Send an authenticated request to a Google API.
         Automatically retries if the access token has expired.
 
         Args:
@@ -195,17 +195,9 @@ class API(object):
             APIException: If the server returns an error.
             LoginException: If :py:meth:`login` has not been called.
         """
-        auth_token = self._auth.getAuthToken()
-        if auth_token is None:
-            raise exception.LoginException('Not logged in')
-
-        req_kwargs.setdefault('headers', {})
-
         i = 0
         while True:
-            req_kwargs['headers']['Authorization'] = 'OAuth ' + auth_token
-
-            response = self._session.request(**req_kwargs).json()
+            response = self._send(**req_kwargs).json()
             if 'error' not in response:
                 break
 
@@ -217,10 +209,32 @@ class API(object):
                 raise exception.APIException(error['code'], error)
 
             logger.info('Refreshing access token')
-            auth_token = self._auth.refresh()
+            self._auth.refresh()
             i += 1
 
         return response
+
+    def _send(self, **req_kwargs):
+        """Send an authenticated request to a Google API.
+
+        Args:
+            **req_kwargs: Arbitrary keyword arguments to pass to Requests.
+
+        Return:
+            requests.Response: The raw response.
+
+        Raises:
+            LoginException: If :py:meth:`login` has not been called.
+        """
+        auth_token = self._auth.getAuthToken()
+        if auth_token is None:
+            raise exception.LoginException('Not logged in')
+
+        req_kwargs.setdefault('headers', {
+            'Authorization': 'OAuth ' + auth_token
+        })
+
+        return self._session.request(**req_kwargs)
 
 class KeepAPI(API):
     """Low level Google Keep API client. Mimics the Android Google Keep app.
@@ -311,6 +325,31 @@ class KeepAPI(API):
             method='POST',
             json=params
         )
+
+class MediaAPI(API):
+    """Low level Google Media API client. Mimics the Android Google Keep app.
+
+    You probably want to use :py:class:`Keep` instead.
+    """
+    API_URL = 'https://keep.google.com/media/v2/'
+
+    def __init__(self, auth=None):
+        super(MediaAPI, self).__init__(self.API_URL, auth)
+
+    def get(self, blob):
+        """Get the canonical link to a media blob.
+
+        Args:
+            blob (gkeepapi.node.Blob): The blob.
+
+        Returns:
+            str: A link to the media.
+        """
+        return self._send(
+            url=self._base_url + blob.parent.server_id + '/' + blob.server_id + '?s=0',
+            method='GET',
+            allow_redirects=False
+        ).headers.get('Location')
 
 class RemindersAPI(API):
     """Low level Google Reminders API client. Mimics the Android Google Keep app.
@@ -438,6 +477,7 @@ class Keep(object):
     def __init__(self):
         self._keep_api = KeepAPI()
         self._reminders_api = RemindersAPI()
+        self._media_api = MediaAPI()
         self._keep_version = None
         self._reminder_version = None
         self._labels = {}
@@ -513,6 +553,7 @@ class Keep(object):
         """
         self._keep_api.setAuth(auth)
         self._reminders_api.setAuth(auth)
+        self._media_api.setAuth(auth)
         if state is not None:
             self.restore(state)
         if sync:
@@ -724,6 +765,17 @@ class Keep(object):
             List[gkeepapi.node.Label]: Labels
         """
         return self._labels.values()
+
+    def getMediaLink(self, blob):
+        """Get the canonical link to media.
+
+        Args:
+            blob (gkeepapi.node.Blob): The media resource.
+
+        Returns:
+            str: A link to the media.
+        """
+        return self._media_api.get(blob)
 
     def all(self):
         """Get all Notes.
