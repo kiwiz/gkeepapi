@@ -442,6 +442,7 @@ class Keep(object):
         self._reminder_version = None
         self._labels = {}
         self._nodes = {}
+        self._sid_map = {}
 
         self._clear()
 
@@ -450,6 +451,7 @@ class Keep(object):
         self._reminder_version = None
         self._labels = {}
         self._nodes = {}
+        self._sid_map = {}
 
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
@@ -555,7 +557,9 @@ class Keep(object):
         Returns:
             gkeepapi.node.TopLevelNode: The Note or None if not found.
         """
-        return self._nodes[_node.Root.ID].get(node_id)
+        return \
+            self._nodes[_node.Root.ID].get(node_id) or \
+            self._nodes[_node.Root.ID].get(self._sid_map.get(node_id))
 
     def add(self, node):
         """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
@@ -798,6 +802,7 @@ class Keep(object):
 
                 if 'parentId' in raw_node:
                     node.load(raw_node)
+                    self._sid_map[node.server_id] = node.id
                     logger.debug('Updated node: %s', raw_node['id'])
                 else:
                     deleted_nodes.append(node)
@@ -808,6 +813,7 @@ class Keep(object):
                     logger.debug('Discarded unknown node')
                 else:
                     self._nodes[raw_node['id']] = node
+                    self._sid_map[node.server_id] = node.id
                     created_nodes.append(node)
                     logger.debug('Created node: %s', raw_node['id'])
 
@@ -840,6 +846,8 @@ class Keep(object):
         for node in deleted_nodes:
             node.parent.remove(node)
             del self._nodes[node.id]
+            if node.server_id is not None:
+                del self._sid_map[node.server_id]
             logger.debug('Deleted node: %s', node.id)
 
         for node in self.all():
