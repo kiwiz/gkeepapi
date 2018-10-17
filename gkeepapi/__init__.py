@@ -22,7 +22,7 @@ from . import exception
 logger = logging.getLogger('keep')
 
 try:
-    Pattern = re._pattern_type
+    Pattern = re._pattern_type # pylint: disable=protected-access
 except AttributeError:
     Pattern = re.Pattern
 
@@ -645,7 +645,7 @@ class Keep(object):
         return (node for node in self.all() if
             (query is None or (
                 (isinstance(query, six.string_types) and (query in node.title or query in node.text)) or
-                (isinstance(query, Pattern) and ( # pylint: disable=protected-access
+                (isinstance(query, Pattern) and (
                     query.search(node.title) or query.search(node.text)
                 ))
             )) and
@@ -733,7 +733,7 @@ class Keep(object):
 
         for label in self._labels.values():
             if (isinstance(query, six.string_types) and query == label.name.lower()) or \
-                (isinstance(query, Pattern) and query.search(label.name)): # pylint: disable=protected-access
+                (isinstance(query, Pattern) and query.search(label.name)):
                 return label
 
         return self.createLabel(query) if create and isinstance(query, six.string_types) else None
