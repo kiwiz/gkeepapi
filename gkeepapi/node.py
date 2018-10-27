@@ -1285,7 +1285,12 @@ class TopLevelNode(Node):
         return super(TopLevelNode, self).dirty or self.labels.dirty or self.collaborators.dirty
 
     @property
-    def blobs(self, checked=None):
+    def blobs(self):
+        """Get all media blobs.
+
+        Returns:
+            list[gkeepapi.node.Blob]: Media blobs.
+        """
         return [node for node in self.children if isinstance(node, Blob)]
 
 class Note(TopLevelNode):
@@ -1592,6 +1597,7 @@ class NodeImage(NodeBlob):
     _TYPE = BlobType.Image
     def __init__(self):
         super(NodeImage, self).__init__(type_=self._TYPE)
+        self._is_uploaded = False
         self._width = 0
         self._height = 0
         self._byte_size = 0
@@ -1600,9 +1606,10 @@ class NodeImage(NodeBlob):
 
     def _load(self, raw):
         super(NodeImage, self)._load(raw)
-        self._width = raw['width']
-        self._height = raw['height']
-        self._byte_size = raw['byte_size']
+        self._is_uploaded = raw.get('is_uploaded') or False
+        self._width = raw.get('width')
+        self._height = raw.get('height')
+        self._byte_size = raw.get('byte_size')
         self._extracted_text = raw.get('extracted_text')
         self._extraction_status = raw.get('extraction_status')
 
