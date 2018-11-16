@@ -1669,7 +1669,7 @@ class NodeDrawingInfo(Element):
         self.snapshot.load(raw['snapshotData'])
         self._snapshot_fingerprint = raw['snapshotFingerprint']
         self._thumbnail_generated_time = NodeTimestamps.str_to_dt(raw['thumbnailGeneratedTime']) if 'thumbnailGeneratedTime' in raw else NodeTimestamps.int_to_dt(0)
-        self._ink_hash = raw['inkHash']
+        self._ink_hash = raw['inkHash'] if 'inkHash' in raw else ''
         self._snapshot_proto_fprint = raw['snapshotProtoFprint']
 
     def save(self, clean=True):
