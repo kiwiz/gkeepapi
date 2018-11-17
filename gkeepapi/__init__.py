@@ -616,10 +616,10 @@ class Keep(object):
             node (gkeepapi.node.Node): The node to sync.
 
         Raises:
-            SyncException: If the parent node is not found.
+            Invalid: If the parent node is not found.
         """
         if node.parent_id != _node.Root.ID:
-            raise exception.SyncException('Not a top level node')
+            raise exception.InvalidException('Not a top level node')
 
         self._nodes[node.id] = node
         self._nodes[node.parent_id].append(node, False)
@@ -826,10 +826,10 @@ class Keep(object):
             )
 
             if changes.get('forceFullResync'):
-                raise exception.SyncException('Full resync required')
+                raise exception.ResyncRequiredException('Full resync required')
 
             if changes.get('upgradeRecommended'):
-                raise exception.SyncException('Upgrade recommended')
+                raise exception.UpgradeRecommendedException('Upgrade recommended')
 
             if 'userInfo' in changes:
                 self._parseUserInfo(changes['userInfo'])

@@ -25,6 +25,14 @@ class SyncException(KeepException):
     """Keep consistency error."""
     pass
 
+class ResyncRequiredException(SyncException):
+    """Full resync required error."""
+    pass
+
+class UpgradeRecommendedException(SyncException):
+    """Upgrade recommended error."""
+    pass
+
 class MergeException(KeepException):
     """Node consistency error."""
     pass
