@@ -19,7 +19,7 @@ import requests
 from . import node as _node
 from . import exception
 
-logger = logging.getLogger('keep')
+logger = logging.getLogger(__name__)
 
 try:
     Pattern = re._pattern_type # pylint: disable=protected-access

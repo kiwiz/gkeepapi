@@ -828,7 +828,7 @@ class NodeCollaborators(Element):
     def load(self, collaborators_raw, requests_raw):
         # Parent method not called.
         if len(requests_raw) and isinstance(requests_raw[-1], bool):
-            self._dirty = raw.pop()
+            self._dirty = requests_raw.pop()
         else:
             self._dirty = False
         self._collaborators = {}
