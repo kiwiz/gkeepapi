@@ -825,9 +825,9 @@ class NodeCollaborators(Element):
     def __len__(self):
         return len(self._collaborators)
 
-    def load(self, collaborators_raw, requests_raw):
+    def load(self, collaborators_raw, requests_raw): # pylint: disable=arguments-differ
         # Parent method not called.
-        if len(requests_raw) and isinstance(requests_raw[-1], bool):
+        if requests_raw and isinstance(requests_raw[-1], bool):
             self._dirty = requests_raw.pop()
         else:
             self._dirty = False
@@ -1711,7 +1711,7 @@ class Blob(Node):
         _type = raw.get('type')
         try:
             bcls = cls._blob_type_map[BlobType(_type)]
-        except (KeyError, ValueError):
+        except (KeyError, ValueError) as e:
             logger.warning('Unknown blob type: %s', _type)
             if DEBUG:
                 raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)

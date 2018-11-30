@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 try:
     Pattern = re._pattern_type # pylint: disable=protected-access
 except AttributeError:
-    Pattern = re.Pattern
+    Pattern = re.Pattern # pylint: disable=no-member
 
 class APIAuth(object):
     """Authentication token manager"""
