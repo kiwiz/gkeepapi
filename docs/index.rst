@@ -64,7 +64,7 @@ gkeepapi automatically pulls down all notes after login. It takes care of refres
 Caching notes
 -------------
 
-The initial sync can take a while, especially if you have a lot of notes. To mitigate this, you can serialize note data to a file. The next time your program runs, it can resume from this state::
+The initial sync can take a while, especially if you have a lot of notes. To mitigate this, you can serialize note data to a file. The next time your program runs, it can resume from this state. This is handled via :py:meth:`Keep.dump` and :py:meth:`Keep.restore`::
 
     # Store cache
     state = keep.dump()
@@ -139,27 +139,27 @@ Note objects have many attributes that can be directly get and set. Here is a no
 
 Notes and Lists:
 
-* :py:attr:`TopLevelNode.id` (Read only)
-* :py:attr:`TopLevelNode.parent` (Read only)
-* :py:attr:`TopLevelNode.title`
-* :py:attr:`TopLevelNode.text`
-* :py:attr:`TopLevelNode.color`
-* :py:attr:`TopLevelNode.archived`
-* :py:attr:`TopLevelNode.pinned`
-* :py:attr:`TopLevelNode.labels`
-* :py:attr:`TopLevelNode.annotations`
-* :py:attr:`TopLevelNode.timestamps`
-* :py:attr:`TopLevelNode.collaborators`
-* :py:attr:`TopLevelNode.blobs`
+* :py:attr:`node.TopLevelNode.id` (Read only)
+* :py:attr:`node.TopLevelNode.parent` (Read only)
+* :py:attr:`node.TopLevelNode.title`
+* :py:attr:`node.TopLevelNode.text`
+* :py:attr:`node.TopLevelNode.color`
+* :py:attr:`node.TopLevelNode.archived`
+* :py:attr:`node.TopLevelNode.pinned`
+* :py:attr:`node.TopLevelNode.labels`
+* :py:attr:`node.TopLevelNode.annotations`
+* :py:attr:`node.TopLevelNode.timestamps`
+* :py:attr:`node.TopLevelNode.collaborators`
+* :py:attr:`node.TopLevelNode.blobs`
 
 ListItems:
 
-* :py:attr:`TopLevelNode.id` (Read only)
-* :py:attr:`TopLevelNode.parent` (Read only)
-* :py:attr:`TopLevelNode.parent_item` (Read only)
-* :py:attr:`TopLevelNode.indented` (Read only)
-* :py:attr:`TopLevelNode.text`
-* :py:attr:`TopLevelNode.checked`
+* :py:attr:`node.TopLevelNode.id` (Read only)
+* :py:attr:`node.TopLevelNode.parent` (Read only)
+* :py:attr:`node.TopLevelNode.parent_item` (Read only)
+* :py:attr:`node.TopLevelNode.indented` (Read only)
+* :py:attr:`node.TopLevelNode.text`
+* :py:attr:`node.TopLevelNode.checked`
 
 Getting Note content
 ^^^^^^^^^^^^^^^^^^^^
@@ -244,7 +244,7 @@ To fetch media (images, audio, etc) files, you can use the :py:meth:`Keep.getMed
 Labels
 ======
 
-Labels are short identifiers that can be assigned to notes. Label management is a bit unwieldy right now and is done via the :py:class:`Keep` object. Like notes, labels are automatically tracked and changes are synced to the server.
+Labels are short identifiers that can be assigned to notes. Labels are exposed via the :py:class:`node.Label` class. Management is a bit unwieldy right now and is done via the :py:class:`Keep` object. Like notes, labels are automatically tracked and changes are synced to the server.
 
 Getting Labels
 --------------
@@ -292,7 +292,7 @@ A label can be deleted with :py:meth:`Keep.deleteLabel`. This method ensures the
 Manipulating Labels on Notes
 ----------------------------
 
-When working with labels and notes, the key point to remember is that we're always working with Label objects or IDs. Interaction is done through the :py:class:`node.NodeLabels` class.
+When working with labels and notes, the key point to remember is that we're always working with :py:class:`node.Label` objects or IDs. Interaction is done through the :py:class:`node.NodeLabels` class.
 
 To add a label to a note::
 
@@ -309,7 +309,16 @@ To remove a label from a note::
 Constants
 =========
 
-TODO
+- :py:class:`node.ColorValue` enumerates valid colors.
+- :py:class:`node.CategoryValue` enumerates valid note categories.
+- :py:class:`node.CheckedListItemsPolicyValue` enumerates valid policies for checked list items.
+- :py:class:`node.GraveyardStateValue` enumerates valid visibility settings for checked list items.
+- :py:class:`node.NewListItemPlacementValue` enumerates valid locations for new list items.
+- :py:class:`node.NodeType` enumerates valid node types.
+- :py:class:`node.BlobType` enumerates valid blob types.
+- :py:class:`node.RoleValue` enumerates valid collaborator permissions.
+- :py:class:`node.ShareRequestValue` enumerates vaild collaborator modification requests.
+- :py:class:`node.SuggestValue` enumerates valid suggestion types.
 
 Annotations
 ===========
@@ -342,7 +351,7 @@ To remove a collaborator from a note::
 Timestamps
 ==========
 
-All notes and lists have a `node.NodeTimestamps` object with timestamp data::
+All notes and lists have a :py:class:`node.NodeTimestamps` object with timestamp data::
 
     node.timestamps.created
     node.timestamps.deleted
@@ -362,7 +371,7 @@ Your account probably has Two Factor enabled. To get around this, you'll need to
 Known Issues
 ============
 
-The :py:class:`Keep` class isn't aware of new :py:class:`node.ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get`:: calls for their IDs will fail.
+The :py:class:`Keep` class isn't aware of new :py:class:`node.ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get` calls for their IDs will fail.
 
 Debug
 =====
