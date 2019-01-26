@@ -1643,7 +1643,8 @@ class NodeDrawing(NodeBlob):
         super(NodeDrawing, self)._load(raw)
         self._extracted_text = raw.get('extracted_text')
         self._extraction_status = raw.get('extraction_status')
-        self._drawing_info.load(raw['drawingInfo'])
+        if 'drawingInfo' in raw:
+            self._drawing_info.load(raw['drawingInfo'])
 
     def save(self, clean=True):
         ret = super(NodeDrawing, self).save(clean)
