@@ -1342,7 +1342,7 @@ class List(TopLevelNode):
             checked (bool): Whether this item is checked.
             sort (int): Item id for sorting.
         """
-        node = ListItem(parent_id=self.id)
+        node = ListItem(parent_id=self.id, parent_server_id=self.server_id)
         node.checked = checked
         node.text = text
         if sort is not None:
@@ -1439,9 +1439,10 @@ class ListItem(Node):
     Interestingly enough, :class:`Note`s store their content in a single
     child :class:`ListItem`.
     """
-    def __init__(self, parent_id=None, super_list_item_id=None, **kwargs):
+    def __init__(self, parent_id=None, parent_server_id=None, super_list_item_id=None, **kwargs):
         super(ListItem, self).__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
         self.parent_item = None
+        self.parent_server_id = parent_server_id
         self.super_list_item_id = super_list_item_id
         self.prev_super_list_item_id = None
         self._subitems = {}
@@ -1455,6 +1456,7 @@ class ListItem(Node):
 
     def save(self, clean=True):
         ret = super(ListItem, self).save(clean)
+        ret['parentServerId'] = self.parent_server_id
         ret['superListItemId'] = self.super_list_item_id
         ret['checked'] = self._checked
         return ret
