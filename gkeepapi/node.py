@@ -1069,6 +1069,9 @@ class Node(Element, TimestampsMixin):
         self.touch()
          
     def moveToTop():
+        """Moves the note to the top of the list by chanigng its sort value.
+        
+        """
         self.sort = Node.SORT_TOP
 
     @property
