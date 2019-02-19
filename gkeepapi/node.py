@@ -986,6 +986,9 @@ class TimestampsMixin(object):
 
 class Node(Element, TimestampsMixin):
     """Node base class."""
+      
+      SORT_TOP = 10021928693
+      
     def __init__(self, id_=None, type_=None, parent_id=None):
         super(Node, self).__init__()
 
@@ -996,7 +999,7 @@ class Node(Element, TimestampsMixin):
         self.server_id = None
         self.parent_id = parent_id
         self.type = type_
-        self._sort = random.randint(1000000000, 9999999999)
+        self._sort = random.randint(Node.SORT_TOP, 9999999999)
         self._version = None
         self._text = ''
         self._children = {}
@@ -1064,6 +1067,9 @@ class Node(Element, TimestampsMixin):
     def sort(self, value):
         self._sort = value
         self.touch()
+         
+    def moveToTop():
+        self.sort = Node.SORT_TOP
 
     @property
     def version(self):
