@@ -94,7 +94,7 @@ New notes are created with the :py:meth:`Keep.createNote` and :py:meth:`Keep.cre
     gnote = keep.createNote('Title', 'Text')
 
     glist = keep.createList('Title', [
-        ('Item 1', False) # Not checked
+        ('Item 1', False), # Not checked
         ('Item 2', True)  # Checked
     ])
 
