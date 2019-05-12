@@ -48,11 +48,19 @@ class APIAuth(object):
         """
         self._email = email
         self._android_id = android_id
-        res = gpsoauth.perform_master_login(self._email, password, self._android_id)
+
+        # Obtain a master token.
+        res = gpsoauth.perform_master_login(
+            self._email, password, self._android_id
+        )
+        # Bail if no token was returned.
         if 'Token' not in res:
-            raise exception.LoginException(res.get('Error'), res.get('ErrorDetail'))
+            raise exception.LoginException(
+                res.get('Error'), res.get('ErrorDetail')
+            )
         self._master_token = res['Token']
 
+        # Obtain an OAuth token.
         self.refresh()
         return True
 
@@ -71,6 +79,7 @@ class APIAuth(object):
         self._android_id = android_id
         self._master_token = master_token
 
+        # Obtain an OAuth token.
         self.refresh()
         return True
 
@@ -141,12 +150,15 @@ class APIAuth(object):
         Raises:
             LoginException: If there was a problem refreshing the OAuth token.
         """
+        # Obtain an OAuth token with the necessary scopes by pretending to be
+        # the keep android client.
         res = gpsoauth.perform_oauth(
             self._email, self._master_token, self._android_id,
             service=self._scopes,
             app='com.google.android.keep',
             client_sig='38918a453d07199354f8b19af05ec6562ced5788'
         )
+        # Bail if no token was returned.
         if 'Auth' not in res:
             if 'Token' not in res:
                 raise exception.LoginException(res.get('Error'))
@@ -200,19 +212,26 @@ class API(object):
             APIException: If the server returns an error.
             LoginException: If :py:meth:`login` has not been called.
         """
+        # Send a request to the API servers, with retry handling. OAuth tokens
+        # are valid for several hours (as of this comment).
         i = 0
         while True:
+            # Send off the request. If there was no error, we're good.
             response = self._send(**req_kwargs).json()
             if 'error' not in response:
                 break
 
+            # Otherwise, check if it was a non-401 response code. These aren't
+            # handled, so bail.
             error = response['error']
             if error['code'] != 401:
                 raise exception.APIException(error['code'], error)
 
+            # If we've exceeded the retry limit, also bail.
             if i >= self.RETRY_CNT:
                 raise exception.APIException(error['code'], error)
 
+            # Otherwise, try requesting a new OAuth token.
             logger.info('Refreshing access token')
             self._auth.refresh()
             i += 1
@@ -231,10 +250,12 @@ class API(object):
         Raises:
             LoginException: If :py:meth:`login` has not been called.
         """
+        # Bail if we don't have an OAuth token.
         auth_token = self._auth.getAuthToken()
         if auth_token is None:
             raise exception.LoginException('Not logged in')
 
+        # Add the token to the request.
         req_kwargs.setdefault('headers', {
             'Authorization': 'OAuth ' + auth_token
         })
@@ -275,6 +296,7 @@ class KeepAPI(API):
         Raises:
             APIException: If the server returns an error.
         """
+        # Handle defaults.
         if nodes is None:
             nodes = []
         if labels is None:
@@ -282,6 +304,7 @@ class KeepAPI(API):
 
         current_time = time.time()
 
+        # Initialize request parameters.
         params = {
             'nodes': nodes,
             'clientTimestamp': _node.NodeTimestamps.int_to_str(current_time),
@@ -315,9 +338,13 @@ class KeepAPI(API):
                 ]
             },
         }
+
+        # Add the targetVersion if set. This tells the server what version the
+        # client is currently at.
         if target_version is not None:
             params['targetVersion'] = target_version
 
+        # Add any new or updated labels to the request.
         if labels:
             params['userInfo'] = {
                 'labels': labels
@@ -350,11 +377,16 @@ class MediaAPI(API):
         Returns:
             str: A link to the media.
         """
-        return self._send(
+        x = self._send(
             url=self._base_url + blob.parent.server_id + '/' + blob.server_id + '?s=0',
             method='GET',
             allow_redirects=False
-        ).headers.get('Location')
+        )
+        return x
+        return self._send(
+            url=x,
+            method='GET'
+        )
 
 class RemindersAPI(API):
     """Low level Google Reminders API client. Mimics the Android Google Keep app.
@@ -570,8 +602,8 @@ class Keep(object):
         Args:
             state (dict): Serialized state to load.
         """
-        # Find all nodes manually, as the Keep object isn't aware of new ListItems
-        # until they've been synced to the server.
+        # Find all nodes manually, as the Keep object isn't aware of new
+        # ListItems until they've been synced to the server.
         nodes = []
         for node in self.all():
             nodes.append(node)
@@ -643,20 +675,27 @@ class Keep(object):
             labels = [i.id if isinstance(i, _node.Label) else i for i in labels]
 
         return (node for node in self.all() if
+            # Process the query.
             (query is None or (
                 (isinstance(query, six.string_types) and (query in node.title or query in node.text)) or
                 (isinstance(query, Pattern) and (
                     query.search(node.title) or query.search(node.text)
                 ))
             )) and
+            # Process the func.
             (func is None or func(node)) and \
+            # Process the labels.
             (labels is None or \
              (not labels and not node.labels.all()) or \
              (any((node.labels.get(i) is not None for i in labels)))
             ) and \
+            # Process the colors.
             (colors is None or node.color in colors) and \
+            # Process the pinned state.
             (pinned is None or node.pinned == pinned) and \
+            # Process the archive state.
             (archived is None or node.archived == archived) and \
+            # Process the trash state.
             (trashed is None or node.trashed == trashed)
         )
 
@@ -728,15 +767,17 @@ class Keep(object):
         Returns:
             Union[gkeepapi.node.Label, None]: The label.
         """
-        if isinstance(query, six.string_types):
+        is_str = isinstance(query, six.string_types)
+        if is_str:
             query = query.lower()
 
         for label in self._labels.values():
-            if (isinstance(query, six.string_types) and query == label.name.lower()) or \
+            # Match the label against query, which may be a str or Pattern.
+            if (is_str and query == label.name.lower()) or \
                 (isinstance(query, Pattern) and query.search(label.name)):
                 return label
 
-        return self.createLabel(query) if create and isinstance(query, six.string_types) else None
+        return self.createLabel(query) if create and is_str else None
 
     def getLabel(self, label_id):
         """Get an existing label.
@@ -791,7 +832,7 @@ class Keep(object):
         return self._nodes[_node.Root.ID].children
 
     def sync(self, resync=False):
-        """Sync the local Keep tree with the server. If resyncing, local changes will be detroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
+        """Sync the local Keep tree with the server. If resyncing, local changes will be destroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
 
         Args:
             resync (bool): Whether to resync data.
@@ -799,25 +840,32 @@ class Keep(object):
         Raises:
             SyncException: If there is a consistency issue.
         """
+        # Clear all state if we want to resync.
         if resync:
             self._clear()
 
+        # Sync reminders. Fetch updates until we reach the newest version.
         while True:
             logger.debug('Starting reminder sync: %s', self._reminder_version)
             changes = self._reminders_api.list()
 
+            # Hydrate the individual "tasks".
             if 'task' in changes:
                 self._parseTasks(changes['task'])
 
             self._reminder_version = changes['storageVersion']
             logger.debug('Finishing sync: %s', self._reminder_version)
+
+            # Check if we've reached the newest version.
             history = self._reminders_api.history(self._reminder_version)
             if self._reminder_version == history['highestStorageVersion']:
                 break
 
+        # Sync notes. Fetch updates until we reach the newest version.
         while True:
             logger.debug('Starting keep sync: %s', self._keep_version)
 
+            # Collect any changes and send them up to the server.
             labels_updated = any((i.dirty for i in self._labels.values()))
             changes = self._keep_api.changes(
                 target_version=self._keep_version,
@@ -831,14 +879,18 @@ class Keep(object):
             if changes.get('upgradeRecommended'):
                 raise exception.UpgradeRecommendedException('Upgrade recommended')
 
+            # Hydrate labels.
             if 'userInfo' in changes:
                 self._parseUserInfo(changes['userInfo'])
 
+            # Hydrate notes and any children.
             if 'nodes' in changes:
                 self._parseNodes(changes['nodes'])
 
             self._keep_version = changes['toVersion']
             logger.debug('Finishing sync: %s', self._keep_version)
+
+            # Check if there are more changes to retrieve.
             if not changes['truncated']:
                 break
 
@@ -852,45 +904,55 @@ class Keep(object):
         created_nodes = []
         deleted_nodes = []
         listitem_nodes = []
+
+        # Loop over each updated node.
         for raw_node in raw:
-            # Update nodes
+            # If the id exists, then we already know about it. In other words,
+            # update a local node.
             if raw_node['id'] in self._nodes:
                 node = self._nodes[raw_node['id']]
 
                 if 'parentId' in raw_node:
+                    # If the parentId field is set, this is an update. Load it
+                    # into the existing node.
                     node.load(raw_node)
                     self._sid_map[node.server_id] = node.id
                     logger.debug('Updated node: %s', raw_node['id'])
                 else:
+                    # Otherwise, this node has been deleted. Add it to the list.
                     deleted_nodes.append(node)
 
             else:
+                # Otherwise, this is a new node. Attempt to hydrate it.
                 node = _node.from_json(raw_node)
                 if node is None:
                     logger.debug('Discarded unknown node')
                 else:
+                    # Append the new node into the node tree.
                     self._nodes[raw_node['id']] = node
                     self._sid_map[node.server_id] = node.id
                     created_nodes.append(node)
                     logger.debug('Created node: %s', raw_node['id'])
 
+            # If the node is a listitem, keep track of it.
             if isinstance(node, _node.ListItem):
                 listitem_nodes.append(node)
 
-        # Attach list subitems
+        # Attach each listitem to its parent list. Indented items point to their
+        # parent listitem, so we need to traverse up until we reach the list.
         for node in listitem_nodes:
             prev = node.prev_super_list_item_id
             curr = node.super_list_item_id
             if prev == curr:
                 continue
 
+            # Apply proper indentation.
             if prev is not None:
                 self._nodes[prev].dedent(node, False)
-
             if curr is not None:
                 self._nodes[curr].indent(node, False)
 
-        # Attach created nodes to the tree
+        # Attach created nodes to the tree.
         for node in created_nodes:
             logger.debug('Attached node: %s to %s',
                 node.id if node else None,
@@ -899,7 +961,7 @@ class Keep(object):
             parent_node = self._nodes.get(node.parent_id)
             parent_node.append(node, False)
 
-        # Detach deleted nodes from the tree
+        # Detach deleted nodes from the tree.
         for node in deleted_nodes:
             node.parent.remove(node)
             del self._nodes[node.id]
@@ -907,6 +969,7 @@ class Keep(object):
                 del self._sid_map[node.server_id]
             logger.debug('Deleted node: %s', node.id)
 
+        # Hydrate label references in notes.
         for node in self.all():
             for label_id in node.labels._labels: # pylint: disable=protected-access
                 node.labels._labels[label_id] = self._labels.get(label_id) # pylint: disable=protected-access
@@ -915,28 +978,34 @@ class Keep(object):
         labels = {}
         if 'labels' in raw:
             for label in raw['labels']:
+                # If the mainId field exists, this is an update.
                 if label['mainId'] in self._labels:
                     node = self._labels[label['mainId']]
+                    # Remove this key from our list of labels.
                     del self._labels[label['mainId']]
                     logger.debug('Updated label: %s', label['mainId'])
                 else:
+                    # Otherwise, this is a brand new label.
                     node = _node.Label()
                     logger.debug('Created label: %s', label['mainId'])
                 node.load(label)
                 labels[label['mainId']] = node
 
+        # All remaining labels are deleted.
         for label_id in self._labels:
             logger.debug('Deleted label: %s', label_id)
 
         self._labels = labels
 
     def _findDirtyNodes(self):
+        # Find nodes that aren't in our internal nodes list and insert them.
         for node in list(self._nodes.values()):
             for child in node.children:
                 if not child.id in self._nodes:
                     self._nodes[child.id] = child
 
         nodes = []
+        # Collect all dirty nodes (any nodes from above will be caught too).
         for node in self._nodes.values():
             if node.dirty:
                 nodes.append(node)
