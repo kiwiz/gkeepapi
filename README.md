@@ -4,6 +4,7 @@ gkeepapi
 [![Documentation Status](https://readthedocs.org/projects/gkeepapi/badge/?version=latest)](http://gkeepapi.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/kiwiz/gkeepapi.svg?branch=master)](https://travis-ci.org/kiwiz/gkeepapi)
 [![Gitter chat](https://badges.gitter.im/gkeepapi/Lobby.png)](https://gitter.im/gkeepapi/Lobby)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/4386792a941a156a14f0/test_coverage)](https://codeclimate.com/github/kiwiz/gkeepapi/test_coverage)
 
 An unofficial client for the [Google Keep](https://keep.google.com) API.
 
