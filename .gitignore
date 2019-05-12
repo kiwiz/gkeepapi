@@ -1,5 +1,8 @@
-docs/_build
-build
+docs/_build/
+build/
+htmlcov/
+dist/
 *.swp
 *.pyc
 *.egg-info/
+.coverage
