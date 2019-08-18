@@ -377,12 +377,6 @@ class MediaAPI(API):
         Returns:
             str: A link to the media.
         """
-        x = self._send(
-            url=self._base_url + blob.parent.server_id + '/' + blob.server_id + '?s=0',
-            method='GET',
-            allow_redirects=False
-        )
-        return x
         return self._send(
             url=x,
             method='GET'
