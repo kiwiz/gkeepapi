@@ -1715,8 +1715,11 @@ class Blob(Node):
         if raw is None:
             return None
 
-        bcls = None
         _type = raw.get('type')
+        if _type is None:
+            return None
+
+        bcls = None
         try:
             bcls = cls._blob_type_map[BlobType(_type)]
         except (KeyError, ValueError) as e:
