@@ -377,10 +377,14 @@ class MediaAPI(API):
         Returns:
             str: A link to the media.
         """
+        url = self._base_url + blob.parent.server_id + '/' + blob.server_id
+        if blob.blob.type == _node.BlobType.Drawing:
+            url += '/' + blob.blob._drawing_info.drawing_id
         return self._send(
-            url=x,
-            method='GET'
-        )
+            url=url,
+            method='GET',
+            allow_redirects=False
+        ).headers['location']
 
 class RemindersAPI(API):
     """Low level Google Reminders API client. Mimics the Android Google Keep app.
