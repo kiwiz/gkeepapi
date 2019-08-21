@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = '0.11.6'
+__version__ = '0.11.7'
 
 import logging
 import re
