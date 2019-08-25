@@ -1738,7 +1738,8 @@ class Blob(Node):
 
     def save(self, clean=True):
         ret = super(Blob, self).save(clean)
-        ret['blob'] = self.blob.save(clean)
+        if self.blob is not None:
+            ret['blob'] = self.blob.save(clean)
         return ret
 
 class Label(Element, TimestampsMixin):
