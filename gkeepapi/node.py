@@ -1331,6 +1331,7 @@ class Note(TopLevelNode):
 class List(TopLevelNode):
     """Represents a Google Keep list."""
     _TYPE = NodeType.List
+    SORT_DELTA = 10000 # Arbitrary constant
     def __init__(self, **kwargs):
         super(List, self).__init__(type_=self._TYPE, **kwargs)
 
@@ -1340,13 +1341,24 @@ class List(TopLevelNode):
         Args:
             text (str): The text.
             checked (bool): Whether this item is checked.
-            sort (int): Item id for sorting.
+            sort (Union[gkeepapi.node.NewListItemPlacementValue, int]): Item id for sorting or a placement policy.
         """
         node = ListItem(parent_id=self.id, parent_server_id=self.server_id)
         node.checked = checked
         node.text = text
-        if sort is not None:
+
+        items = list(self.items)
+        if isinstance(sort, int):
             node.sort = sort
+        elif isinstance(sort, NewListItemPlacementValue) and len(items):
+            func = max
+            delta = self.SORT_DELTA
+            if sort == NewListItemPlacementValue.Bottom:
+                func = min
+                delta *= -1
+
+            node.sort = func((int(item.sort) for item in items)) + delta
+
         self.append(node, True)
         self.touch(True)
         return node

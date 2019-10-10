@@ -148,9 +148,9 @@ Notes and Lists:
 * :py:attr:`node.TopLevelNode.pinned`
 * :py:attr:`node.TopLevelNode.labels`
 * :py:attr:`node.TopLevelNode.annotations`
-* :py:attr:`node.TopLevelNode.timestamps`
+* :py:attr:`node.TopLevelNode.timestamps` (Read only)
 * :py:attr:`node.TopLevelNode.collaborators`
-* :py:attr:`node.TopLevelNode.blobs`
+* :py:attr:`node.TopLevelNode.blobs` (Read only)
 
 ListItems:
 
@@ -202,17 +202,37 @@ Setting List content
 
 New items can be added via :py:meth:`node.List.add`::
 
+    # Create a checked item
     glist.add('Item 2', True)
+
+    # Create an item at the top of the list
+    glist.add('Item 1', True, gkeepapi.node.NewListItemPlacementValue.Top)
+
+    # Create an item at the bottom of the list
+    glist.add('Item 3', True, gkeepapi.node.NewListItemPlacementValue.Bottom)
 
 Existing items can be retrieved and modified directly::
 
     glistitem = glist.items[0]
-    glistitem.text = 'Item 3'
+    glistitem.text = 'Item 4'
     glistitem.checked = True
 
 Or deleted::
 
    glistitem.delete()
+
+Setting List item position
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To reposition an item (larger is closer to the top)::
+
+   # Set a specific sort id
+   glistitem1.sort = 42
+
+   # Swap the position of two items
+   val = glistitem2.sort
+   glistitem2.sort = glistitem3.sort
+   glistitem3.sort = val
 
 Indent/dedent List items
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -379,6 +399,12 @@ Debug
 To enable development debug logs::
 
     gkeepapi.node.DEBUG = True
+
+Notes
+=====
+
+- Many sub-elements are read only.
+- :py:class:`node.Node` specific :py:class:`node.NewListItemPlacementValue` settings are not used.
 
 Reporting errors
 ----------------
