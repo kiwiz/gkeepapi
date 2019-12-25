@@ -428,7 +428,7 @@ class RemindersAPI(API):
         """
         year, month, day = date_str.split("/")
         year, month, day = int(year), int(month), int(day)
-        hour, minutes, seconds = time_str(":")
+        hour, minutes, seconds = time_str.split(":")
         hour, minutes, seconds = int(hour), int(minutes), int(seconds)
         
         params = {}
@@ -470,7 +470,7 @@ class RemindersAPI(API):
         """
         year, month, day = date_str.split("/")
         year, month, day = int(year), int(month), int(day)
-        hour, minutes, seconds = time_str(":")
+        hour, minutes, seconds = time_str.split(":")
         hour, minutes, seconds = int(hour), int(minutes), int(seconds)
         
         params = {}
