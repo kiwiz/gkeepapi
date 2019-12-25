@@ -410,7 +410,8 @@ class RemindersAPI(API):
             },
         }
 
-    def create(self,note_id, note_server_id, year = 2020, hour=12, month=1, day =21 ,minutes = 0, seconds = 0):
+    def create(self,note_id, note_server_id, date_str = "2020/1/21", time_str = "08:22:33"):
+       
         """Create a new reminder.
         
         Given parameters are the note id and the note server id. 
@@ -420,9 +421,16 @@ class RemindersAPI(API):
         note_id = note.id
         note_server_id = note.server_id
         
+        date_str follows a YYYY/m/d formating
+        
         This will create a reminder for the first note. This method does not need to use keep.sync() to sync the reminders
         
         """
+        year, month, day = date_str.split("/")
+        year, month, day = int(year), int(month), int(day)
+        hour, minutes, seconds = time_str(":")
+        hour, minutes, seconds = int(hour), int(minutes), int(seconds)
+        
         params = {}
         params.update(self.static_params)
         
@@ -443,7 +451,7 @@ class RemindersAPI(API):
             json=params
         )
     
-    def update(self,note_id, note_server_id, year = 2020, month=1, day =21 ,hour = 13 ,minutes = 0, seconds = 0):
+    def update(self,note_id, note_server_id, date_str = "2020/1/21",time_str = "08:22:33"):
         
         """ Updates existing reminder. 
         
@@ -453,12 +461,18 @@ class RemindersAPI(API):
         note = gnotes[x], being x an arbitrary note number
         note_id = note.id
         note_server_id = note.server_id
+        
+        date_str follows a YYYY/m/d formating
 
         This will update an existing reminder for the indicated note. 
         This method does not need to use keep.sync() to update the reminders
         
         """
-   
+        year, month, day = date_str.split("/")
+        year, month, day = int(year), int(month), int(day)
+        hour, minutes, seconds = time_str(":")
+        hour, minutes, seconds = int(hour), int(minutes), int(seconds)
+        
         params = {}
         params.update(self.static_params)
        
