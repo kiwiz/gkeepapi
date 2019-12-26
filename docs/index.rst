@@ -391,7 +391,7 @@ Your account probably has Two Factor enabled. To get around this, you'll need to
 
 2. I get a "CaptchaRequired" `exception.LoginException` when I try to log in.
 
-If you're using Python 2.x, try switching to Python 3.x. See this `issue <https://github.com/kiwiz/gkeepapi/issues/69`_ for more information.
+If you're using Python 2.x, try switching to Python 3.x. See this `issue <https://github.com/kiwiz/gkeepapi/issues/69>`_ for more information.
 
 Known Issues
 ============
