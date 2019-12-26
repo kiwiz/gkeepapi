@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = '0.11.8'
+__version__ = '0.11.9'
 
 import logging
 import re
@@ -766,7 +766,9 @@ class Keep(object):
             Union[gkeepapi.node.Label, None]: The label.
         """
         is_str = isinstance(query, six.string_types)
+        name = None
         if is_str:
+            name = query
             query = query.lower()
 
         for label in self._labels.values():
@@ -775,7 +777,7 @@ class Keep(object):
                 (isinstance(query, Pattern) and query.search(label.name)):
                 return label
 
-        return self.createLabel(query) if create and is_str else None
+        return self.createLabel(name) if create and is_str else None
 
     def getLabel(self, label_id):
         """Get an existing label.
