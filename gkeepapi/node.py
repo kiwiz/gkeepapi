@@ -1402,7 +1402,7 @@ class List(TopLevelNode):
                 return self.__cmp__(other) != 0
 
         def key_func(x):
-            if x.indented and x.parent_item is not None:
+            if x.indented:
                 return t((int(x.parent_item.sort), int(x.sort)))
             return t((int(x.sort), ))
 
@@ -1537,7 +1537,7 @@ class ListItem(Node):
         Returns:
             bool: Whether this item is indented.
         """
-        return self.super_list_item_id is not None
+        return self.parent_item is not None
 
     @property
     def checked(self):
