@@ -411,29 +411,28 @@ class RemindersAPI(API):
         }
 
     def create(self,note_id, note_server_id, date_str = "2020/1/21", time_str = "08:22:33"):
-       
         """Create a new reminder.
-        
-        Given parameters are the note id and the note server id. 
+
+        Given parameters are the note id and the note server id.
         I.e.:
         gnotes = keep.all()
         note = gnotes[0]
         note_id = note.id
         note_server_id = note.server_id
-        
+
         date_str follows a YYYY/m/d formating
-        
+
         This will create a reminder for the first note. This method does not need to use keep.sync() to sync the reminders
-        
+
         """
         year, month, day = date_str.split("/")
         year, month, day = int(year), int(month), int(day)
         hour, minutes, seconds = time_str.split(":")
         hour, minutes, seconds = int(hour), int(minutes), int(seconds)
-        
+
         params = {}
         params.update(self.static_params)
-        
+
         params.update({'task': {
                 'dueDate': {'year': year,
                 'month': month,
@@ -450,32 +449,32 @@ class RemindersAPI(API):
             method='POST',
             json=params
         )
-    
+
     def update(self,note_id, note_server_id, date_str = "2020/1/21",time_str = "08:22:33"):
-        
-        """ Updates existing reminder. 
-        
-        Given parameters are the note id and the note server id. 
+
+        """ Updates existing reminder.
+
+        Given parameters are the note id and the note server id.
         I.e.:
         gnotes = keep.all()
         note = gnotes[x], being x an arbitrary note number
         note_id = note.id
         note_server_id = note.server_id
-        
+
         date_str follows a YYYY/m/d formating
 
-        This will update an existing reminder for the indicated note. 
+        This will update an existing reminder for the indicated note.
         This method does not need to use keep.sync() to update the reminders
-        
+
         """
         year, month, day = date_str.split("/")
         year, month, day = int(year), int(month), int(day)
         hour, minutes, seconds = time_str.split(":")
         hour, minutes, seconds = int(hour), int(minutes), int(seconds)
-        
+
         params = {}
         params.update(self.static_params)
-       
+
         params.update({"taskId":{"clientAssignedId":'KEEP/v2/'+ note_server_id},
                        "newTask":{"dueDate":{"year":year,"month":month,"day":day,
                                              "time":{"hour":hour,"minute":minutes,"second":seconds}},
@@ -483,41 +482,41 @@ class RemindersAPI(API):
                                   "extensions":{"keepExtension":{"reminderVersion":"V2",
                                                                                 "clientNoteId":note_id,"serverNoteId":note_server_id}}},
                        "updateMask":{"updateField":["ARCHIVED","DUE_DATE","EXTENSIONS","LOCATION","TITLE"]}})
-        
+
         return self.send(
             url=self._base_url + 'update',
             method='POST',
             json=params
         )
-    
-def delete(self, note_server_id):
-        """ Deletes existing reminder. 
-        
-        Given parameters are the note id and the note server id. 
+
+    def delete(self, note_server_id):
+        """ Deletes existing reminder.
+
+        Given parameters are the note id and the note server id.
         I.e.:
         gnotes = keep.all()
         note = gnotes[x], being x an arbitrary note number
         note_server_id = note.server_id
 
-        This will delete an existing reminder for the indicated note. 
+        This will delete an existing reminder for the indicated note.
         This method does not need to use keep.sync() to update the reminders
-        
+
         """
-   
+
         params = {}
         params.update(self.static_params)
-       
+
         params.update({"batchedRequest":
                    [{"deleteTask":{"taskId":
                                    [{"clientAssignedId":'KEEP/v2/'+ note_server_id}]}}]})
-        
+
         return self.send(
             url=self._base_url + 'batchmutate',
             method='POST',
             json=params
         )
-    
-    
+
+
     def list(self, master=True):
         """List current reminders.
         """
@@ -1045,9 +1044,9 @@ class Keep(object):
                 continue
 
             # Apply proper indentation.
-            if prev is not None:
+            if prev is not None and prev in self._nodes:
                 self._nodes[prev].dedent(node, False)
-            if curr is not None:
+            if curr is not None and curr in self._nodes:
                 self._nodes[curr].indent(node, False)
 
         # Attach created nodes to the tree.
@@ -1114,16 +1113,20 @@ class Keep(object):
         """Recursively check that all nodes are reachable."""
         found_ids = {}
         nodes = [self._nodes[_node.Root.ID]]
+
+        # Enumerate all nodes from the root node
         while nodes:
             node = nodes.pop()
             found_ids[node.id] = None
             nodes = nodes + node.children
 
+        # Find nodes that can't be reached from the root
         for node_id in self._nodes:
             if node_id in found_ids:
                 continue
             logger.error('Dangling node: %s', node_id)
 
+        # Find nodes that don't exist in the collection
         for node_id in found_ids:
             if node_id in self._nodes:
                 continue

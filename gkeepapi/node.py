@@ -1402,7 +1402,7 @@ class List(TopLevelNode):
                 return self.__cmp__(other) != 0
 
         def key_func(x):
-            if x.indented:
+            if x.indented and x.parent_item is not None:
                 return t((int(x.parent_item.sort), int(x.sort)))
             return t((int(x.sort), ))
 
