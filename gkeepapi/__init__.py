@@ -3,12 +3,13 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = '0.11.9'
+__version__ = '0.11.10'
 
 import logging
 import re
 import time
 import random
+import json
 
 from uuid import getnode as get_mac
 
