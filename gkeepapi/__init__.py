@@ -411,23 +411,23 @@ class RemindersAPI(API):
             },
         }
 
-    def create(self, note_id, note_server_id, dtime):
+    def create(self, node_id, node_server_id, dtime):
         """Create a new reminder.
-        Given parameters are the note id and the note server id.
-        I.e.:
-        gnotes = keep.all()
-        note = gnotes[x]
-        note_id = note.id
-        note_server_id = note.server_id
-    
-        dtime is a datetime.datetime object
-        
-        This will create a reminder for the x note. This method does not need to use keep.sync() to sync the reminders
+
+        Args:
+            node_id (str): The note ID.
+            node_server_id (str): The note server ID.
+            dtime (datetime.datetime): The due date of this reminder.
+
+        Return: ???
+
+        Raises:
+            APIException: If the server returns an error.
         """
-        
+
         params = {}
         params.update(self.static_params)
-        
+
         params.update({
             'task': {
                 'dueDate': {
@@ -435,78 +435,77 @@ class RemindersAPI(API):
                     'month': dtime.month,
                     'day': dtime.day,
                     'time': {
-                        'hour': dtime.hour, 
-                        'minute': dtime.minute, 
-                        'second': dtime.second
-                    }
+                        'hour': dtime.hour,
+                        'minute': dtime.minute,
+                        'second': dtime.second,
+                    },
                 },
-                'snoozed': True, 
+                'snoozed': True,
                 'extensions': {
                     'keepExtension': {
-                        'reminderVersion': 'V2', 
-                        'clientNoteId': note_id, 
-                        'serverNoteId': note_server_id
-                    }
-                }
-            }, 
+                        'reminderVersion': 'V2',
+                        'clientNoteId': note_id,
+                        'serverNoteId': note_server_id,
+                    },
+                },
+            },
             'taskId': {
-                'clientAssignedId': 'KEEP/v2/'+ note_server_id
-            }
-        }
-        )
- 
+                'clientAssignedId': 'KEEP/v2/' + note_server_id,
+            },
+        })
+
         return self.send(
             url=self._base_url + 'create',
             method='POST',
             json=params
         )
 
-    def update(self, note_id, note_server_id, dtime):
-        """ Updates existing reminder.
-        Given parameters are the note id and the note server id.
-        I.e.:
-        gnotes = keep.all()
-        note = gnotes[x], being x an arbitrary note number
-        note_id = note.id
-        note_server_id = note.server_id
-        dtime is a datetime.datetime object
+    def update(self, node_id, node_server_id, dtime):
+        """Update an existing reminder.
 
-        This will update an existing reminder for the indicated note.
-        This method does not need to use keep.sync() to update the reminders
+        Args:
+            node_id (str): The note ID.
+            node_server_id (str): The note server ID.
+            dtime (datetime.datetime): The due date of this reminder.
 
+        Return: ???
+
+        Raises:
+            APIException: If the server returns an error.
         """
         params = {}
         params.update(self.static_params)
 
         params.update({
-            "taskId": {
-                "clientAssignedId": 'KEEP/v2/' + note_server_id
-            }, 
-            "newTask": {
-                "dueDate": {
-                    "year": dtime.year, 
-                    "month": dtime.month, 
-                    "day": dtime.day, 
-                    "time": {
-                        "hour": dtime.hour, 
-                        "minute":dtime.minute, 
-                        "second":dtime.second
-                    }
+            'newTask': {
+                'dueDate': {
+                    'year': dtime.year,
+                    'month': dtime.month,
+                    'day': dtime.day,
+                    'time': {
+                        'hour': dtime.hour,
+                        'minute': dtime.minute,
+                        'second': dtime.second,
+                    },
                 },
-                "snoozed":True, 
-                "extensions": {
-                    "keepExtension": {
-                        "reminderVersion":"V2", 
-                        "clientNoteId": note_id, 
-                        "serverNoteId": note_server_id
-                    }
-                }
-            }, 
-            "updateMask": {
-                "updateField": ["ARCHIVED", "DUE_DATE", "EXTENSIONS", "LOCATION", "TITLE"]
+                'snoozed': True,
+                'extensions': {
+                    'keepExtension': {
+                        'reminderVersion': 'V2',
+                        'clientNoteId': note_id,
+                        'serverNoteId': note_server_id,
+                    },
+                },
+            },
+            'taskId': {
+                'clientAssignedId': 'KEEP/v2/' + note_server_id,
+            },
+            'updateMask': {
+                'updateField': [
+                    'ARCHIVED', 'DUE_DATE', 'EXTENSIONS', 'LOCATION', 'TITLE'
+                ]
             }
-        }
-        )
+        })
 
         return self.send(
             url=self._base_url + 'update',
@@ -515,56 +514,62 @@ class RemindersAPI(API):
         )
 
     def delete(self, note_server_id):
-        """ Deletes existing reminder.
+        """ Delete an existing reminder.
 
-        Given parameters are the note id and the note server id.
-        I.e.:
-        gnotes = keep.all()
-        note = gnotes[x], being x an arbitrary note number
-        note_server_id = note.server_id
+        Args:
+            node_server_id (str): The note server ID.
 
-        This will delete an existing reminder for the indicated note, x. 
-        This method does not need to use keep.sync() to update the reminders
+        Return: ???
 
+        Raises:
+            APIException: If the server returns an error.
         """
 
         params = {}
         params.update(self.static_params)
+
         params.update({
-            "batchedRequest": [
+            'batchedRequest': [
                 {
-                    "deleteTask": {
-                        "taskId": [
+                    'deleteTask': {
+                        'taskId': [
                             {
-                                "clientAssignedId": 'KEEP/v2/' + note_server_id
+                                'clientAssignedId': 'KEEP/v2/' + note_server_id
                             }
                         ]
                     }
                 }
             ]
-        }
-        )
+        })
 
         return self.send(
-            url = self._base_url + 'batchmutate',
-            method = 'POST',
-            json = params
+            url=self._base_url + 'batchmutate',
+            method='POST',
+            json=params
         )
-
 
     def list(self, master=True):
         """List current reminders.
+
+        Args:
+            master (bool): ???
+
+        Return:
+            ???
+
+        Raises:
+            APIException: If the server returns an error.
         """
         params = {}
         params.update(self.static_params)
 
         if master:
             params.update({
-                "recurrenceOptions": {
-                    "collapseMode": "MASTER_ONLY",
+                'recurrenceOptions': {
+                    'collapseMode': 'MASTER_ONLY',
                 },
-                "includeArchived": True,
-                "includeDeleted": False,
+                'includeArchived': True,
+                'includeDeleted': False,
             })
         else:
             current_time = time.time()
@@ -572,16 +577,16 @@ class RemindersAPI(API):
             end_time = int((current_time + (24 * 60 * 60)) * 1000)
 
             params.update({
-                "recurrenceOptions": {
-                    "collapseMode":"INSTANCES_ONLY",
-                    "recurrencesOnly": True,
+                'recurrenceOptions': {
+                    'collapseMode':'INSTANCES_ONLY',
+                    'recurrencesOnly': True,
                 },
-                "includeArchived": False,
-                "includeCompleted": False,
-                "includeDeleted": False,
-                "dueAfterMs": start_time,
-                "dueBeforeMs": end_time,
-                "recurrenceId": [],
+                'includeArchived': False,
+                'includeCompleted': False,
+                'includeDeleted': False,
+                'dueAfterMs': start_time,
+                'dueBeforeMs': end_time,
+                'recurrenceId': [],
             })
 
         return self.send(
@@ -592,6 +597,15 @@ class RemindersAPI(API):
 
     def history(self, storage_version):
         """Get reminder changes.
+
+        Args:
+            storage_version (str): The local storage version.
+
+        Returns:
+            ???
+
+        Raises:
+            APIException: If the server returns an error.
         """
         params = {
             "storageVersion": storage_version,
