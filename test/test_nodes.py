@@ -361,6 +361,13 @@ class TimestampsMixinTests(unittest.TestCase):
         n.timestamps.trashed = node.NodeTimestamps.int_to_dt(1)
         self.assertTrue(n.trashed)
 
+    def test_trash(self):
+        n = TestElement()
+        n.trash()
+
+        self.assertTrue(n.timestamps.dirty)
+        self.assertTrue(n.timestamps.trashed > node.NodeTimestamps.int_to_dt(0))
+
     def test_delete(self):
         n = TestElement()
         n.delete()
