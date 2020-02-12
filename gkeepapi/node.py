@@ -971,6 +971,10 @@ class TimestampsMixin(object):
         """
         return self.timestamps.trashed is not None and self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
 
+    def trash(self):
+        """Mark the item as trashed."""
+        self.timestamps.trashed = datetime.datetime.utcnow()
+
     @property
     def deleted(self):
         """Get the deleted state.

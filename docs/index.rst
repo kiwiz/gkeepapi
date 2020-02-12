@@ -253,6 +253,11 @@ The :py:meth:`node.TopLevelNode.delete` method marks the note for deletion::
     gnote.delete()
     glist.delete()
 
+To send the node to the trash instead::
+
+    gnote.trash()
+    glist.trash()
+
 Getting media
 -------------
 
