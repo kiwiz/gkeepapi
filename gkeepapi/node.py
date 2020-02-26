@@ -975,6 +975,10 @@ class TimestampsMixin(object):
         """Mark the item as trashed."""
         self.timestamps.trashed = datetime.datetime.utcnow()
 
+    def untrash(self):
+        """Mark the item as untrashed."""
+        self.timestamps.trashed = None
+
     @property
     def deleted(self):
         """Get the deleted state.
@@ -987,6 +991,10 @@ class TimestampsMixin(object):
     def delete(self):
         """Mark the item as deleted."""
         self.timestamps.deleted = datetime.datetime.utcnow()
+
+    def undelete(self):
+        """Mark the item as undeleted."""
+        self.timestamps.deleted = None
 
 class Node(Element, TimestampsMixin):
     """Node base class."""
@@ -1009,7 +1017,7 @@ class Node(Element, TimestampsMixin):
         self.annotations = NodeAnnotations()
 
         # Set if there is no baseVersion in the raw data
-        self.moved = False
+        self._moved = False
 
     @classmethod
     def _generateId(cls, tz):
@@ -1045,7 +1053,7 @@ class Node(Element, TimestampsMixin):
         ret['type'] = self.type.value
         ret['parentId'] = self.parent_id
         ret['sortValue'] = self._sort
-        if not self.moved and self._version is not None:
+        if not self._moved and self._version is not None:
             ret['baseVersion'] = self._version
         ret['text'] = self._text
         if self.server_id is not None:
@@ -1097,15 +1105,6 @@ class Node(Element, TimestampsMixin):
         self._text = value
         self.timestamps.edited = datetime.datetime.utcnow()
         self.touch(True)
-
-    @property
-    def trashed(self):
-        return self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
-
-    @trashed.setter
-    def trashed(self, value):
-        self.timestamps.trashed = datetime.datetime.utcnow() if value else NodeTimestamps.int_to_dt(0)
-        self.touch()
 
     @property
     def children(self):
@@ -1201,7 +1200,7 @@ class TopLevelNode(Node):
             raw['roleInfo'] if 'roleInfo' in raw else [],
             raw['shareRequests'] if 'shareRequests' in raw else [],
         )
-        self.moved = 'moved' in raw
+        self._moved = 'moved' in raw
 
     def save(self, clean=True):
         ret = super(TopLevelNode, self).save(clean)
