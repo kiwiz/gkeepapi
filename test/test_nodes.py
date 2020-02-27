@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+import six
+if six.PY2:
+    import sys
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+
 import unittest
 import logging
 
@@ -544,8 +550,10 @@ class ListTests(unittest.TestCase):
         sub_c.indent(sub_d)
         sub_f.indent(sub_e)
 
-        self.assertEqual('%s\n☐ f\n  ☐ e\n☐ c\n  ☐ d\n☐ a\n☐ b\n☐ g' % TITLE, str(n))
-        self.assertEqual('☐ f\n  ☐ e\n☐ c\n  ☐ d\n☐ a\n☐ b\n☐ g', n.text)
+        n_str = '%s\n☐ f\n  ☐ e\n☐ c\n  ☐ d\n☐ a\n☐ b\n☐ g' % TITLE
+        n_text = '☐ f\n  ☐ e\n☐ c\n  ☐ d\n☐ a\n☐ b\n☐ g'
+        self.assertEqual(n_str, str(n))
+        self.assertEqual(n_text, n.text)
 
 class ListItemTests(unittest.TestCase):
     def test_fields(self):
