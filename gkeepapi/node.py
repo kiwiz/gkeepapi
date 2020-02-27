@@ -170,7 +170,7 @@ class Element(object):
     def __init__(self):
         self._dirty = False
 
-    def _find_discrepancies(self, raw):
+    def _find_discrepancies(self, raw): # pragma: no cover
         s_raw = self.save(False)
         if isinstance(raw, dict):
             for key, val in raw.items():
@@ -1391,17 +1391,17 @@ class List(TopLevelNode):
                         return a - b
                 return 0
 
-            def __lt__(self, other):
+            def __lt__(self, other): # pragma: no cover
                 return self.__cmp__(other) < 0
-            def __gt_(self, other):
+            def __gt_(self, other): # pragma: no cover
                 return self.__cmp__(other) > 0
-            def __le__(self, other):
+            def __le__(self, other): # pragma: no cover
                 return self.__cmp__(other) <= 0
-            def __ge_(self, other):
+            def __ge_(self, other): # pragma: no cover
                 return self.__cmp__(other) >= 0
-            def __eq__(self, other):
+            def __eq__(self, other): # pragma: no cover
                 return self.__cmp__(other) == 0
-            def __ne__(self, other):
+            def __ne__(self, other): # pragma: no cover
                 return self.__cmp__(other) != 0
 
         def key_func(x):
@@ -1739,7 +1739,7 @@ class Blob(Node):
             bcls = cls._blob_type_map[BlobType(_type)]
         except (KeyError, ValueError) as e:
             logger.warning('Unknown blob type: %s', _type)
-            if DEBUG:
+            if DEBUG: # pragma: no cover
                 raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
             return None
         blob = bcls()
@@ -1848,7 +1848,7 @@ def from_json(raw):
         ncls = _type_map[NodeType(_type)]
     except (KeyError, ValueError) as e:
         logger.warning('Unknown node type: %s', _type)
-        if DEBUG:
+        if DEBUG: # pragma: no cover
             raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
         return None
     node = ncls()
@@ -1856,7 +1856,7 @@ def from_json(raw):
 
     return node
 
-if DEBUG:
+if DEBUG: # pragma: no cover
     Node.__load = Node._load # pylint: disable=protected-access
     def _load(self, raw): # pylint: disable=missing-docstring
         self.__load(raw) # pylint: disable=protected-access

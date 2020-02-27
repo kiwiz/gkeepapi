@@ -248,15 +248,15 @@ To dedent::
 Deleting Notes
 --------------
 
-The :py:meth:`node.TopLevelNode.delete` method marks the note for deletion::
+The :py:meth:`node.TopLevelNode.delete` method marks the note for deletion (or undo)::
 
     gnote.delete()
-    glist.delete()
+    gnote.undelete()
 
-To send the node to the trash instead::
+To send the node to the trash instead (or undo)::
 
     gnote.trash()
-    glist.trash()
+    gnote.untrash()
 
 Getting media
 -------------

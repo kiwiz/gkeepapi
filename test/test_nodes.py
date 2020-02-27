@@ -2,7 +2,7 @@
 import unittest
 import logging
 
-from gkeepapi import node
+from gkeepapi import node, exception
 
 logging.getLogger(node.__name__).addHandler(logging.NullHandler())
 
@@ -36,6 +36,10 @@ class AnnotationTests(unittest.TestCase):
             c.category = node.CategoryValue.Books
             return c
         a, b = generate_save_load(Category)
+        self.assertEqual(a, b)
+
+        # Test TaskAssist
+        a, b = generate_save_load(node.TaskAssist)
         self.assertEqual(a, b)
 
     def test_weblink_fields(self):
@@ -100,15 +104,21 @@ class ContextTests(unittest.TestCase):
 
     def test_subannotations(self):
         n = node.Context()
+
+        URL = 'https://url.url'
+
         sub = node.WebLink()
         sub.id = None
+        sub.url = URL
 
         n._entries['x'] = sub
+        self.assertTrue(n.dirty)
+
+        self.assertEqual([sub], list(n.all()))
 
         data = n.save()
-
         n.load(data)
-        self.assertEqual(1, len(n._entries))
+        self.assertEqual(1, len(n.all()))
 
 class NodeAnnotationsTests(unittest.TestCase):
     def test_save_load(self):
@@ -153,6 +163,7 @@ class NodeAnnotationsTests(unittest.TestCase):
         n.append(sub)
         self.assertTrue(n.dirty)
         self.assertEqual([sub], n.links)
+        self.assertEqual(1, len(n))
 
 class NodeTimestampsTests(unittest.TestCase):
     def test_save_load(self):
@@ -235,6 +246,7 @@ class NodeLabelsTests(unittest.TestCase):
         self.assertTrue(n.dirty)
         self.assertEqual(sub, n.get(sub.id))
         self.assertEqual([sub], n.all())
+        self.assertEqual(1, len(n))
 
         clean_node(n)
         n.remove(sub)
@@ -316,7 +328,12 @@ class NodeTests(unittest.TestCase):
         n.delete()
         self.assertTrue(n.timestamps.deleted)
         self.assertTrue(n.dirty)
-        # FIXME: Node is not done
+
+class RootTests(unittest.TestCase):
+    def test_fields(self):
+        r = node.Root()
+
+        self.assertFalse(r.dirty)
 
 class TestElement(node.Element, node.TimestampsMixin):
     def __init__(self):
@@ -363,17 +380,33 @@ class TimestampsMixinTests(unittest.TestCase):
 
     def test_trash(self):
         n = TestElement()
+
+        clean_node(n)
         n.trash()
 
         self.assertTrue(n.timestamps.dirty)
         self.assertTrue(n.timestamps.trashed > node.NodeTimestamps.int_to_dt(0))
 
+        clean_node(n)
+        n.untrash()
+
+        self.assertTrue(n.timestamps.dirty)
+        self.assertIsNone(n.timestamps.trashed)
+
     def test_delete(self):
         n = TestElement()
+
+        clean_node(n)
         n.delete()
 
         self.assertTrue(n.timestamps.dirty)
         self.assertTrue(n.timestamps.deleted > node.NodeTimestamps.int_to_dt(0))
+
+        clean_node(n)
+        n.undelete()
+
+        self.assertTrue(n.timestamps.dirty)
+        self.assertIsNone(n.timestamps.deleted)
 
 class TopLevelNodeTests(unittest.TestCase):
     def test_fields(self):
@@ -413,6 +446,13 @@ class TopLevelNodeTests(unittest.TestCase):
         n.labels.add(l)
         self.assertTrue(n.dirty)
 
+        b = node.Blob()
+        clean_node(b)
+
+        clean_node(n)
+        n.append(b)
+        self.assertEqual([b], n.blobs)
+
         clean_node(n)
         n.labels.remove(l)
         self.assertTrue(n.dirty)
@@ -430,6 +470,19 @@ class NoteTests(unittest.TestCase):
 
         self.assertEqual('https://keep.google.com/u/0/#NOTE/3', n.url)
 
+    def test_str(self):
+        n = node.Note()
+
+        TITLE = 'Title'
+        TEXT = 'Test'
+
+        self.assertEqual('', n.text)
+
+        n.title = TITLE
+        n.text = TEXT
+        self.assertEqual('%s\n%s' % (TITLE, TEXT), str(n))
+        self.assertEqual(TEXT, n.text)
+
 class ListTests(unittest.TestCase):
     def test_fields(self):
         n = node.List()
@@ -437,9 +490,62 @@ class ListTests(unittest.TestCase):
         TEXT = 'Text'
 
         clean_node(n)
-        n.add('Text')
+        sub_a = n.add(TEXT, sort=1)
+        sub_b = n.add(TEXT, True, sort=2)
         self.assertTrue(n.dirty)
-        self.assertEqual(u'☐ %s' % TEXT, n.text)
+
+        self.assertEqual([sub_b], n.checked)
+        self.assertEqual([sub_a], n.unchecked)
+
+    def test_indent(self):
+        n = node.List()
+
+        TEXT = 'Test'
+
+        clean_node(n)
+        sub_a = node.ListItem()
+        clean_node(sub_a)
+
+        sub_b = n.add(TEXT)
+        clean_node(sub_b)
+
+        with self.assertRaises(exception.InvalidException):
+            sub_a.add(sub_b)
+
+        sub_c = sub_b.add(TEXT)
+        self.assertIsInstance(sub_c, node.ListItem)
+
+        clean_node(sub_b)
+        sub_a.indent(sub_b)
+        self.assertFalse(sub_b.dirty)
+
+        clean_node(sub_b)
+        sub_a.dedent(sub_b)
+        self.assertFalse(sub_b.dirty)
+
+        clean_node(sub_c)
+        sub_b.dedent(sub_c)
+        self.assertTrue(sub_c.dirty)
+
+    def test_str(self):
+        n = node.List()
+
+        TITLE = 'Title'
+
+        n.title = TITLE
+        sub_a = n.add('a', sort=0)
+        sub_b = n.add('b', sort=0)
+        sub_c = n.add('c', sort=1)
+        sub_d = n.add('d', sort=2)
+        sub_e = n.add('e', sort=3)
+        sub_f = n.add('f', sort=4)
+        sub_g = n.add('g', sort=node.NewListItemPlacementValue.Bottom)
+
+        sub_c.indent(sub_d)
+        sub_f.indent(sub_e)
+
+        self.assertEqual('%s\n☐ f\n  ☐ e\n☐ c\n  ☐ d\n☐ a\n☐ b\n☐ g' % TITLE, str(n))
+        self.assertEqual('☐ f\n  ☐ e\n☐ c\n  ☐ d\n☐ a\n☐ b\n☐ g', n.text)
 
 class ListItemTests(unittest.TestCase):
     def test_fields(self):
@@ -468,15 +574,17 @@ class CollaboratorTests(unittest.TestCase):
     def test_fields(self):
         n = node.TopLevelNode(type_=node.NodeType.Note)
 
-        collab = "user@google.com"
+        collab = 'user@google.com'
 
         clean_node(n)
         n.collaborators.add(collab)
         self.assertTrue(n.dirty)
+        self.assertEqual(1, len(n.collaborators))
 
         clean_node(n)
         n.collaborators.remove(collab)
         self.assertTrue(n.dirty)
+
 
 class BlobTests(unittest.TestCase):
     def test_save_load(self):
@@ -499,8 +607,55 @@ class LabelTests(unittest.TestCase):
         self.assertEqual(a, b)
 
     def test_fields(self):
-        # FIXME: Not implemented
-        pass
+        n = node.Label()
+
+        NAME = 'name'
+        CATEGORY_2 = node.CategoryValue.TV
+        TZ = node.NodeTimestamps.int_to_dt(0)
+
+        clean_node(n)
+        n.name = NAME
+        self.assertTrue(n.dirty)
+        self.assertEqual(NAME, n.name)
+        self.assertEqual(NAME, str(n))
+
+        clean_node(n)
+        n.merged = TZ
+        self.assertTrue(n.dirty)
+        self.assertEqual(TZ, n.merged)
+
+class ElementTests(unittest.TestCase):
+    def test_load(self):
+        with self.assertRaises(exception.ParseException):
+            node.Node().load({})
+
+    def test_save(self):
+        n = node.Element()
+        data = n.save(False)
+
+        self.assertIn('_dirty', data)
+
+class LoadTests(unittest.TestCase):
+    def test_load(self):
+        self.assertIsNone(node.from_json({}))
+
+        data = {
+            'id': '',
+            'parentId': '',
+            'timestamps': {
+                'created': '2000-01-01T00:00:00.000Z',
+                'updated': '2000-01-01T00:00:00.000Z',
+            },
+            'nodeSettings': {
+                'newListItemPlacement': 'TOP',
+                'graveyardState': 'COLLAPSED',
+                'checkedListItemsPolicy': 'DEFAULT',
+            },
+            'annotationsGroup': {},
+            'kind': 'notes#node',
+            'type': 'NOTE',
+        }
+        self.assertIsInstance(node.from_json(data), node.Note)
 
 if __name__ == '__main__':
     unittest.main()
