@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 import unittest
-import unittest.mock
 import logging
 import gpsoauth
 import json
+import six
+
+if six.PY2:
+    import mock
+else:
+    from unittest import mock
 
 from gkeepapi import Keep, node
 
@@ -14,9 +19,9 @@ def resp(name):
         return json.load(fh)
 
 def mock_keep(keep):
-    k_api = unittest.mock.MagicMock()
-    r_api = unittest.mock.MagicMock()
-    m_api = unittest.mock.MagicMock()
+    k_api = mock.MagicMock()
+    r_api = mock.MagicMock()
+    m_api = mock.MagicMock()
     keep._keep_api._session = k_api
     keep._reminders_api._session = r_api
     keep._media_api._session = m_api
@@ -24,8 +29,8 @@ def mock_keep(keep):
     return k_api, r_api, m_api
 
 class KeepTests(unittest.TestCase):
-    @unittest.mock.patch('gpsoauth.perform_oauth')
-    @unittest.mock.patch('gpsoauth.perform_master_login')
+    @mock.patch('gpsoauth.perform_oauth')
+    @mock.patch('gpsoauth.perform_master_login')
     def test_sync(self, perform_master_login, perform_oauth):
         keep = Keep()
         k_api, r_api, m_api = mock_keep(keep)
