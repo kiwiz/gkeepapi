@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+import unittest
+import unittest.mock
+import logging
+import gpsoauth
+import json
+
+from gkeepapi import Keep, node
+
+logging.getLogger(node.__name__).addHandler(logging.NullHandler())
+
+def resp(name):
+    with open('test/data/%s' % name, 'r') as fh:
+        return json.load(fh)
+
+def mock_keep(keep):
+    k_api = unittest.mock.MagicMock()
+    r_api = unittest.mock.MagicMock()
+    m_api = unittest.mock.MagicMock()
+    keep._keep_api._session = k_api
+    keep._reminders_api._session = r_api
+    keep._media_api._session = m_api
+
+    return k_api, r_api, m_api
+
+class KeepTests(unittest.TestCase):
+    @unittest.mock.patch('gpsoauth.perform_oauth')
+    @unittest.mock.patch('gpsoauth.perform_master_login')
+    def test_sync(self, perform_master_login, perform_oauth):
+        keep = Keep()
+        k_api, r_api, m_api = mock_keep(keep)
+
+        perform_master_login.return_value = {
+            'Token': 'FAKETOKEN',
+        }
+        perform_oauth.return_value = {
+            'Auth': 'FAKEAUTH',
+        }
+        k_api.request().json.side_effect = [
+            resp('keep-00'),
+        ]
+        r_api.request().json.side_effect = [
+            resp('reminder-00'),
+            resp('reminder-01'),
+        ]
+        keep.login('user', 'pass')
+
+        self.assertEqual(39, len(keep.all()))

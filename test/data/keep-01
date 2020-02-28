@@ -1,0 +1,68 @@
+{
+  "kind": "notes#downSync",
+  "fromVersion": "AFOfgb7ywdXKsSnjsM3Pvqh5cwd5kTJzaW7azHCugtU=",
+  "toVersion": "AFOfgb53D+BaE7kFNKe7iJjV7oYNW14FUfhGOuk3tIZU4Pu67riot2b56XG0/VMlAMPGMMG2siiXK9wpG5Tf9vfRuMUK/ucqwdOsvQ==",
+  "nodes": [
+    {
+      "kind": "notes#node",
+      "id": "17084da1cc1.97dda8b1f14635ed",
+      "serverId": "1UKMHcnjcQ9h3B_r1RvOZ--zIGSuc-6ydq0uKRcQMHA9d1YAp4qpPaWAQ043ooR4OVv8n",
+      "parentId": "root",
+      "type": "NOTE",
+      "timestamps": {
+        "kind": "notes#timestamps",
+        "created": "2020-02-27T04:14:18.261Z",
+        "updated": "2020-02-27T04:14:18.382Z",
+        "trashed": "1970-01-01T00:00:00.000Z",
+        "userEdited": "2020-02-27T04:14:18.261Z",
+        "recentSharedChangesSeen": "2020-02-27T04:14:15.406Z"
+      },
+      "title": "",
+      "nodeSettings": {
+        "newListItemPlacement": "BOTTOM",
+        "checkedListItemsPolicy": "GRAVEYARD",
+        "graveyardState": "EXPANDED"
+      },
+      "isArchived": false,
+      "isPinned": false,
+      "color": "DEFAULT",
+      "sortValue": "9744825649",
+      "annotationsGroup": {
+        "kind": "notes#annotationsGroup"
+      },
+      "lastModifierEmail": "test@example.com",
+      "moved": "1"
+    },
+    {
+      "kind": "notes#node",
+      "id": "17084da1cc2.b2cbb131c3611b2f",
+      "serverId": "130noyjV0mMQMlf8lCNbyZgucQLFtdcy9WuOQfijx3sn26oHwPiJfPviLqUn4U-7HZKZm",
+      "parentId": "17084da1cc1.97dda8b1f14635ed",
+      "parentServerId": "1UKMHcnjcQ9h3B_r1RvOZ--zIGSuc-6ydq0uKRcQMHA9d1YAp4qpPaWAQ043ooR4OVv8n",
+      "type": "LIST_ITEM",
+      "timestamps": {
+        "kind": "notes#timestamps",
+        "created": "2020-02-27T04:14:18.261Z",
+        "updated": "2020-02-27T04:14:18.261Z"
+      },
+      "text": "Wow",
+      "checked": false,
+      "baseVersion": "1",
+      "nodeSettings": {
+        "newListItemPlacement": "BOTTOM",
+        "checkedListItemsPolicy": "GRAVEYARD",
+        "graveyardState": "EXPANDED"
+      },
+      "sortValue": "0",
+      "annotationsGroup": {
+        "kind": "notes#annotationsGroup"
+      }
+    }
+  ],
+  "truncated": false,
+  "forceFullResync": false,
+  "responseHeader": {
+    "updateState": "UTD",
+    "requestId": ""
+  }
+}

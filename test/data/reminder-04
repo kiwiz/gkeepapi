@@ -1,0 +1,76 @@
+{
+ "task": [
+  {
+   "taskId": {
+    "serverAssignedId": "1659661805927283615",
+    "clientAssignedId": "KEEP___v3___1539756945840_121291030___R19b10b2d/master"
+   },
+   "objectVersion": {
+    "storageVersion": "23877"
+   },
+   "taskList": {
+    "systemListId": "memento"
+   },
+   "title": "Reminder",
+   "createdTimeMillis": "1582776838103",
+   "snoozed": true,
+   "dueDate": {
+    "year": 2020,
+    "month": 2,
+    "day": 27,
+    "time": {
+     "hour": 8,
+     "minute": 0,
+     "second": 0
+    }
+   },
+   "extensions": {
+    "keepExtension": {
+     "clientNoteId": "1539756945840.121291030",
+     "serverNoteId": "1KBcMLL7Ksz2W-6o-EaoTdh14YKUq_ESSWZTB5JVqahbaLVuCGeKW76N5szO05g"
+    }
+   },
+   "recurrenceInfo": {
+    "recurrence": {
+     "frequency": "daily",
+     "recurrenceStart": {
+      "startDateTime": {
+       "year": 2020,
+       "month": 2,
+       "day": 27,
+       "time": {
+        "hour": 8,
+        "minute": 0,
+        "second": 0
+       }
+      }
+     },
+     "recurrenceEnd": {
+      "endDateTime": {
+       "year": 2021,
+       "month": 2,
+       "day": 26
+      },
+      "autoRenew": true
+     },
+     "dailyPattern": {
+      "timeOfDay": {
+       "hour": 8,
+       "minute": 0,
+       "second": 0
+      }
+     }
+    },
+    "recurrenceId": {
+     "id": "KEEP___v3___1539756945840_121291030___R19b10b2d"
+    },
+    "master": true
+   },
+   "externalApplicationLink": {
+    "application": "keepReminder",
+    "id": "KEEP___v3___1539756945840_121291030___R19b10b2d/master"
+   }
+  }
+ ],
+ "storageVersion": "23892"
+}
