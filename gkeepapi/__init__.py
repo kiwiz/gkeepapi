@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = '0.11.13'
+__version__ = '0.11.14'
 
 import logging
 import re
@@ -181,7 +181,7 @@ class API(object):
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
-        self._session.headers.update({'User-Agent': 'gkeepapi/' + __version__})
+        self._session.headers.update({'User-Agent': 'x-gkeepapi/%s (https://github.com/kiwiz/gkeepapi)' % __version__})
 
     def getAuth(self):
         """Get authentication details for this API.
