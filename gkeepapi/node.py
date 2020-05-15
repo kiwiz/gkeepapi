@@ -619,7 +619,8 @@ class NodeTimestamps(Element):
 
     def _load(self, raw):
         super(NodeTimestamps, self)._load(raw)
-        self._created = self.str_to_dt(raw['created'])
+        if 'created' in raw:
+            self._created = self.str_to_dt(raw['created'])
         self._deleted = self.str_to_dt(raw['deleted']) \
             if 'deleted' in raw else None
         self._trashed = self.str_to_dt(raw['trashed']) \
