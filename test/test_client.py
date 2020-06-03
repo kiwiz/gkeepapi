@@ -3,12 +3,7 @@ import unittest
 import logging
 import gpsoauth
 import json
-import six
-
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
+from unittest import mock
 
 from gkeepapi import Keep, node
 

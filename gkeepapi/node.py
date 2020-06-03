@@ -12,10 +12,9 @@ import logging
 import time
 import random
 import enum
-import six
+import itertools
 from operator import attrgetter
 
-from future.utils import raise_from
 from . import exception
 
 DEBUG = False
@@ -189,7 +188,7 @@ class Element(object):
                 # Python strftime's 'z' format specifier includes microseconds, but the response from GKeep
                 # only has milliseconds. This causes a string mismatch, so we construct datetime objects
                 # to properly compare
-                if isinstance(val_a, six.string_types) and isinstance(val_b, six.string_types):
+                if isinstance(val_a, str) and isinstance(val_b, str):
                     try:
                         tval_a = NodeTimestamps.str_to_dt(val_a)
                         tval_b = NodeTimestamps.str_to_dt(val_b)
@@ -213,7 +212,7 @@ class Element(object):
         try:
             self._load(raw)
         except (KeyError, ValueError) as e:
-            raise_from(exception.ParseException('Parse error in %s' % (type(self)), raw), e)
+            raise exception.ParseException('Parse error in %s' % (type(self)), raw) from e
 
     def _load(self, raw):
         """Unserialize from raw representation. (Implementation logic)
@@ -1382,7 +1381,7 @@ class List(TopLevelNode):
 
     @property
     def text(self):
-        return '\n'.join((six.text_type(node) for node in self.items))
+        return '\n'.join((str(node) for node in self.items))
 
     @classmethod
     def sorted_items(cls, items):
@@ -1396,7 +1395,7 @@ class List(TopLevelNode):
         class t(tuple):
             """Tuple with element-based sorting"""
             def __cmp__(self, other):
-                for a, b in six.moves.zip_longest(self, other):
+                for a, b in itertools.zip_longest(self, other):
                     if a != b:
                         if a is None:
                             return 1
@@ -1449,7 +1448,7 @@ class List(TopLevelNode):
             sort_value -= self.SORT_DELTA
 
     def __str__(self):
-        return '\n'.join(([self.title] + [six.text_type(node) for node in self.items]))
+        return '\n'.join(([self.title] + [str(node) for node in self.items]))
 
     @property
     def items(self):

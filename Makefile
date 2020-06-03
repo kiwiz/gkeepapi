@@ -12,7 +12,7 @@ coverage:
 	coverage html
 
 build: gkeepapi/*.py
-	python3 setup.py bdist_wheel --universal
+	python3 setup.py bdist_wheel
 
 clean:
 	rm -f dist/*.whl
