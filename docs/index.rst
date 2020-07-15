@@ -363,15 +363,15 @@ Collaborators are users you've shared notes with. Access can be granted or revok
 
 To add a collaborator to a note::
 
-    gnote.collaborator.add(email)
+    gnote.collaborators.add(email)
 
 To check if a collaborator has access to a note::
 
-    email in gnote.collaborator.all()
+    email in gnote.collaborators.all()
 
 To remove a collaborator from a note::
 
-    gnote.collaborator.remove(email)
+    gnote.collaborators.remove(email)
 
 Timestamps
 ==========
