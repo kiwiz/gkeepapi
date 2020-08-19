@@ -8,7 +8,7 @@ gkeepapi
 
 An unofficial client for the [Google Keep](https://keep.google.com) API.
 
-```
+```python
 import gkeepapi
 
 keep = gkeepapi.Keep()
