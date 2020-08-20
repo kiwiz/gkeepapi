@@ -8,11 +8,11 @@ gkeepapi
 
 An unofficial client for the [Google Keep](https://keep.google.com) API.
 
-```
+```python
 import gkeepapi
 
 keep = gkeepapi.Keep()
-success = keep.login('...', '...')
+success = keep.login('user@gmail.com', 'my:secret:password')
 
 note = keep.createNote('Todo', 'Eat breakfast')
 note.pinned = True
