@@ -401,7 +401,13 @@ If you're using Python 2.x, try switching to Python 3.x. See this `issue <https:
 Known Issues
 ============
 
+1. :py:class:`node.ListItem` consistency
+
 The :py:class:`Keep` class isn't aware of new :py:class:`node.ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get` calls for their IDs will fail.
+
+2. Authentication errors
+
+:py:mod:`gpsoauth` uses a private API, which appears to be subject to TLS fingerprinting. If you're having difficulty logging in, it's possible that using a newer version of Python (3.7+) will work better. See this `issue <https://gitlab.com/AuroraOSS/AuroraStore/issues/217#note_249390026>`_ for more information.
 
 Debug
 =====
