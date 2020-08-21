@@ -400,6 +400,10 @@ This usually occurs when Google thinks the login request looks suspicious. Here 
 5. Upgrading to a newer version of Python (3.7+) has worked for some people. See this `issue <https://gitlab.com/AuroraOSS/AuroraStore/issues/217#note_249390026>`_ for more information.
 6. If all else fails, try testing gkeepapi on a separate IP address and/or user to see if you can isolate the problem.
 
+2. I get a "DeviceManagementRequiredOrSyncDisabled" :py:class:`exception.LoginException` when I try to log in.
+
+This is due to the enforcement of Android device policies on your G-Suite account. To resolve this, you can try disabling that setting `here <https://admin.google.com/AdminHome?hl=no#MobileSettings:section=advanced&flyout=security>`_.
+
 Known Issues
 ============
 
