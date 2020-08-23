@@ -13,6 +13,7 @@ import time
 import random
 import enum
 import six
+from operator import attrgetter
 
 from future.utils import raise_from
 from . import exception
@@ -1419,6 +1420,16 @@ class List(TopLevelNode):
                 checked is None or node.checked == checked
             )
         ])
+
+    def alphabetize(self):
+        sorted_children = sorted([node for node in self.children
+                                  if isinstance(node, ListItem) and not node.deleted],
+                                 key=attrgetter('text'))
+        sort_value = random.randint(1000000000, 9999999999)
+        for node in sorted_children:
+            target_node = self.get(node.id)
+            target_node.sort = sort_value
+            sort_value -= self.SORT_DELTA
 
     def __str__(self):
         return '\n'.join(([self.title] + [six.text_type(node) for node in self.items]))
