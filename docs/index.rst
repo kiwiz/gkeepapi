@@ -389,17 +389,25 @@ These timestamps are all read-only.
 FAQ
 ===
 
-1. I get a "NeedsBrowser" `exception.APIException` when I try to log in.
+1. I get a "NeedsBrowser", "CaptchaRequired" or "BadAuthentication" :py:class:`exception.LoginException` when I try to log in.
 
-Your account probably has Two Factor enabled. To get around this, you'll need to generate an App Password for your Google account.
+This usually occurs when Google thinks the login request looks suspicious. Here are some steps you can take to resolve this:
 
+1. Make sure you have the newest version of gkeepapi installed.
+2. Instead of logging in every time, cache the authentication token and reuse it on subsequent runs. See `here <https://github.com/kiwiz/keep-cli/blob/master/keep#L106-L128>`_ for an example implementation.
+3. If you have 2-Step Verification turned on, generating an App Password for gkeepapi is highly recommended.
+4. Allowing access through this `link <https://accounts.google.com/DisplayUnlockCaptcha>`_ has worked for some people.
+5. Upgrading to a newer version of Python (3.7+) has worked for some people. See this `issue <https://gitlab.com/AuroraOSS/AuroraStore/issues/217#note_249390026>`_ for more information.
+6. If all else fails, try testing gkeepapi on a separate IP address and/or user to see if you can isolate the problem.
 
-2. I get a "CaptchaRequired" `exception.LoginException` when I try to log in.
+2. I get a "DeviceManagementRequiredOrSyncDisabled" :py:class:`exception.LoginException` when I try to log in.
 
-If you're using Python 2.x, try switching to Python 3.x. See this `issue <https://github.com/kiwiz/gkeepapi/issues/69>`_ for more information.
+This is due to the enforcement of Android device policies on your G-Suite account. To resolve this, you can try disabling that setting `here <https://admin.google.com/AdminHome?hl=no#MobileSettings:section=advanced&flyout=security>`_.
 
 Known Issues
 ============
+
+1. :py:class:`node.ListItem` consistency
 
 The :py:class:`Keep` class isn't aware of new :py:class:`node.ListItem` objects till they're synced up to the server. In other words, :py:meth:`Keep.get` calls for their IDs will fail.
 
