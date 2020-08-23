@@ -533,6 +533,43 @@ class ListTests(unittest.TestCase):
         sub_b.dedent(sub_c)
         self.assertTrue(sub_c.dirty)
 
+    def test_alphabetize(self):
+        n = node.List()
+
+        sub_a = n.add('a', sort=3)
+        sub_b = n.add('b', sort=0)
+        sub_c = n.add('c', sort=5)
+        sub_d = n.add('d', sort=1)
+        sub_e = n.add('e', sort=2)
+        sub_f = n.add('f', sort=4)
+
+        n.alphabetize()
+
+        self.assertEqual(sub_a.id, n.items[0].id)
+        self.assertEqual(sub_b.id, n.items[1].id)
+        self.assertEqual(sub_c.id, n.items[2].id)
+        self.assertEqual(sub_d.id, n.items[3].id)
+        self.assertEqual(sub_e.id, n.items[4].id)
+        self.assertEqual(sub_f.id, n.items[5].id)
+
+        n = node.List()
+
+        sub_a = n.add('a', sort=3)
+        sub_ba = sub_a.add('ba', sort=3)
+        sub_aa = sub_a.add('aa', sort=2)
+        sub_b = n.add('b', sort=4)
+        sub_bd = sub_b.add('bd', sort=4)
+        sub_bc = sub_b.add('bc', sort=3)
+
+        n.alphabetize()
+
+        self.assertEqual(sub_a.id, n.items[0].id)
+        self.assertEqual(sub_aa.id, n.items[1].id)
+        self.assertEqual(sub_ba.id, n.items[2].id)
+        self.assertEqual(sub_b.id, n.items[3].id)
+        self.assertEqual(sub_bc.id, n.items[4].id)
+        self.assertEqual(sub_bd.id, n.items[5].id)
+
     def test_str(self):
         n = node.List()
 
