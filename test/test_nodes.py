@@ -9,6 +9,7 @@ import unittest
 import logging
 
 from gkeepapi import node, exception
+from operator import attrgetter
 
 logging.getLogger(node.__name__).addHandler(logging.NullHandler())
 
@@ -532,6 +533,55 @@ class ListTests(unittest.TestCase):
         clean_node(sub_c)
         sub_b.dedent(sub_c)
         self.assertTrue(sub_c.dirty)
+
+    def test_sort(self):
+        n = node.List()
+
+        sub_a = n.add('a', sort=3)
+        sub_b = n.add('b', sort=0)
+        sub_c = n.add('c', sort=5)
+        sub_d = n.add('d', sort=1)
+        sub_e = n.add('e', sort=2)
+        sub_f = n.add('f', sort=4)
+
+        n.sort()
+
+        self.assertEqual(sub_a.id, n.items[0].id)
+        self.assertEqual(sub_b.id, n.items[1].id)
+        self.assertEqual(sub_c.id, n.items[2].id)
+        self.assertEqual(sub_d.id, n.items[3].id)
+        self.assertEqual(sub_e.id, n.items[4].id)
+        self.assertEqual(sub_f.id, n.items[5].id)
+
+        n = node.List()
+
+        sub_a = n.add('a', sort=3)
+        sub_ba = sub_a.add('ba', sort=3)
+        sub_aa = sub_a.add('aa', sort=2)
+        sub_b = n.add('b', sort=4)
+        sub_bd = sub_b.add('bd', sort=4)
+        sub_bc = sub_b.add('bc', sort=3)
+
+        n.sort()
+
+        self.assertEqual(sub_a.id, n.items[0].id)
+        self.assertEqual(sub_aa.id, n.items[1].id)
+        self.assertEqual(sub_ba.id, n.items[2].id)
+        self.assertEqual(sub_b.id, n.items[3].id)
+        self.assertEqual(sub_bc.id, n.items[4].id)
+        self.assertEqual(sub_bd.id, n.items[5].id)
+
+        n = node.List()
+
+        time_1 = n.add('test1')
+        time_2 = n.add('test2')
+        time_3 = n.add('test3')
+
+        n.sort(key=attrgetter('timestamps.created'), reverse=True)
+
+        self.assertEqual(time_3.id, n.items[0].id)
+        self.assertEqual(time_2.id, n.items[1].id)
+        self.assertEqual(time_1.id, n.items[2].id)
 
     def test_str(self):
         n = node.List()
