@@ -1422,13 +1422,11 @@ class List(TopLevelNode):
         ])
 
     def sort(self, key=attrgetter('text'), reverse=False):
-        sorted_children = sorted([node for node in self.children
-                                  if isinstance(node, ListItem) and not node.deleted],
+        sorted_children = sorted(self._items(),
                                  key=key, reverse=reverse)
         sort_value = random.randint(1000000000, 9999999999)
         for node in sorted_children:
-            target_node = self.get(node.id)
-            target_node.sort = sort_value
+            node.sort = sort_value
             sort_value -= self.SORT_DELTA
 
     def __str__(self):
