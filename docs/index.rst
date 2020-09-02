@@ -12,7 +12,7 @@ Welcome to gkeepapi's documentation!
 **gkeepapi** is an unofficial client for programmatically interacting with Google Keep::
 
     keep = gkeepapi.Keep()
-    keep.login('...', '...')
+    keep.login('user@gmail.com', 'password')
 
     note = gkeepapi.createNote('Todo', 'Eat breakfast')
     note.pinned = True
@@ -52,7 +52,7 @@ You can load this token at a later point::
     token = keyring.get_password('google-keep-token', username)
     keep.resume(email, master_token)
 
-Note: Enabling TwoFactor and logging via an app password is recommended.
+Note: Enabling TwoFactor and logging in via an app password is recommended.
 
 Syncing
 -------
@@ -217,7 +217,7 @@ Existing items can be retrieved and modified directly::
     glistitem.text = 'Item 4'
     glistitem.checked = True
 
-Or deleted::
+Or deleted via :py:meth:`node.ListItem.delete`::
 
    glistitem.delete()
 
@@ -233,6 +233,13 @@ To reposition an item (larger is closer to the top)::
    val = glistitem2.sort
    glistitem2.sort = glistitem3.sort
    glistitem3.sort = val
+
+Sorting a List
+^^^^^^^^^^^^^^
+
+Lists can be sorted via :py:meth:`node.List.sort`::
+   # Sorts items alphabetically by default
+   glist.sort()
 
 Indent/dedent List items
 ^^^^^^^^^^^^^^^^^^^^^^^^
