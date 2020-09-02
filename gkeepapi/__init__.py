@@ -444,13 +444,13 @@ class RemindersAPI(API):
                 'extensions': {
                     'keepExtension': {
                         'reminderVersion': 'V2',
-                        'clientNoteId': note_id,
-                        'serverNoteId': note_server_id,
+                        'clientNoteId': node_id,
+                        'serverNoteId': node_server_id,
                     },
                 },
             },
             'taskId': {
-                'clientAssignedId': 'KEEP/v2/' + note_server_id,
+                'clientAssignedId': 'KEEP/v2/' + node_server_id,
             },
         })
 
@@ -492,13 +492,13 @@ class RemindersAPI(API):
                 'extensions': {
                     'keepExtension': {
                         'reminderVersion': 'V2',
-                        'clientNoteId': note_id,
-                        'serverNoteId': note_server_id,
+                        'clientNoteId': node_id,
+                        'serverNoteId': node_server_id,
                     },
                 },
             },
             'taskId': {
-                'clientAssignedId': 'KEEP/v2/' + note_server_id,
+                'clientAssignedId': 'KEEP/v2/' + node_server_id,
             },
             'updateMask': {
                 'updateField': [
@@ -513,7 +513,7 @@ class RemindersAPI(API):
             json=params
         )
 
-    def delete(self, note_server_id):
+    def delete(self, node_server_id):
         """ Delete an existing reminder.
 
         Args:
@@ -534,7 +534,7 @@ class RemindersAPI(API):
                     'deleteTask': {
                         'taskId': [
                             {
-                                'clientAssignedId': 'KEEP/v2/' + note_server_id
+                                'clientAssignedId': 'KEEP/v2/' + node_server_id
                             }
                         ]
                     }
