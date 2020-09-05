@@ -237,9 +237,9 @@ To reposition an item (larger is closer to the top)::
 Sorting a List
 ^^^^^^^^^^^^^^
 
-Lists can be sorted via :py:meth:`node.List.sort`::
+Lists can be sorted via :py:meth:`node.List.sort_items`::
    # Sorts items alphabetically by default
-   glist.sort()
+   glist.sort_items()
 
 Indent/dedent List items
 ^^^^^^^^^^^^^^^^^^^^^^^^

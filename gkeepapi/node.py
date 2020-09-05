@@ -1421,7 +1421,7 @@ class List(TopLevelNode):
             )
         ])
 
-    def sort(self, key=attrgetter('text'), reverse=False):
+    def sort_items(self, key=attrgetter('text'), reverse=False):
         sorted_children = sorted(self._items(),
                                  key=key, reverse=reverse)
         sort_value = random.randint(1000000000, 9999999999)
