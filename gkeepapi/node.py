@@ -1373,8 +1373,8 @@ class List(TopLevelNode):
         return '\n'.join((six.text_type(node) for node in self.items))
 
     @classmethod
-    def items_sort(cls, items):
-        """Sort list items, taking into account parent items.
+    def sorted_items(cls, items):
+        """Generate a list of sorted list items, taking into account parent items.
 
         Args:
             items (list[gkeepapi.node.ListItem]): Items to sort.
@@ -1414,17 +1414,24 @@ class List(TopLevelNode):
         return sorted(items, key=key_func, reverse=True)
 
     def _items(self, checked=None):
-        return self.items_sort([
+        return [
             node for node in self.children
             if isinstance(node, ListItem) and not node.deleted and (
                 checked is None or node.checked == checked
             )
-        ])
+        ]
 
     def sort_items(self, key=attrgetter('text'), reverse=False):
-        sorted_children = sorted(self._items(),
-                                 key=key, reverse=reverse)
+        """Sort list items in place. By default, the items are alphabetized,
+        but a custom function can be specified.
+
+        Args:
+            key (callable): A filter function.
+            reverse (bool): Whether to reverse the output.
+        """
+        sorted_children = sorted(self._items(), key=key, reverse=reverse)
         sort_value = random.randint(1000000000, 9999999999)
+
         for node in sorted_children:
             node.sort = sort_value
             sort_value -= self.SORT_DELTA
@@ -1439,7 +1446,7 @@ class List(TopLevelNode):
         Returns:
             list[gkeepapi.node.ListItem]: List items.
         """
-        return self._items()
+        return self.sorted_items(self._items())
 
     @property
     def checked(self):
@@ -1448,7 +1455,7 @@ class List(TopLevelNode):
         Returns:
             list[gkeepapi.node.ListItem]: List items.
         """
-        return self._items(True)
+        return self.sorted_items(self._items(True))
 
     @property
     def unchecked(self):
@@ -1457,7 +1464,7 @@ class List(TopLevelNode):
         Returns:
             list[gkeepapi.node.ListItem]: List items.
         """
-        return self._items(False)
+        return self.sorted_items(self._items(False))
 
 class ListItem(Node):
     """Represents a Google Keep listitem.
@@ -1539,7 +1546,7 @@ class ListItem(Node):
         Returns:
             list[gkeepapi.node.ListItem]: Subitems.
         """
-        return List.items_sort(
+        return List.sorted_items(
             self._subitems.values()
         )
 
