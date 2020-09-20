@@ -1294,9 +1294,21 @@ class TopLevelNode(Node):
         """Get all media blobs.
 
         Returns:
-            list[gkeepapi.node.Blob]: Media blobs.
+            list[gkeepapi.node.NodeBlob]: Media blobs.
         """
-        return [node for node in self.children if isinstance(node, Blob)]
+        return [node.blob for node in self.children if isinstance(node, Blob)]
+
+    @property
+    def images(self):
+        return [blob for blob in self.blobs if isinstance(blob, NodeImage)]
+
+    @property
+    def drawings(self):
+        return [blob for blob in self.blobs if isinstance(blob, NodeDrawing)]
+
+    @property
+    def audio(self):
+        return [blob for blob in self.blobs if isinstance(blob, NodeAudio)]
 
 class Note(TopLevelNode):
     """Represents a Google Keep note."""
@@ -1627,6 +1639,14 @@ class NodeAudio(NodeBlob):
             ret['length'] = self._length
         return ret
 
+    @property
+    def length(self):
+        """Get length of the audio clip.
+        Returns:
+            int: Audio length.
+        """
+        return self._length
+
 class NodeImage(NodeBlob):
     """Represents an image blob."""
     _TYPE = BlobType.Image
@@ -1656,6 +1676,38 @@ class NodeImage(NodeBlob):
         ret['extracted_text'] = self._extracted_text
         ret['extraction_status'] = self._extraction_status
         return ret
+
+    @property
+    def width(self):
+        """Get width of image.
+        Returns:
+            int: Image width.
+        """
+        return self._width
+
+    @property
+    def height(self):
+        """Get height of image.
+        Returns:
+            int: Image height.
+        """
+        return self._height
+
+    @property
+    def byte_size(self):
+        """Get size of image in bytes.
+        Returns:
+            int: Image byte size.
+        """
+        return self._byte_size
+
+    @property
+    def extracted_text(self):
+        """Get text extracted from image
+        Returns:
+            str: Extracted text.
+        """
+        return self._extracted_text
 
     @property
     def url(self):
@@ -1691,6 +1743,15 @@ class NodeDrawing(NodeBlob):
         if self._drawing_info is not None:
             ret['drawingInfo'] = self._drawing_info.save(clean)
         return ret
+
+    @property
+    def extracted_text(self):
+        """Get text extracted from image
+        Returns:
+            str: Extracted text.
+        """
+        return self._drawing_info.snapshot.extracted_text \
+            if self._drawing_info is not None else ''
 
 class NodeDrawingInfo(Element):
     """Represents information about a drawing blob."""

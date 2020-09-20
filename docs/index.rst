@@ -151,6 +151,9 @@ Notes and Lists:
 * :py:attr:`node.TopLevelNode.timestamps` (Read only)
 * :py:attr:`node.TopLevelNode.collaborators`
 * :py:attr:`node.TopLevelNode.blobs` (Read only)
+* :py:attr:`node.TopLevelNode.drawings` (Read only)
+* :py:attr:`node.TopLevelNode.images` (Read only)
+* :py:attr:`node.TopLevelNode.audio` (Read only)
 
 ListItems:
 
@@ -265,12 +268,35 @@ To send the node to the trash instead (or undo)::
     gnote.trash()
     gnote.untrash()
 
-Getting media
--------------
+Media
+=====
 
-To fetch media (images, audio, etc) files, you can use the :py:meth:`Keep.getMediaLink` method to get a link::
+Media blobs are images, drawings and audio clips that are attached to notes.
 
-    blob = gnote.blobs[0]
+Accessing media
+---------------
+
+Drawings:
+
+* :py:attr:`node.NodeDrawing.extracted_text` (Read only)
+
+Images:
+
+* :py:attr:`node.NodeImage.width` (Read only)
+* :py:attr:`node.NodeImage.height` (Read only)
+* :py:attr:`node.NodeImage.byte_size` (Read only)
+* :py:attr:`node.NodeImage.extracted_text` (Read only)
+
+Audio:
+
+* :py:attr:`node.NodeAudio.length` (Read only)
+
+Fetching media
+--------------
+
+To download media, you can use the :py:meth:`Keep.getMediaLink` method to get a link::
+
+    blob = gnote.images[0]
     keep.getMediaLink(blob)
 
 Labels
