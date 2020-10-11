@@ -1294,21 +1294,21 @@ class TopLevelNode(Node):
         """Get all media blobs.
 
         Returns:
-            list[gkeepapi.node.NodeBlob]: Media blobs.
+            list[gkeepapi.node.Blob]: Media blobs.
         """
-        return [node.blob for node in self.children if isinstance(node, Blob)]
+        return [node for node in self.children if isinstance(node, Blob)]
 
     @property
     def images(self):
-        return [blob for blob in self.blobs if isinstance(blob, NodeImage)]
+        return [blob for blob in self.blobs if isinstance(blob.blob, NodeImage)]
 
     @property
     def drawings(self):
-        return [blob for blob in self.blobs if isinstance(blob, NodeDrawing)]
+        return [blob for blob in self.blobs if isinstance(blob.blob, NodeDrawing)]
 
     @property
     def audio(self):
-        return [blob for blob in self.blobs if isinstance(blob, NodeAudio)]
+        return [blob for blob in self.blobs if isinstance(blob.blob, NodeAudio)]
 
 class Note(TopLevelNode):
     """Represents a Google Keep note."""
