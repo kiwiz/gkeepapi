@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = '0.13.1'
+__version__ = '0.13.2'
 
 import logging
 import re
@@ -33,26 +33,26 @@ class APIAuth(object):
         self._master_token = None
         self._auth_token = None
         self._email = None
-        self._android_id = None
+        self._device_id = None
         self._scopes = scopes
 
-    def login(self, email, password, android_id):
+    def login(self, email, password, device_id):
         """Authenticate to Google with the provided credentials.
 
         Args:
             email (str): The account to use.
             password (str): The account password.
-            android_id (str): An identifier for this client.
+            device_id (str): An identifier for this client.
 
         Raises:
             LoginException: If there was a problem logging in.
         """
         self._email = email
-        self._android_id = android_id
+        self._device_id = device_id
 
         # Obtain a master token.
         res = gpsoauth.perform_master_login(
-            self._email, password, self._android_id
+            self._email, password, self._device_id
         )
         # Bail if no token was returned.
         if 'Token' not in res:
@@ -65,19 +65,19 @@ class APIAuth(object):
         self.refresh()
         return True
 
-    def load(self, email, master_token, android_id):
+    def load(self, email, master_token, device_id):
         """Authenticate to Google with the provided master token.
 
         Args:
             email (str): The account to use.
             master_token (str): The master token.
-            android_id (str): An identifier for this client.
+            device_id (str): An identifier for this client.
 
         Raises:
             LoginException: If there was a problem logging in.
         """
         self._email = email
-        self._android_id = android_id
+        self._device_id = device_id
         self._master_token = master_token
 
         # Obtain an OAuth token.
@@ -118,21 +118,21 @@ class APIAuth(object):
         """
         self._email = email
 
-    def getAndroidId(self):
+    def getDeviceId(self):
         """Gets the device id.
 
         Returns:
             str: The device id.
         """
-        return self._android_id
+        return self._device_id
 
-    def setAndroidId(self, android_id):
+    def setDeviceId(self, device_id):
         """Sets the device id.
 
         Args:
-            android_id (str): The device id.
+            device_id (str): The device id.
         """
-        self._android_id = android_id
+        self._device_id = device_id
 
     def getAuthToken(self):
         """Gets the auth token.
@@ -154,7 +154,7 @@ class APIAuth(object):
         # Obtain an OAuth token with the necessary scopes by pretending to be
         # the keep android client.
         res = gpsoauth.perform_oauth(
-            self._email, self._master_token, self._android_id,
+            self._email, self._master_token, self._device_id,
             service=self._scopes,
             app='com.google.android.keep',
             client_sig='38918a453d07199354f8b19af05ec6562ced5788'
@@ -172,7 +172,7 @@ class APIAuth(object):
         self._master_token = None
         self._auth_token = None
         self._email = None
-        self._android_id = None
+        self._device_id = None
 
 class API(object):
     """Base API wrapper"""
@@ -677,7 +677,7 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, username, password, state=None, sync=True):
+    def login(self, username, password, state=None, sync=True, device_id=None):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
@@ -689,14 +689,16 @@ class Keep(object):
             LoginException: If there was a problem logging in.
         """
         auth = APIAuth(self.OAUTH_SCOPES)
+        if device_id is None:
+            device_id = get_mac()
 
-        ret = auth.login(username, password, get_mac())
+        ret = auth.login(username, password, device_id)
         if ret:
             self.load(auth, state, sync)
 
         return ret
 
-    def resume(self, email, master_token, state=None, sync=True):
+    def resume(self, email, master_token, state=None, sync=True, device_id=None):
         """Authenticate to Google with the provided master token & sync.
 
         Args:
@@ -708,8 +710,10 @@ class Keep(object):
             LoginException: If there was a problem logging in.
         """
         auth = APIAuth(self.OAUTH_SCOPES)
+        if device_id is None:
+            device_id = get_mac()
 
-        ret = auth.load(email, master_token, android_id=get_mac())
+        ret = auth.load(email, master_token, device_id)
         if ret:
             self.load(auth, state, sync)
 
