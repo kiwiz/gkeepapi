@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = '0.13.2'
+__version__ = '0.13.3'
 
 import logging
 import re
@@ -881,8 +881,11 @@ class Keep(object):
         node = _node.List()
         if title is not None:
             node.title = title
+
+        sort = random.randint(1000000000, 9999999999)
         for text, checked in items:
-            node.add(text, checked)
+            node.add(text, checked, sort)
+            sort -= _node.List.SORT_DELTA
         self.add(node)
         return node
 
