@@ -4,7 +4,7 @@ lint:
 	pylint gkeepapi
 
 test:
-	python -m unittest discover
+	python3 -m unittest discover
 
 coverage:
 	coverage run --source gkeepapi -m unittest discover
@@ -12,7 +12,7 @@ coverage:
 	coverage html
 
 build: gkeepapi/*.py
-	python setup.py bdist_wheel --universal
+	python3 setup.py bdist_wheel --universal
 
 clean:
 	rm -f dist/*.whl
