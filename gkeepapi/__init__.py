@@ -817,7 +817,7 @@ class Keep(object):
             trashed (Union[bool, None]): Whether to match trashed notes.
 
         Return:
-            List[gkeepapi.node.TopLevelNode]: Results.
+            Generator[gkeepapi.node.TopLevelNode]: Results.
         """
         if labels is not None:
             labels = [i.id if isinstance(i, _node.Label) else i for i in labels]
