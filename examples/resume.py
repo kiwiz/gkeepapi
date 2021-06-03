@@ -44,7 +44,7 @@ if not logged_in:
         logged_in = True
         del password
         token = keep.getMasterToken()
-        keyring.set_password("google-keep-token", config["username"], token)
+        keyring.set_password("google-keep-token", USERNAME, token)
         logger.info("Success")
     except gkeepapi.exception.LoginException as e:
         logger.info(e)
