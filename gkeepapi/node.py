@@ -1546,7 +1546,7 @@ class ListItem(Node):
             return
 
         del self._subitems[node.id]
-        node.super_list_item_id = None
+        node.super_list_item_id = ""
         node.parent_item = None
         if dirty:
             node.touch(True)
