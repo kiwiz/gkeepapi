@@ -391,6 +391,7 @@ class TimestampsMixinTests(unittest.TestCase):
         clean_node(n)
         n.trash()
 
+        self.assertTrue(n.trashed)
         self.assertTrue(n.timestamps.dirty)
         self.assertTrue(n.timestamps.trashed > node.NodeTimestamps.int_to_dt(0))
 
@@ -398,7 +399,7 @@ class TimestampsMixinTests(unittest.TestCase):
         n.untrash()
 
         self.assertTrue(n.timestamps.dirty)
-        self.assertIsNone(n.timestamps.trashed)
+        self.assertFalse(n.trashed)
 
     def test_delete(self):
         n = TestElement()

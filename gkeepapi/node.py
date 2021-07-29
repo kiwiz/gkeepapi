@@ -979,7 +979,7 @@ class TimestampsMixin(object):
 
     def untrash(self):
         """Mark the item as untrashed."""
-        self.timestamps.trashed = None
+        self.timestamps.trashed = self.timestamps.int_to_dt(0)
 
     @property
     def deleted(self):
