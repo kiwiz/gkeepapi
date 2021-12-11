@@ -1072,7 +1072,7 @@ class Node(Element, TimestampsMixin):
         Returns:
             int: Sort id.
         """
-        return self._sort
+        return int(self._sort)
 
     @sort.setter
     def sort(self, value):
