@@ -1817,7 +1817,7 @@ class Blob(Node):
         except (KeyError, ValueError) as e:
             logger.warning('Unknown blob type: %s', _type)
             if DEBUG: # pragma: no cover
-                raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
+                raise exception.ParseException('Parse error for %s' % (_type), raw) from e
             return None
         blob = bcls()
         blob.load(raw)
@@ -1926,7 +1926,7 @@ def from_json(raw):
     except (KeyError, ValueError) as e:
         logger.warning('Unknown node type: %s', _type)
         if DEBUG: # pragma: no cover
-            raise_from(exception.ParseException('Parse error for %s' % (_type), raw), e)
+            raise exception.ParseException('Parse error for %s' % (_type), raw) from e
         return None
     node = ncls()
     node.load(raw)
