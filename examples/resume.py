@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 import sys
-import os
-import argparse
-import yaml
 import keyring
 import getpass
 import logging
-import time
 import gkeepapi
 
 USERNAME = "user@gmail.com"
