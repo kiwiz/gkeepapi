@@ -9,7 +9,6 @@ import logging
 import re
 import time
 import random
-import json
 
 from uuid import getnode as get_mac
 
@@ -110,7 +109,7 @@ class APIAuth(object):
         return self._email
 
     def setEmail(self, email):
-        """Gets the account email.
+        """Sets the account email.
 
         Args:
             email (str): The account email.
@@ -185,7 +184,7 @@ class API(object):
     def getAuth(self):
         """Get authentication details for this API.
 
-        Args:
+        Return:
             auth (APIAuth): The auth object
         """
         return self._auth
@@ -577,7 +576,7 @@ class RemindersAPI(API):
 
             params.update({
                 'recurrenceOptions': {
-                    'collapseMode':'INSTANCES_ONLY',
+                    'collapseMode': 'INSTANCES_ONLY',
                     'recurrencesOnly': True,
                 },
                 'includeArchived': False,
@@ -676,7 +675,7 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, username, password, state=None, sync=True, device_id=None):
+    def login(self, email, password, state=None, sync=True, device_id=None):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
@@ -691,7 +690,7 @@ class Keep(object):
         if device_id is None:
             device_id = get_mac()
 
-        ret = auth.login(username, password, device_id)
+        ret = auth.login(email, password, device_id)
         if ret:
             self.load(auth, state, sync)
 
