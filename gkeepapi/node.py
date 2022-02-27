@@ -212,7 +212,7 @@ class Element(object):
         try:
             self._load(raw)
         except (KeyError, ValueError) as e:
-            raise exception.ParseException('Parse error in %s' % (type(self)), raw) from e
+            raise exception.ParseException(f'Parse error in {type(self)}', raw) from e
 
     def _load(self, raw):
         """Unserialize from raw representation. (Implementation logic)
@@ -1582,9 +1582,9 @@ class ListItem(Node):
         self.touch(True)
 
     def __str__(self):
-        return u'%s%s %s' % (
+        return '%s%s %s' % (
             '  ' if self.indented else '',
-            u'☑' if self.checked else u'☐',
+            '☑' if self.checked else '☐',
             self.text
         )
 
@@ -1814,7 +1814,7 @@ class Blob(Node):
         except (KeyError, ValueError) as e:
             logger.warning('Unknown blob type: %s', _type)
             if DEBUG: # pragma: no cover
-                raise exception.ParseException('Parse error for %s' % (_type), raw) from e
+                raise exception.ParseException(f'Parse error for {_type}', raw) from e
             return None
         blob = bcls()
         blob.load(raw)
@@ -1923,7 +1923,7 @@ def from_json(raw):
     except (KeyError, ValueError) as e:
         logger.warning('Unknown node type: %s', _type)
         if DEBUG: # pragma: no cover
-            raise exception.ParseException('Parse error for %s' % (_type), raw) from e
+            raise exception.ParseException(f'Parse error for {_type}', raw) from e
         return None
     node = ncls()
     node.load(raw)

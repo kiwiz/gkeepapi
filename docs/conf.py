@@ -50,9 +50,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'gkeepapi'
-copyright = u'2017, Kai'
-author = u'Kai'
+project = 'gkeepapi'
+copyright = '2017, Kai'
+author = 'Kai'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -146,8 +146,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'gkeepapi.tex', u'gkeepapi Documentation',
-     u'Kai', 'manual'),
+    (master_doc, 'gkeepapi.tex', 'gkeepapi Documentation',
+     'Kai', 'manual'),
 ]
 
 
@@ -156,7 +156,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'gkeepapi', u'gkeepapi Documentation',
+    (master_doc, 'gkeepapi', 'gkeepapi Documentation',
      [author], 1)
 ]
 
@@ -167,10 +167,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'gkeepapi', u'gkeepapi Documentation',
+    (master_doc, 'gkeepapi', 'gkeepapi Documentation',
      author, 'gkeepapi', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-
