@@ -591,9 +591,6 @@ class NodeAnnotations(Element):
 
         Args:
             annotation (gkeepapi.node.Annotation): An Annotation object.
-
-        Returns:
-            gkeepapi.node.Annotation: The Annotation.
         """
         if annotation.id in self._annotations:
             del self._annotations[annotation.id]
