@@ -1582,9 +1582,9 @@ class ListItem(Node):
         self.touch(True)
 
     def __str__(self):
-        return u'%s%s %s' % (
+        return '%s%s %s' % (
             '  ' if self.indented else '',
-            u'☑' if self.checked else u'☐',
+            '☑' if self.checked else '☐',
             self.text
         )
 
