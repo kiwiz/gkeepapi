@@ -36,14 +36,13 @@ class APIAuth(object):
         self._device_id = None
         self._scopes = scopes
 
-    def login(self, email, password_or_token, device_id, oauth):
+    def login(self, email, password, device_id):
         """Authenticate to Google with the provided credentials.
 
         Args:
             email (str): The account to use.
-            password_or_token (str): The account password.
+            password (str): The account password.
             device_id (str): An identifier for this client.
-            oauth (bool): Whether to treat password_or_token as an OAuth token.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -52,9 +51,7 @@ class APIAuth(object):
         self._device_id = device_id
 
         # Obtain a master token.
-        res = gpsoauth.perform_master_login(
-            self._email, password_or_token, self._device_id, oauth=oauth
-        )
+        res = gpsoauth.perform_master_login(self._email, password, self._device_id)
 
         # Bail if browser login is required.
         if res.get("Error") == "NeedsBrowser":
@@ -676,20 +673,18 @@ class Keep(object):
     def login(
         self,
         email,
-        password_or_token,
+        password,
         state=None,
         sync=True,
-        oauth=False,
         device_id=None,
     ):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
             email (str): The account to use.
-            password_or_token (str): The account password or OAuth token.
+            password (str): The account password.
             state (dict): Serialized state to load.
             sync (bool): Whether to sync after login.
-            oauth (bool): Whether to treat password_or_token as an OAuth token.
             device_id (str): Override for device ID
 
         Raises:
@@ -699,7 +694,7 @@ class Keep(object):
         if device_id is None:
             device_id = get_mac()
 
-        ret = auth.login(email, password_or_token, device_id, oauth)
+        ret = auth.login(email, password, device_id)
         if ret:
             self.load(auth, state, sync)
 
