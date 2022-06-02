@@ -39,7 +39,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
     ],
     # What does your project relate to?
@@ -52,10 +51,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        "gpsoauth >= 0.4.1",
-        "six >= 1.11.0",
+        "gpsoauth >= 1.0.2",
         "future >= 0.16.0",
-        "enum34 >= 1.1.6; python_version < '3.0'",
-        "requests == 2.23.0; platform_system == 'Windows'",
+        "enum34 >= 1.1.6",
     ],
 )
