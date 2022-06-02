@@ -14,6 +14,7 @@ from uuid import getnode as get_mac
 
 import gpsoauth
 import requests
+import six
 
 from . import node as _node
 from . import exception

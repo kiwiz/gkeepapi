@@ -2,3 +2,4 @@ gpsoauth>=1.0.2
 future>=0.16.0
 enum34>=1.1.6
 mock>=3.0.5
+six>=1.16.0
