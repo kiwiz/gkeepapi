@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = "0.14.0"
+__version__ = "0.14.1"
 
 import logging
 import re
@@ -940,7 +940,7 @@ class Keep(object):
         Returns:
             Union[gkeepapi.node.Label, None]: The label.
         """
-        is_str = isinstance(query, six.string_types)
+        is_str = isinstance(query, str)
         name = None
         if is_str:
             name = query
