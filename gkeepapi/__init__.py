@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = '0.13.6'
+__version__ = "0.13.7"
 
 import logging
 import re
@@ -12,7 +12,6 @@ import random
 
 from uuid import getnode as get_mac
 
-import six
 import gpsoauth
 import requests
 
@@ -22,12 +21,14 @@ from . import exception
 logger = logging.getLogger(__name__)
 
 try:
-    Pattern = re._pattern_type # pylint: disable=protected-access
+    Pattern = re._pattern_type  # pylint: disable=protected-access
 except AttributeError:
-    Pattern = re.Pattern # pylint: disable=no-member
+    Pattern = re.Pattern  # pylint: disable=no-member
+
 
 class APIAuth(object):
     """Authentication token manager"""
+
     def __init__(self, scopes):
         self._master_token = None
         self._auth_token = None
@@ -35,13 +36,14 @@ class APIAuth(object):
         self._device_id = None
         self._scopes = scopes
 
-    def login(self, email, password, device_id):
+    def login(self, email, password_or_token, device_id, oauth):
         """Authenticate to Google with the provided credentials.
 
         Args:
             email (str): The account to use.
-            password (str): The account password.
+            password_or_token (str): The account password.
             device_id (str): An identifier for this client.
+            oauth (bool): Whether to treat password_or_token as an OAuth token.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -51,14 +53,18 @@ class APIAuth(object):
 
         # Obtain a master token.
         res = gpsoauth.perform_master_login(
-            self._email, password, self._device_id
+            self._email, password_or_token, self._device_id, oauth=oauth
         )
+
+        # Bail if browser login is required.
+        if res.get("Error") == "NeedsBrowser":
+            raise exception.BrowserLoginRequiredException(res.get("Url"))
+
         # Bail if no token was returned.
-        if 'Token' not in res:
-            raise exception.LoginException(
-                res.get('Error'), res.get('ErrorDetail')
-            )
-        self._master_token = res['Token']
+        if "Token" not in res:
+            raise exception.LoginException(res.get("Error"), res.get("ErrorDetail"))
+
+        self._master_token = res["Token"]
 
         # Obtain an OAuth token.
         self.refresh()
@@ -153,17 +159,19 @@ class APIAuth(object):
         # Obtain an OAuth token with the necessary scopes by pretending to be
         # the keep android client.
         res = gpsoauth.perform_oauth(
-            self._email, self._master_token, self._device_id,
+            self._email,
+            self._master_token,
+            self._device_id,
             service=self._scopes,
-            app='com.google.android.keep',
-            client_sig='38918a453d07199354f8b19af05ec6562ced5788'
+            app="com.google.android.keep",
+            client_sig="38918a453d07199354f8b19af05ec6562ced5788",
         )
         # Bail if no token was returned.
-        if 'Auth' not in res:
-            if 'Token' not in res:
-                raise exception.LoginException(res.get('Error'))
+        if "Auth" not in res:
+            if "Token" not in res:
+                raise exception.LoginException(res.get("Error"))
 
-        self._auth_token = res['Auth']
+        self._auth_token = res["Auth"]
         return self._auth_token
 
     def logout(self):
@@ -173,14 +181,22 @@ class APIAuth(object):
         self._email = None
         self._device_id = None
 
+
 class API(object):
     """Base API wrapper"""
+
     RETRY_CNT = 2
+
     def __init__(self, base_url, auth=None):
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
-        self._session.headers.update({'User-Agent': 'x-gkeepapi/%s (https://github.com/kiwiz/gkeepapi)' % __version__})
+        self._session.headers.update(
+            {
+                "User-Agent": "x-gkeepapi/%s (https://github.com/kiwiz/gkeepapi)"
+                % __version__
+            }
+        )
 
     def getAuth(self):
         """Get authentication details for this API.
@@ -218,21 +234,21 @@ class API(object):
         while True:
             # Send off the request. If there was no error, we're good.
             response = self._send(**req_kwargs).json()
-            if 'error' not in response:
+            if "error" not in response:
                 break
 
             # Otherwise, check if it was a non-401 response code. These aren't
             # handled, so bail.
-            error = response['error']
-            if error['code'] != 401:
-                raise exception.APIException(error['code'], error)
+            error = response["error"]
+            if error["code"] != 401:
+                raise exception.APIException(error["code"], error)
 
             # If we've exceeded the retry limit, also bail.
             if i >= self.RETRY_CNT:
-                raise exception.APIException(error['code'], error)
+                raise exception.APIException(error["code"], error)
 
             # Otherwise, try requesting a new OAuth token.
-            logger.info('Refreshing access token')
+            logger.info("Refreshing access token")
             self._auth.refresh()
             i += 1
 
@@ -253,21 +269,21 @@ class API(object):
         # Bail if we don't have an OAuth token.
         auth_token = self._auth.getAuthToken()
         if auth_token is None:
-            raise exception.LoginException('Not logged in')
+            raise exception.LoginException("Not logged in")
 
         # Add the token to the request.
-        req_kwargs.setdefault('headers', {
-            'Authorization': 'OAuth ' + auth_token
-        })
+        req_kwargs.setdefault("headers", {"Authorization": "OAuth " + auth_token})
 
         return self._session.request(**req_kwargs)
+
 
 class KeepAPI(API):
     """Low level Google Keep API client. Mimics the Android Google Keep app.
 
     You probably want to use :py:class:`Keep` instead.
     """
-    API_URL = 'https://www.googleapis.com/notes/v1/'
+
+    API_URL = "https://www.googleapis.com/notes/v1/"
 
     def __init__(self, auth=None):
         super(KeepAPI, self).__init__(self.API_URL, auth)
@@ -277,10 +293,7 @@ class KeepAPI(API):
 
     @classmethod
     def _generateId(cls, tz):
-        return 's--%d--%d' % (
-            int(tz * 1000),
-            random.randint(1000000000, 9999999999)
-        )
+        return "s--%d--%d" % (int(tz * 1000), random.randint(1000000000, 9999999999))
 
     def changes(self, target_version=None, nodes=None, labels=None):
         """Sync up (and down) all changes.
@@ -306,64 +319,58 @@ class KeepAPI(API):
 
         # Initialize request parameters.
         params = {
-            'nodes': nodes,
-            'clientTimestamp': _node.NodeTimestamps.int_to_str(current_time),
-            'requestHeader': {
-                'clientSessionId': self._session_id,
-                'clientPlatform': 'ANDROID',
-                'clientVersion': {
-                    'major': '9',
-                    'minor': '9',
-                    'build': '9',
-                    'revision': '9'
+            "nodes": nodes,
+            "clientTimestamp": _node.NodeTimestamps.int_to_str(current_time),
+            "requestHeader": {
+                "clientSessionId": self._session_id,
+                "clientPlatform": "ANDROID",
+                "clientVersion": {
+                    "major": "9",
+                    "minor": "9",
+                    "build": "9",
+                    "revision": "9",
                 },
-                'capabilities': [
-                    {'type': 'NC'}, # Color support (Send note color)
-                    {'type': 'PI'}, # Pinned support (Send note pinned)
-                    {'type': 'LB'}, # Labels support (Send note labels)
-                    {'type': 'AN'}, # Annotations support (Send annotations)
-                    {'type': 'SH'}, # Sharing support
-                    {'type': 'DR'}, # Drawing support
-                    {'type': 'TR'}, # Trash support (Stop setting the delete timestamp)
-                    {'type': 'IN'}, # Indentation support (Send listitem parent)
-
-                    {'type': 'SNB'}, # Allows modification of shared notes?
-                    {'type': 'MI'}, # Concise blob info?
-                    {'type': 'CO'}, # VSS_SUCCEEDED when off?
-
+                "capabilities": [
+                    {"type": "NC"},  # Color support (Send note color)
+                    {"type": "PI"},  # Pinned support (Send note pinned)
+                    {"type": "LB"},  # Labels support (Send note labels)
+                    {"type": "AN"},  # Annotations support (Send annotations)
+                    {"type": "SH"},  # Sharing support
+                    {"type": "DR"},  # Drawing support
+                    {"type": "TR"},  # Trash support (Stop setting the delete timestamp)
+                    {"type": "IN"},  # Indentation support (Send listitem parent)
+                    {"type": "SNB"},  # Allows modification of shared notes?
+                    {"type": "MI"},  # Concise blob info?
+                    {"type": "CO"},  # VSS_SUCCEEDED when off?
                     # TODO: Figure out what these do:
                     # {'type': 'EC'}, # ???
                     # {'type': 'RB'}, # Rollback?
                     # {'type': 'EX'}, # ???
-                ]
+                ],
             },
         }
 
         # Add the targetVersion if set. This tells the server what version the
         # client is currently at.
         if target_version is not None:
-            params['targetVersion'] = target_version
+            params["targetVersion"] = target_version
 
         # Add any new or updated labels to the request.
         if labels:
-            params['userInfo'] = {
-                'labels': labels
-            }
+            params["userInfo"] = {"labels": labels}
 
-        logger.debug('Syncing %d labels and %d nodes', len(labels), len(nodes))
+        logger.debug("Syncing %d labels and %d nodes", len(labels), len(nodes))
 
-        return self.send(
-            url=self._base_url + 'changes',
-            method='POST',
-            json=params
-        )
+        return self.send(url=self._base_url + "changes", method="POST", json=params)
+
 
 class MediaAPI(API):
     """Low level Google Media API client. Mimics the Android Google Keep app.
 
     You probably want to use :py:class:`Keep` instead.
     """
-    API_URL = 'https://keep.google.com/media/v2/'
+
+    API_URL = "https://keep.google.com/media/v2/"
 
     def __init__(self, auth=None):
         super(MediaAPI, self).__init__(self.API_URL, auth)
@@ -377,21 +384,21 @@ class MediaAPI(API):
         Returns:
             str: A link to the media.
         """
-        url = self._base_url + blob.parent.server_id + '/' + blob.server_id
+        url = self._base_url + blob.parent.server_id + "/" + blob.server_id
         if blob.blob.type == _node.BlobType.Drawing:
-            url += '/' + blob.blob._drawing_info.drawing_id
-        return self._send(
-            url=url,
-            method='GET',
-            allow_redirects=False
-        ).headers['location']
+            url += "/" + blob.blob._drawing_info.drawing_id
+        return self._send(url=url, method="GET", allow_redirects=False).headers[
+            "location"
+        ]
+
 
 class RemindersAPI(API):
     """Low level Google Reminders API client. Mimics the Android Google Keep app.
 
     You probably want to use :py:class:`Keep` instead.
     """
-    API_URL = 'https://www.googleapis.com/reminders/v1internal/reminders/'
+
+    API_URL = "https://www.googleapis.com/reminders/v1internal/reminders/"
 
     def __init__(self, auth=None):
         super(RemindersAPI, self).__init__(self.API_URL, auth)
@@ -403,7 +410,8 @@ class RemindersAPI(API):
                 "userAgentStructured": {
                     "clientApplication": "KEEP",
                     "clientApplicationVersion": {
-                        "major": "9", "minor": "9.9.9.9",
+                        "major": "9",
+                        "minor": "9.9.9.9",
                     },
                     "clientPlatform": "ANDROID",
                 },
@@ -427,37 +435,35 @@ class RemindersAPI(API):
         params = {}
         params.update(self.static_params)
 
-        params.update({
-            'task': {
-                'dueDate': {
-                    'year': dtime.year,
-                    'month': dtime.month,
-                    'day': dtime.day,
-                    'time': {
-                        'hour': dtime.hour,
-                        'minute': dtime.minute,
-                        'second': dtime.second,
+        params.update(
+            {
+                "task": {
+                    "dueDate": {
+                        "year": dtime.year,
+                        "month": dtime.month,
+                        "day": dtime.day,
+                        "time": {
+                            "hour": dtime.hour,
+                            "minute": dtime.minute,
+                            "second": dtime.second,
+                        },
+                    },
+                    "snoozed": True,
+                    "extensions": {
+                        "keepExtension": {
+                            "reminderVersion": "V2",
+                            "clientNoteId": node_id,
+                            "serverNoteId": node_server_id,
+                        },
                     },
                 },
-                'snoozed': True,
-                'extensions': {
-                    'keepExtension': {
-                        'reminderVersion': 'V2',
-                        'clientNoteId': node_id,
-                        'serverNoteId': node_server_id,
-                    },
+                "taskId": {
+                    "clientAssignedId": "KEEP/v2/" + node_server_id,
                 },
-            },
-            'taskId': {
-                'clientAssignedId': 'KEEP/v2/' + node_server_id,
-            },
-        })
-
-        return self.send(
-            url=self._base_url + 'create',
-            method='POST',
-            json=params
+            }
         )
+
+        return self.send(url=self._base_url + "create", method="POST", json=params)
 
     def update(self, node_id, node_server_id, dtime):
         """Update an existing reminder.
@@ -475,45 +481,47 @@ class RemindersAPI(API):
         params = {}
         params.update(self.static_params)
 
-        params.update({
-            'newTask': {
-                'dueDate': {
-                    'year': dtime.year,
-                    'month': dtime.month,
-                    'day': dtime.day,
-                    'time': {
-                        'hour': dtime.hour,
-                        'minute': dtime.minute,
-                        'second': dtime.second,
+        params.update(
+            {
+                "newTask": {
+                    "dueDate": {
+                        "year": dtime.year,
+                        "month": dtime.month,
+                        "day": dtime.day,
+                        "time": {
+                            "hour": dtime.hour,
+                            "minute": dtime.minute,
+                            "second": dtime.second,
+                        },
+                    },
+                    "snoozed": True,
+                    "extensions": {
+                        "keepExtension": {
+                            "reminderVersion": "V2",
+                            "clientNoteId": node_id,
+                            "serverNoteId": node_server_id,
+                        },
                     },
                 },
-                'snoozed': True,
-                'extensions': {
-                    'keepExtension': {
-                        'reminderVersion': 'V2',
-                        'clientNoteId': node_id,
-                        'serverNoteId': node_server_id,
-                    },
+                "taskId": {
+                    "clientAssignedId": "KEEP/v2/" + node_server_id,
                 },
-            },
-            'taskId': {
-                'clientAssignedId': 'KEEP/v2/' + node_server_id,
-            },
-            'updateMask': {
-                'updateField': [
-                    'ARCHIVED', 'DUE_DATE', 'EXTENSIONS', 'LOCATION', 'TITLE'
-                ]
+                "updateMask": {
+                    "updateField": [
+                        "ARCHIVED",
+                        "DUE_DATE",
+                        "EXTENSIONS",
+                        "LOCATION",
+                        "TITLE",
+                    ]
+                },
             }
-        })
-
-        return self.send(
-            url=self._base_url + 'update',
-            method='POST',
-            json=params
         )
 
+        return self.send(url=self._base_url + "update", method="POST", json=params)
+
     def delete(self, node_server_id):
-        """ Delete an existing reminder.
+        """Delete an existing reminder.
 
         Args:
             node_server_id (str): The note server ID.
@@ -527,25 +535,21 @@ class RemindersAPI(API):
         params = {}
         params.update(self.static_params)
 
-        params.update({
-            'batchedRequest': [
-                {
-                    'deleteTask': {
-                        'taskId': [
-                            {
-                                'clientAssignedId': 'KEEP/v2/' + node_server_id
-                            }
-                        ]
+        params.update(
+            {
+                "batchedRequest": [
+                    {
+                        "deleteTask": {
+                            "taskId": [
+                                {"clientAssignedId": "KEEP/v2/" + node_server_id}
+                            ]
+                        }
                     }
-                }
-            ]
-        })
-
-        return self.send(
-            url=self._base_url + 'batchmutate',
-            method='POST',
-            json=params
+                ]
+            }
         )
+
+        return self.send(url=self._base_url + "batchmutate", method="POST", json=params)
 
     def list(self, master=True):
         """List current reminders.
@@ -563,36 +567,36 @@ class RemindersAPI(API):
         params.update(self.static_params)
 
         if master:
-            params.update({
-                'recurrenceOptions': {
-                    'collapseMode': 'MASTER_ONLY',
-                },
-                'includeArchived': True,
-                'includeDeleted': False,
-            })
+            params.update(
+                {
+                    "recurrenceOptions": {
+                        "collapseMode": "MASTER_ONLY",
+                    },
+                    "includeArchived": True,
+                    "includeDeleted": False,
+                }
+            )
         else:
             current_time = time.time()
             start_time = int((current_time - (365 * 24 * 60 * 60)) * 1000)
             end_time = int((current_time + (24 * 60 * 60)) * 1000)
 
-            params.update({
-                'recurrenceOptions': {
-                    'collapseMode': 'INSTANCES_ONLY',
-                    'recurrencesOnly': True,
-                },
-                'includeArchived': False,
-                'includeCompleted': False,
-                'includeDeleted': False,
-                'dueAfterMs': start_time,
-                'dueBeforeMs': end_time,
-                'recurrenceId': [],
-            })
+            params.update(
+                {
+                    "recurrenceOptions": {
+                        "collapseMode": "INSTANCES_ONLY",
+                        "recurrencesOnly": True,
+                    },
+                    "includeArchived": False,
+                    "includeCompleted": False,
+                    "includeDeleted": False,
+                    "dueAfterMs": start_time,
+                    "dueBeforeMs": end_time,
+                    "recurrenceId": [],
+                }
+            )
 
-        return self.send(
-            url=self._base_url + 'list',
-            method='POST',
-            json=params
-        )
+        return self.send(url=self._base_url + "list", method="POST", json=params)
 
     def history(self, storage_version):
         """Get reminder changes.
@@ -612,21 +616,13 @@ class RemindersAPI(API):
         }
         params.update(self.static_params)
 
-        return self.send(
-            url=self._base_url + 'history',
-            method='POST',
-            json=params
-        )
+        return self.send(url=self._base_url + "history", method="POST", json=params)
 
     def update(self):
-        """Sync up changes to reminders.
-        """
+        """Sync up changes to reminders."""
         params = {}
-        return self.send(
-            url=self._base_url + 'update',
-            method='POST',
-            json=params
-        )
+        return self.send(url=self._base_url + "update", method="POST", json=params)
+
 
 class Keep(object):
     """High level Google Keep client.
@@ -652,7 +648,8 @@ class Keep(object):
 
         keep.sync()
     """
-    OAUTH_SCOPES = 'oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders'
+
+    OAUTH_SCOPES = "oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders"
 
     def __init__(self):
         self._keep_api = KeepAPI()
@@ -676,13 +673,24 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, email, password, state=None, sync=True, device_id=None):
+    def login(
+        self,
+        email,
+        password_or_token,
+        state=None,
+        sync=True,
+        oauth=False,
+        device_id=None,
+    ):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
             email (str): The account to use.
-            password (str): The account password.
+            password_or_token (str): The account password or OAuth token.
             state (dict): Serialized state to load.
+            sync (bool): Whether to sync after login.
+            oauth (bool): Whether to treat password_or_token as an OAuth token.
+            device_id (str): Override for device ID
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -691,7 +699,7 @@ class Keep(object):
         if device_id is None:
             device_id = get_mac()
 
-        ret = auth.login(email, password, device_id)
+        ret = auth.login(email, password_or_token, device_id, oauth)
         if ret:
             self.load(auth, state, sync)
 
@@ -704,6 +712,8 @@ class Keep(object):
             email (str): The account to use.
             master_token (str): The master token.
             state (dict): Serialized state to load.
+            sync (bool): Whether to sync after login.
+            device_id (str): Override for device ID
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -757,9 +767,9 @@ class Keep(object):
             for child in node.children:
                 nodes.append(child)
         return {
-            'keep_version': self._keep_version,
-            'labels': [label.save(False) for label in self.labels()],
-            'nodes': [node.save(False) for node in nodes]
+            "keep_version": self._keep_version,
+            "labels": [label.save(False) for label in self.labels()],
+            "nodes": [node.save(False) for node in nodes],
         }
 
     def restore(self, state):
@@ -769,9 +779,9 @@ class Keep(object):
             state (dict): Serialized state to load.
         """
         self._clear()
-        self._parseUserInfo({'labels': state['labels']})
-        self._parseNodes(state['nodes'])
-        self._keep_version = state['keep_version']
+        self._parseUserInfo({"labels": state["labels"]})
+        self._parseNodes(state["nodes"])
+        self._keep_version = state["keep_version"]
 
     def get(self, node_id):
         """Get a note with the given ID.
@@ -782,9 +792,9 @@ class Keep(object):
         Returns:
             gkeepapi.node.TopLevelNode: The Note or None if not found.
         """
-        return \
-            self._nodes[_node.Root.ID].get(node_id) or \
-            self._nodes[_node.Root.ID].get(self._sid_map.get(node_id))
+        return self._nodes[_node.Root.ID].get(node_id) or self._nodes[
+            _node.Root.ID
+        ].get(self._sid_map.get(node_id))
 
     def add(self, node):
         """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
@@ -798,12 +808,21 @@ class Keep(object):
             Invalid: If the parent node is not found.
         """
         if node.parent_id != _node.Root.ID:
-            raise exception.InvalidException('Not a top level node')
+            raise exception.InvalidException("Not a top level node")
 
         self._nodes[node.id] = node
         self._nodes[node.parent_id].append(node, False)
 
-    def find(self, query=None, func=None, labels=None, colors=None, pinned=None, archived=None, trashed=False): # pylint: disable=too-many-arguments
+    def find(
+        self,
+        query=None,
+        func=None,
+        labels=None,
+        colors=None,
+        pinned=None,
+        archived=None,
+        trashed=False,
+    ):  # pylint: disable=too-many-arguments
         """Find Notes based on the specified criteria.
 
         Args:
@@ -821,29 +840,38 @@ class Keep(object):
         if labels is not None:
             labels = [i.id if isinstance(i, _node.Label) else i for i in labels]
 
-        return (node for node in self.all() if
+        return (
+            node
+            for node in self.all()
+            if
             # Process the query.
-            (query is None or (
-                (isinstance(query, six.string_types) and (query in node.title or query in node.text)) or
-                (isinstance(query, Pattern) and (
-                    query.search(node.title) or query.search(node.text)
-                ))
-            )) and
+            (
+                query is None
+                or (
+                    (
+                        isinstance(query, str)
+                        and (query in node.title or query in node.text)
+                    )
+                    or (
+                        isinstance(query, Pattern)
+                        and (query.search(node.title) or query.search(node.text))
+                    )
+                )
+            )
+            and
             # Process the func.
-            (func is None or func(node)) and \
-            # Process the labels.
-            (labels is None or \
-             (not labels and not node.labels.all()) or \
-             (any((node.labels.get(i) is not None for i in labels)))
-            ) and \
-            # Process the colors.
-            (colors is None or node.color in colors) and \
-            # Process the pinned state.
-            (pinned is None or node.pinned == pinned) and \
-            # Process the archive state.
-            (archived is None or node.archived == archived) and \
-            # Process the trash state.
-            (trashed is None or node.trashed == trashed)
+            (func is None or func(node))
+            and (  # Process the labels.
+                labels is None
+                or (not labels and not node.labels.all())
+                or (any((node.labels.get(i) is not None for i in labels)))
+            )
+            and (colors is None or node.color in colors)  # Process the colors.
+            and (pinned is None or node.pinned == pinned)  # Process the pinned state.
+            and (  # Process the archive state.
+                archived is None or node.archived == archived
+            )
+            and (trashed is None or node.trashed == trashed)  # Process the trash state.
         )
 
     def createNote(self, title=None, text=None):
@@ -901,10 +929,10 @@ class Keep(object):
             LabelException: If the label exists.
         """
         if self.findLabel(name):
-            raise exception.LabelException('Label exists')
+            raise exception.LabelException("Label exists")
         node = _node.Label()
         node.name = name
-        self._labels[node.id] = node # pylint: disable=protected-access
+        self._labels[node.id] = node  # pylint: disable=protected-access
         return node
 
     def findLabel(self, query, create=False):
@@ -925,8 +953,9 @@ class Keep(object):
 
         for label in self._labels.values():
             # Match the label against query, which may be a str or Pattern.
-            if (is_str and query == label.name.lower()) or \
-                (isinstance(query, Pattern) and query.search(label.name)):
+            if (is_str and query == label.name.lower()) or (
+                isinstance(query, Pattern) and query.search(label.name)
+            ):
                 return label
 
         return self.createLabel(name) if create and is_str else None
@@ -1005,59 +1034,61 @@ class Keep(object):
     def _sync_reminders(self, resync=False):
         # Fetch updates until we reach the newest version.
         while True:
-            logger.debug('Starting reminder sync: %s', self._reminder_version)
+            logger.debug("Starting reminder sync: %s", self._reminder_version)
             changes = self._reminders_api.list()
 
             # Hydrate the individual "tasks".
-            if 'task' in changes:
-                self._parseTasks(changes['task'])
+            if "task" in changes:
+                self._parseTasks(changes["task"])
 
-            self._reminder_version = changes['storageVersion']
-            logger.debug('Finishing sync: %s', self._reminder_version)
+            self._reminder_version = changes["storageVersion"]
+            logger.debug("Finishing sync: %s", self._reminder_version)
 
             # Check if we've reached the newest version.
             history = self._reminders_api.history(self._reminder_version)
-            if self._reminder_version == history['highestStorageVersion']:
+            if self._reminder_version == history["highestStorageVersion"]:
                 break
 
     def _sync_notes(self, resync=False):
         # Fetch updates until we reach the newest version.
         while True:
-            logger.debug('Starting keep sync: %s', self._keep_version)
+            logger.debug("Starting keep sync: %s", self._keep_version)
 
             # Collect any changes and send them up to the server.
             labels_updated = any((i.dirty for i in self._labels.values()))
             changes = self._keep_api.changes(
                 target_version=self._keep_version,
                 nodes=[i.save() for i in self._findDirtyNodes()],
-                labels=[i.save() for i in self._labels.values()] if labels_updated else None,
+                labels=[i.save() for i in self._labels.values()]
+                if labels_updated
+                else None,
             )
 
-            if changes.get('forceFullResync'):
-                raise exception.ResyncRequiredException('Full resync required')
+            if changes.get("forceFullResync"):
+                raise exception.ResyncRequiredException("Full resync required")
 
-            if changes.get('upgradeRecommended'):
-                raise exception.UpgradeRecommendedException('Upgrade recommended')
+            if changes.get("upgradeRecommended"):
+                raise exception.UpgradeRecommendedException("Upgrade recommended")
 
             # Hydrate labels.
-            if 'userInfo' in changes:
-                self._parseUserInfo(changes['userInfo'])
+            if "userInfo" in changes:
+                self._parseUserInfo(changes["userInfo"])
 
             # Hydrate notes and any children.
-            if 'nodes' in changes:
-                self._parseNodes(changes['nodes'])
+            if "nodes" in changes:
+                self._parseNodes(changes["nodes"])
 
-            self._keep_version = changes['toVersion']
-            logger.debug('Finishing sync: %s', self._keep_version)
+            self._keep_version = changes["toVersion"]
+            logger.debug("Finishing sync: %s", self._keep_version)
 
             # Check if there are more changes to retrieve.
-            if not changes['truncated']:
+            if not changes["truncated"]:
                 break
 
     def _parseTasks(self, raw):
         pass
 
-    def _parseNodes(self, raw): # pylint: disable=too-many-branches
+    def _parseNodes(self, raw):  # pylint: disable=too-many-branches
         created_nodes = []
         deleted_nodes = []
         listitem_nodes = []
@@ -1066,15 +1097,15 @@ class Keep(object):
         for raw_node in raw:
             # If the id exists, then we already know about it. In other words,
             # update a local node.
-            if raw_node['id'] in self._nodes:
-                node = self._nodes[raw_node['id']]
+            if raw_node["id"] in self._nodes:
+                node = self._nodes[raw_node["id"]]
 
-                if 'parentId' in raw_node:
+                if "parentId" in raw_node:
                     # If the parentId field is set, this is an update. Load it
                     # into the existing node.
                     node.load(raw_node)
                     self._sid_map[node.server_id] = node.id
-                    logger.debug('Updated node: %s', raw_node['id'])
+                    logger.debug("Updated node: %s", raw_node["id"])
                 else:
                     # Otherwise, this node has been deleted. Add it to the list.
                     deleted_nodes.append(node)
@@ -1083,13 +1114,13 @@ class Keep(object):
                 # Otherwise, this is a new node. Attempt to hydrate it.
                 node = _node.from_json(raw_node)
                 if node is None:
-                    logger.debug('Discarded unknown node')
+                    logger.debug("Discarded unknown node")
                 else:
                     # Append the new node into the node tree.
-                    self._nodes[raw_node['id']] = node
+                    self._nodes[raw_node["id"]] = node
                     self._sid_map[node.server_id] = node.id
                     created_nodes.append(node)
-                    logger.debug('Created node: %s', raw_node['id'])
+                    logger.debug("Created node: %s", raw_node["id"])
 
             # If the node is a listitem, keep track of it.
             if isinstance(node, _node.ListItem):
@@ -1111,9 +1142,10 @@ class Keep(object):
 
         # Attach created nodes to the tree.
         for node in created_nodes:
-            logger.debug('Attached node: %s to %s',
+            logger.debug(
+                "Attached node: %s to %s",
                 node.id if node else None,
-                node.parent_id if node else None
+                node.parent_id if node else None,
             )
             parent_node = self._nodes.get(node.parent_id)
             parent_node.append(node, False)
@@ -1124,33 +1156,35 @@ class Keep(object):
             del self._nodes[node.id]
             if node.server_id is not None:
                 del self._sid_map[node.server_id]
-            logger.debug('Deleted node: %s', node.id)
+            logger.debug("Deleted node: %s", node.id)
 
         # Hydrate label references in notes.
         for node in self.all():
-            for label_id in node.labels._labels: # pylint: disable=protected-access
-                node.labels._labels[label_id] = self._labels.get(label_id) # pylint: disable=protected-access
+            for label_id in node.labels._labels:  # pylint: disable=protected-access
+                node.labels._labels[label_id] = self._labels.get(
+                    label_id
+                )  # pylint: disable=protected-access
 
     def _parseUserInfo(self, raw):
         labels = {}
-        if 'labels' in raw:
-            for label in raw['labels']:
+        if "labels" in raw:
+            for label in raw["labels"]:
                 # If the mainId field exists, this is an update.
-                if label['mainId'] in self._labels:
-                    node = self._labels[label['mainId']]
+                if label["mainId"] in self._labels:
+                    node = self._labels[label["mainId"]]
                     # Remove this key from our list of labels.
-                    del self._labels[label['mainId']]
-                    logger.debug('Updated label: %s', label['mainId'])
+                    del self._labels[label["mainId"]]
+                    logger.debug("Updated label: %s", label["mainId"])
                 else:
                     # Otherwise, this is a brand new label.
                     node = _node.Label()
-                    logger.debug('Created label: %s', label['mainId'])
+                    logger.debug("Created label: %s", label["mainId"])
                 node.load(label)
-                labels[label['mainId']] = node
+                labels[label["mainId"]] = node
 
         # All remaining labels are deleted.
         for label_id in self._labels:
-            logger.debug('Deleted label: %s', label_id)
+            logger.debug("Deleted label: %s", label_id)
 
         self._labels = labels
 
@@ -1184,10 +1218,10 @@ class Keep(object):
         for node_id in self._nodes:
             if node_id in found_ids:
                 continue
-            logger.error('Dangling node: %s', node_id)
+            logger.error("Dangling node: %s", node_id)
 
         # Find nodes that don't exist in the collection
         for node_id in found_ids:
             if node_id in self._nodes:
                 continue
-            logger.error('Unregistered node: %s', node_id)
+            logger.error("Unregistered node: %s", node_id)

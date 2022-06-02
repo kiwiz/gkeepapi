@@ -17,6 +17,11 @@ class LoginException(KeepException):
     """Login exception."""
     pass
 
+class BrowserLoginRequiredException(LoginException):
+    """Browser login required error."""
+    def __init__(self, url):
+        self.url = url
+
 class LabelException(KeepException):
     """Keep label error."""
     pass
