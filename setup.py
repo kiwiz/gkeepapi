@@ -53,6 +53,6 @@ setup(
     install_requires=[
         "gpsoauth >= 1.0.2",
         "future >= 0.16.0",
-        "enum34 >= 1.1.6",
+        "enum34 >= 1.1.6; python_version < '3.4'",
     ],
 )
