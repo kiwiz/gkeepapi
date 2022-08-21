@@ -7,6 +7,7 @@ gkeepapi
 [![Test Coverage](https://api.codeclimate.com/v1/badges/4386792a941a156a14f0/test_coverage)](https://codeclimate.com/github/kiwiz/gkeepapi/test_coverage)
 
 ## NOTICE: Google now offers an official [API](https://developers.google.com/keep/api) for Google Keep! 🎉
+(But it is only available for Enterprise accounts at the moment.  Verify you can get a working oauth2 scope before spending any time on it.)
 
 An unofficial client for the [Google Keep](https://keep.google.com) API.
 
