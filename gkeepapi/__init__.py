@@ -745,8 +745,8 @@ class Keep(object):
     def dump(self):
         """Serialize note data.
 
-        Args:
-            state (dict): Serialized state to load.
+        Returns:
+            dict: Serialized state.
         """
         # Find all nodes manually, as the Keep object isn't aware of new
         # ListItems until they've been synced to the server.
