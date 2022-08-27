@@ -9,6 +9,7 @@ import logging
 import re
 import time
 import random
+from typing import List, Optional, Tuple, Dict
 
 from uuid import getnode as get_mac
 
@@ -653,7 +654,7 @@ class Keep(object):
     """
     OAUTH_SCOPES = 'oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders'
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._keep_api = KeepAPI()
         self._reminders_api = RemindersAPI()
         self._media_api = MediaAPI()
@@ -675,7 +676,7 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, email, password, state=None, sync=True, device_id=None):
+    def login(self, email: str, password: str, state: Optional[Dict] = None, sync=True, device_id: Optional[int] = None):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
@@ -690,13 +691,12 @@ class Keep(object):
         if device_id is None:
             device_id = get_mac()
 
-        ret = auth.login(email, password, device_id)
-        if ret:
-            self.load(auth, state, sync)
+        auth.login(email, password, device_id)
+        self.load(auth, state, sync)
 
-        return ret
+        return True
 
-    def resume(self, email, master_token, state=None, sync=True, device_id=None):
+    def resume(self, email: str, master_token: str, state: Optional[Dict] = None, sync=True, device_id: Optional[int] = None):
         """Authenticate to Google with the provided master token & sync.
 
         Args:
@@ -711,13 +711,12 @@ class Keep(object):
         if device_id is None:
             device_id = get_mac()
 
-        ret = auth.load(email, master_token, device_id)
-        if ret:
-            self.load(auth, state, sync)
+        auth.load(email, master_token, device_id)
+        self.load(auth, state, sync)
 
-        return ret
+        return True
 
-    def getMasterToken(self):
+    def getMasterToken(self) -> str:
         """Get master token for resuming.
 
         Returns:
@@ -725,7 +724,7 @@ class Keep(object):
         """
         return self._keep_api.getAuth().getMasterToken()
 
-    def load(self, auth, state=None, sync=True):
+    def load(self, auth: APIAuth, state: Optional[Dict] = None, sync=True) -> None:
         """Authenticate to Google with a prepared authentication object & sync.
         Args:
             auth (APIAuth): Authentication object.
@@ -742,7 +741,7 @@ class Keep(object):
         if sync:
             self.sync(True)
 
-    def dump(self):
+    def dump(self) -> Dict:
         """Serialize note data.
 
         Returns:
@@ -761,7 +760,7 @@ class Keep(object):
             'nodes': [node.save(False) for node in nodes]
         }
 
-    def restore(self, state):
+    def restore(self, state: Dict) -> None:
         """Unserialize saved note data.
 
         Args:
@@ -772,7 +771,7 @@ class Keep(object):
         self._parseNodes(state['nodes'])
         self._keep_version = state['keep_version']
 
-    def get(self, node_id):
+    def get(self, node_id: str) -> _node.TopLevelNode:
         """Get a note with the given ID.
 
         Args:
@@ -785,7 +784,7 @@ class Keep(object):
             self._nodes[_node.Root.ID].get(node_id) or \
             self._nodes[_node.Root.ID].get(self._sid_map.get(node_id))
 
-    def add(self, node):
+    def add(self, node: _node.Node) -> None:
         """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
         :py:meth:`createNote` or :py:meth:`createList` as they are automatically added.
 
@@ -794,7 +793,7 @@ class Keep(object):
             node (gkeepapi.node.Node): The node to sync.
 
         Raises:
-            Invalid: If the parent node is not found.
+            InvalidException: If the parent node is not found.
         """
         if node.parent_id != _node.Root.ID:
             raise exception.InvalidException('Not a top level node')
@@ -845,7 +844,7 @@ class Keep(object):
             (trashed is None or node.trashed == trashed)
         )
 
-    def createNote(self, title=None, text=None):
+    def createNote(self, title: Optional[str] = None, text: Optional[str] = None) -> _node.Node:
         """Create a new managed note. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
@@ -863,7 +862,7 @@ class Keep(object):
         self.add(node)
         return node
 
-    def createList(self, title=None, items=None):
+    def createList(self, title: Optional[str] = None, items: Optional[List[Tuple[str, bool]]] = None) -> _node.List:
         """Create a new list and populate it. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
@@ -887,7 +886,7 @@ class Keep(object):
         self.add(node)
         return node
 
-    def createLabel(self, name):
+    def createLabel(self, name: str) -> _node.Label:
         """Create a new label.
 
         Args:
@@ -906,7 +905,7 @@ class Keep(object):
         self._labels[node.id] = node # pylint: disable=protected-access
         return node
 
-    def findLabel(self, query, create=False):
+    def findLabel(self, query, create=False) -> Optional[_node.Label]:
         """Find a label with the given name.
 
         Args:
@@ -930,7 +929,7 @@ class Keep(object):
 
         return self.createLabel(name) if create and is_str else None
 
-    def getLabel(self, label_id):
+    def getLabel(self, label_id: str) -> Optional[_node.Label]:
         """Get an existing label.
 
         Args:
@@ -941,7 +940,7 @@ class Keep(object):
         """
         return self._labels.get(label_id)
 
-    def deleteLabel(self, label_id):
+    def deleteLabel(self, label_id: str) -> None:
         """Deletes a label.
 
         Args:
@@ -955,7 +954,7 @@ class Keep(object):
         for node in self.all():
             node.labels.remove(label)
 
-    def labels(self):
+    def labels(self) -> List[_node.Label]:
         """Get all labels.
 
         Returns:
@@ -963,7 +962,7 @@ class Keep(object):
         """
         return self._labels.values()
 
-    def getMediaLink(self, blob):
+    def getMediaLink(self, blob: _node.Blob) -> str:
         """Get the canonical link to media.
 
         Args:
@@ -974,7 +973,7 @@ class Keep(object):
         """
         return self._media_api.get(blob)
 
-    def all(self):
+    def all(self) -> List[_node.TopLevelNode]:
         """Get all Notes.
 
         Returns:
@@ -982,7 +981,7 @@ class Keep(object):
         """
         return self._nodes[_node.Root.ID].children
 
-    def sync(self, resync=False):
+    def sync(self, resync=False) -> None:
         """Sync the local Keep tree with the server. If resyncing, local changes will be destroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
 
         Args:
