@@ -9,7 +9,7 @@ import logging
 import re
 import time
 import random
-from typing import List, Optional, Tuple, Dict
+from typing import Callable, Iterator, List, Optional, Tuple, Dict, Union
 
 from uuid import getnode as get_mac
 
@@ -20,11 +20,6 @@ from . import node as _node
 from . import exception
 
 logger = logging.getLogger(__name__)
-
-try:
-    Pattern = re._pattern_type # pylint: disable=protected-access
-except AttributeError:
-    Pattern = re.Pattern # pylint: disable=no-member
 
 class APIAuth(object):
     """Authentication token manager"""
@@ -801,7 +796,16 @@ class Keep(object):
         self._nodes[node.id] = node
         self._nodes[node.parent_id].append(node, False)
 
-    def find(self, query=None, func=None, labels=None, colors=None, pinned=None, archived=None, trashed=False): # pylint: disable=too-many-arguments
+    def find(
+        self,
+        query: Union[re.Pattern, str, None] = None,
+        func: Optional[Callable] = None,
+        labels: Optional[List[str]] = None,
+        colors: Optional[List[str]] = None,
+        pinned: Optional[bool] = None,
+        archived: Optional[bool] = None,
+        trashed: Optional[bool] = False
+    ) -> Iterator[_node.TopLevelNode]: # pylint: disable=too-many-arguments
         """Find Notes based on the specified criteria.
 
         Args:
@@ -823,7 +827,7 @@ class Keep(object):
             # Process the query.
             (query is None or (
                 (isinstance(query, str) and (query in node.title or query in node.text)) or
-                (isinstance(query, Pattern) and (
+                (isinstance(query, re.Pattern) and (
                     query.search(node.title) or query.search(node.text)
                 ))
             )) and
@@ -905,7 +909,7 @@ class Keep(object):
         self._labels[node.id] = node # pylint: disable=protected-access
         return node
 
-    def findLabel(self, query, create=False) -> Optional[_node.Label]:
+    def findLabel(self, query: Union[re.Pattern, str], create=False) -> Optional[_node.Label]:
         """Find a label with the given name.
 
         Args:
@@ -924,7 +928,7 @@ class Keep(object):
         for label in self._labels.values():
             # Match the label against query, which may be a str or Pattern.
             if (is_str and query == label.name.lower()) or \
-                (isinstance(query, Pattern) and query.search(label.name)):
+                (isinstance(query, re.Pattern) and query.search(label.name)):
                 return label
 
         return self.createLabel(name) if create and is_str else None
