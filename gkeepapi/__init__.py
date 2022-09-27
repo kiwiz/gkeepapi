@@ -675,9 +675,9 @@ class Keep(object):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
-            email (str): The account to use.
-            password (str): The account password.
-            state (dict): Serialized state to load.
+            email: The account to use.
+            password: The account password.
+            state: Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -695,9 +695,9 @@ class Keep(object):
         """Authenticate to Google with the provided master token & sync.
 
         Args:
-            email (str): The account to use.
-            master_token (str): The master token.
-            state (dict): Serialized state to load.
+            email: The account to use.
+            master_token: The master token.
+            state: Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -715,15 +715,15 @@ class Keep(object):
         """Get master token for resuming.
 
         Returns:
-            str: The master token.
+            The master token.
         """
         return self._keep_api.getAuth().getMasterToken()
 
     def load(self, auth: APIAuth, state: Optional[Dict] = None, sync=True) -> None:
         """Authenticate to Google with a prepared authentication object & sync.
         Args:
-            auth (APIAuth): Authentication object.
-            state (dict): Serialized state to load.
+            auth: Authentication object.
+            state: Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -740,7 +740,7 @@ class Keep(object):
         """Serialize note data.
 
         Returns:
-            dict: Serialized state.
+            Serialized state.
         """
         # Find all nodes manually, as the Keep object isn't aware of new
         # ListItems until they've been synced to the server.
@@ -759,7 +759,7 @@ class Keep(object):
         """Unserialize saved note data.
 
         Args:
-            state (dict): Serialized state to load.
+            state: Serialized state to load.
         """
         self._clear()
         self._parseUserInfo({'labels': state['labels']})
@@ -770,10 +770,10 @@ class Keep(object):
         """Get a note with the given ID.
 
         Args:
-            node_id (str): The note ID.
+            node_id: The note ID.
 
         Returns:
-            gkeepapi.node.TopLevelNode: The Note or None if not found.
+            The Note or None if not found.
         """
         return \
             self._nodes[_node.Root.ID].get(node_id) or \
@@ -785,7 +785,7 @@ class Keep(object):
 
             LoginException: If :py:meth:`login` has not been called.
         Args:
-            node (gkeepapi.node.Node): The node to sync.
+            node: The node to sync.
 
         Raises:
             InvalidException: If the parent node is not found.
@@ -809,16 +809,16 @@ class Keep(object):
         """Find Notes based on the specified criteria.
 
         Args:
-            query (Union[_sre.SRE_Pattern, str, None]): A str or regular expression to match against the title and text.
-            func (Union[callable, None]): A filter function.
-            labels (Union[List[str], None]): A list of label ids or objects to match. An empty list matches notes with no labels.
-            colors (Union[List[str], None]): A list of colors to match.
-            pinned (Union[bool, None]): Whether to match pinned notes.
-            archived (Union[bool, None]): Whether to match archived notes.
-            trashed (Union[bool, None]): Whether to match trashed notes.
+            query: A str or regular expression to match against the title and text.
+            func: A filter function.
+            labels: A list of label ids or objects to match. An empty list matches notes with no labels.
+            colors: A list of colors to match.
+            pinned: Whether to match pinned notes.
+            archived: Whether to match archived notes.
+            trashed: Whether to match trashed notes.
 
         Return:
-            Generator[gkeepapi.node.TopLevelNode]: Results.
+            Search results.
         """
         if labels is not None:
             labels = [i.id if isinstance(i, _node.Label) else i for i in labels]
@@ -852,11 +852,11 @@ class Keep(object):
         """Create a new managed note. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
-            title (str): The title of the note.
-            text (str): The text of the note.
+            title: The title of the note.
+            text: The text of the note.
 
         Returns:
-            gkeepapi.node.List: The new note.
+            The new note.
         """
         node = _node.Note()
         if title is not None:
@@ -870,11 +870,11 @@ class Keep(object):
         """Create a new list and populate it. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
-            title (str): The title of the list.
-            items (List[(str, bool)]): A list of tuples. Each tuple represents the text and checked status of the listitem.
+            title: The title of the list.
+            items: A list of tuples. Each tuple represents the text and checked status of the listitem.
 
         Returns:
-            gkeepapi.node.List: The new list.
+            The new list.
         """
         if items is None:
             items = []
@@ -894,10 +894,10 @@ class Keep(object):
         """Create a new label.
 
         Args:
-            name (str): Label name.
+            name: Label name.
 
         Returns:
-            gkeepapi.node.Label: The new label.
+            The new label.
 
         Raises:
             LabelException: If the label exists.
@@ -913,11 +913,11 @@ class Keep(object):
         """Find a label with the given name.
 
         Args:
-            name (Union[_sre.SRE_Pattern, str]): A str or regular expression to match against the name.
-            create (bool): Whether to create the label if it doesn't exist (only if name is a str).
+            name: A str or regular expression to match against the name.
+            create: Whether to create the label if it doesn't exist (only if name is a str).
 
         Returns:
-            Union[gkeepapi.node.Label, None]: The label.
+            The label.
         """
         is_str = isinstance(query, str)
         name = None
@@ -937,10 +937,10 @@ class Keep(object):
         """Get an existing label.
 
         Args:
-            label_id (str): Label id.
+            label_id: Label id.
 
         Returns:
-            Union[gkeepapi.node.Label, None]: The label.
+            The label.
         """
         return self._labels.get(label_id)
 
@@ -948,7 +948,7 @@ class Keep(object):
         """Deletes a label.
 
         Args:
-            label_id (str): Label id.
+            label_id: Label id.
         """
         if label_id not in self._labels:
             return
@@ -962,7 +962,7 @@ class Keep(object):
         """Get all labels.
 
         Returns:
-            List[gkeepapi.node.Label]: Labels
+            Labels
         """
         return self._labels.values()
 
@@ -970,10 +970,10 @@ class Keep(object):
         """Get the canonical link to media.
 
         Args:
-            blob (gkeepapi.node.Blob): The media resource.
+            blob: The media resource.
 
         Returns:
-            str: A link to the media.
+            A link to the media.
         """
         return self._media_api.get(blob)
 
@@ -981,7 +981,7 @@ class Keep(object):
         """Get all Notes.
 
         Returns:
-            List[gkeepapi.node.TopLevelNode]: Notes
+            Notes
         """
         return self._nodes[_node.Root.ID].children
 
@@ -989,7 +989,7 @@ class Keep(object):
         """Sync the local Keep tree with the server. If resyncing, local changes will be destroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
 
         Args:
-            resync (bool): Whether to resync data.
+            resync: Whether to resync data.
 
         Raises:
             SyncException: If there is a consistency issue.
