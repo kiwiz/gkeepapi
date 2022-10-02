@@ -671,7 +671,7 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, email: str, password: str, state: Optional[Dict] = None, sync=True, device_id: Optional[int] = None):
+    def login(self, email: str, password: str, state: Optional[Dict] = None, sync=True, device_id: Optional[str] = None):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
