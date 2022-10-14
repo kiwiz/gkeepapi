@@ -22,6 +22,7 @@ from . import exception
 
 logger = logging.getLogger(__name__)
 
+
 class APIAuth(object):
     """Authentication token manager"""
 
