@@ -6,7 +6,7 @@ gkeepapi
 [![Gitter chat](https://badges.gitter.im/gkeepapi/Lobby.png)](https://gitter.im/gkeepapi/Lobby)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/4386792a941a156a14f0/test_coverage)](https://codeclimate.com/github/kiwiz/gkeepapi/test_coverage)
 
-## NOTICE: Google now offers an official [API](https://developers.google.com/keep/api) for Google Keep! 🎉
+## NOTICE: Google offers an official [API](https://developers.google.com/keep/api) which might be an option if you have an Enterprise account. 🎉
 
 An unofficial client for the [Google Keep](https://keep.google.com) API.
 

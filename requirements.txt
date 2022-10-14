@@ -1,4 +1,4 @@
-gpsoauth>=0.4.1
-enum34>=1.1.6; python_version < '3.0'
+gpsoauth>=1.0.2
+future>=0.16.0
+enum34>=1.1.6; python_version < '3.4'
 mock>=3.0.5; python_version < '3.3'
-requests==2.23.0; platform_system == 'Windows'

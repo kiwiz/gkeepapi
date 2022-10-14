@@ -3,7 +3,7 @@
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
-__version__ = "0.13.6"
+__version__ = "0.14.2"
 
 import logging
 import re
@@ -21,7 +21,6 @@ from . import node as _node
 from . import exception
 
 logger = logging.getLogger(__name__)
-
 
 class APIAuth(object):
     """Authentication token manager"""
@@ -49,9 +48,15 @@ class APIAuth(object):
 
         # Obtain a master token.
         res = gpsoauth.perform_master_login(self._email, password, self._device_id)
+
+        # Bail if browser login is required.
+        if res.get("Error") == "NeedsBrowser":
+            raise exception.BrowserLoginRequiredException(res.get("Url"))
+
         # Bail if no token was returned.
         if "Token" not in res:
             raise exception.LoginException(res.get("Error"), res.get("ErrorDetail"))
+
         self._master_token = res["Token"]
 
         # Obtain an OAuth token.
@@ -817,7 +822,7 @@ class Keep(object):
         colors: Optional[List[str]] = None,
         pinned: Optional[bool] = None,
         archived: Optional[bool] = None,
-        trashed: Optional[bool] = False,
+        trashed: bool = False,
     ) -> Iterator[_node.TopLevelNode]:  # pylint: disable=too-many-arguments
         """Find Notes based on the specified criteria.
 
