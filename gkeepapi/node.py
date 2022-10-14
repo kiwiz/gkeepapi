@@ -176,7 +176,7 @@ class RoleValue(enum.Enum):
     """Note collaborator."""
 
 
-class Element(object):
+class Element:
     """Interface for elements that can be serialized and deserialized."""
 
     def __init__(self):
@@ -224,11 +224,11 @@ class Element(object):
                     len(s_raw),
                 )
 
-    def load(self, raw):
+    def load(self, raw: Dict):
         """Unserialize from raw representation. (Wrapper)
 
         Args:
-            raw (dict): Raw.
+            raw: Raw.
         Raises:
             ParseException: If there was an error parsing data.
         """
@@ -237,22 +237,22 @@ class Element(object):
         except (KeyError, ValueError) as e:
             raise exception.ParseException(f"Parse error in {type(self)}", raw) from e
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         """Unserialize from raw representation. (Implementation logic)
 
         Args:
-            raw (dict): Raw.
+            raw: Raw.
         """
         self._dirty = raw.get("_dirty", False)
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         """Serialize into raw representation. Clears the dirty bit by default.
 
         Args:
-            clean (bool): Whether to clear the dirty bit.
+            clean: Whether to clear the dirty bit.
 
         Returns:
-            dict: Raw.
+            Raw.
         """
         ret = {}
         if clean:
@@ -262,11 +262,11 @@ class Element(object):
         return ret
 
     @property
-    def dirty(self):
+    def dirty(self) -> bool:
         """Get dirty state.
 
         Returns:
-            str: Whether this element is dirty.
+            Whether this element is dirty.
         """
         return self._dirty
 
@@ -278,11 +278,11 @@ class Annotation(Element):
         super(Annotation, self).__init__()
         self.id = self._generateAnnotationId()
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(Annotation, self)._load(raw)
         self.id = raw.get("id")
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = {}
         if self.id is not None:
             ret = super(Annotation, self).save(clean)
@@ -291,7 +291,7 @@ class Annotation(Element):
         return ret
 
     @classmethod
-    def _generateAnnotationId(cls):
+    def _generateAnnotationId(cls) -> str:
         return "%08x-%04x-%04x-%04x-%012x" % (
             random.randint(0x00000000, 0xFFFFFFFF),
             random.randint(0x0000, 0xFFFF),
@@ -312,7 +312,7 @@ class WebLink(Annotation):
         self._provenance_url = ""
         self._description = ""
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(WebLink, self)._load(raw)
         self._title = raw["webLink"]["title"]
         self._url = raw["webLink"]["url"]
@@ -324,7 +324,7 @@ class WebLink(Annotation):
         self._provenance_url = raw["webLink"]["provenanceUrl"]
         self._description = raw["webLink"]["description"]
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = super(WebLink, self).save(clean)
         ret["webLink"] = {
             "title": self._title,
@@ -336,72 +336,72 @@ class WebLink(Annotation):
         return ret
 
     @property
-    def title(self):
+    def title(self) -> str:
         """Get the link title.
 
         Returns:
-            str: The link title.
+            The link title.
         """
         return self._title
 
     @title.setter
-    def title(self, value):
+    def title(self, value: str) -> None:
         self._title = value
         self._dirty = True
 
     @property
-    def url(self):
+    def url(self) -> str:
         """Get the link url.
 
         Returns:
-            str: The link url.
+            The link url.
         """
         return self._url
 
     @url.setter
-    def url(self, value):
+    def url(self, value: str) -> None:
         self._url = value
         self._dirty = True
 
     @property
-    def image_url(self):
+    def image_url(self) -> str:
         """Get the link image url.
 
         Returns:
-            str: The image url or None.
+            The image url or None.
         """
         return self._image_url
 
     @image_url.setter
-    def image_url(self, value):
+    def image_url(self, value: str) -> None:
         self._image_url = value
         self._dirty = True
 
     @property
-    def provenance_url(self):
+    def provenance_url(self) -> str:
         """Get the provenance url.
 
         Returns:
-            url: The provenance url.
+            The provenance url.
         """
         return self._provenance_url
 
     @provenance_url.setter
-    def provenance_url(self, value):
+    def provenance_url(self, value) -> None:
         self._provenance_url = value
         self._dirty = True
 
     @property
-    def description(self):
+    def description(self) -> str:
         """Get the link description.
 
         Returns:
-            str: The link description.
+            The link description.
         """
         return self._description
 
     @description.setter
-    def description(self, value):
+    def description(self, value: str):
         self._description = value
         self._dirty = True
 
@@ -413,26 +413,26 @@ class Category(Annotation):
         super(Category, self).__init__()
         self._category = None
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(Category, self)._load(raw)
         self._category = CategoryValue(raw["topicCategory"]["category"])
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = super(Category, self).save(clean)
         ret["topicCategory"] = {"category": self._category.value}
         return ret
 
     @property
-    def category(self):
+    def category(self) -> CategoryValue:
         """Get the category.
 
         Returns:
-            gkeepapi.node.CategoryValue: The category.
+            The category.
         """
         return self._category
 
     @category.setter
-    def category(self, value):
+    def category(self, value: CategoryValue) -> None:
         self._category = value
         self._dirty = True
 
@@ -444,26 +444,26 @@ class TaskAssist(Annotation):
         super(TaskAssist, self).__init__()
         self._suggest = None
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(TaskAssist, self)._load(raw)
         self._suggest = raw["taskAssist"]["suggestType"]
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = super(TaskAssist, self).save(clean)
         ret["taskAssist"] = {"suggestType": self._suggest}
         return ret
 
     @property
-    def suggest(self):
+    def suggest(self) -> str:
         """Get the suggestion.
 
         Returns:
-            str: The suggestion.
+            The suggestion.
         """
         return self._suggest
 
     @suggest.setter
-    def suggest(self, value):
+    def suggest(self, value) -> None:
         self._suggest = value
         self._dirty = True
 
@@ -475,13 +475,13 @@ class Context(Annotation):
         super(Context, self).__init__()
         self._entries = {}
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(Context, self)._load(raw)
         self._entries = {}
         for key, entry in raw.get("context", {}).items():
             self._entries[key] = NodeAnnotations.from_json({key: entry})
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = super(Context, self).save(clean)
         context = {}
         for entry in self._entries.values():
@@ -489,16 +489,16 @@ class Context(Annotation):
         ret["context"] = context
         return ret
 
-    def all(self):
+    def all(self) -> Iterator[Annotation]:
         """Get all sub annotations.
 
         Returns:
-            List[gkeepapi.node.Annotation]: Sub Annotations.
+            Sub Annotations.
         """
         return self._entries.values()
 
     @property
-    def dirty(self):
+    def dirty(self) -> bool:
         return super(Context, self).dirty or any(
             (annotation.dirty for annotation in self._entries.values())
         )
@@ -515,11 +515,11 @@ class NodeAnnotations(Element):
         return len(self._annotations)
 
     @classmethod
-    def from_json(cls, raw):
+    def from_json(cls, raw: Dict) -> Optional[Annotation]:
         """Helper to construct an annotation from a dict.
 
         Args:
-            raw (dict): Raw annotation representation.
+            raw: Raw annotation representation.
 
         Returns:
             Node: An Annotation object or None.
@@ -542,15 +542,15 @@ class NodeAnnotations(Element):
 
         return annotation
 
-    def all(self):
+    def all(self) -> Iterator[Annotation]:
         """Get all annotations.
 
         Returns:
-            List[gkeepapi.node.Annotation]: Annotations.
+            Annotations.
         """
         return self._annotations.values()
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(NodeAnnotations, self)._load(raw)
         self._annotations = {}
         if "annotations" not in raw:
@@ -560,7 +560,7 @@ class NodeAnnotations(Element):
             annotation = self.from_json(raw_annotation)
             self._annotations[annotation.id] = annotation
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = super(NodeAnnotations, self).save(clean)
         ret["kind"] = "notes#annotationsGroup"
         if self._annotations:
@@ -569,25 +569,25 @@ class NodeAnnotations(Element):
             ]
         return ret
 
-    def _get_category_node(self):
+    def _get_category_node(self) -> Optional[Category]:
         for annotation in self._annotations.values():
             if isinstance(annotation, Category):
                 return annotation
         return None
 
     @property
-    def category(self):
+    def category(self) -> Optional[CategoryValue]:
         """Get the category.
 
         Returns:
-            Union[gkeepapi.node.CategoryValue, None]: The category or None.
+            The category.
         """
         node = self._get_category_node()
 
         return node.category if node is not None else None
 
     @category.setter
-    def category(self, value):
+    def category(self, value) -> None:
         node = self._get_category_node()
         if value is None:
             if node is not None:
@@ -601,11 +601,11 @@ class NodeAnnotations(Element):
         self._dirty = True
 
     @property
-    def links(self):
+    def links(self) -> List[WebLink]:
         """Get all links.
 
         Returns:
-            list[gkeepapi.node.WebLink]: A list of links.
+            A list of links.
         """
         return [
             annotation
@@ -613,31 +613,31 @@ class NodeAnnotations(Element):
             if isinstance(annotation, WebLink)
         ]
 
-    def append(self, annotation):
+    def append(self, annotation: Annotation) -> Annotation:
         """Add an annotation.
 
         Args:
-            annotation (gkeepapi.node.Annotation): An Annotation object.
+            annotation: An Annotation object.
 
         Returns:
-            gkeepapi.node.Annotation: The Annotation.
+            The Annotation.
         """
         self._annotations[annotation.id] = annotation
         self._dirty = True
         return annotation
 
-    def remove(self, annotation):
+    def remove(self, annotation: Annotation) -> None:
         """Removes an annotation.
 
         Args:
-            annotation (gkeepapi.node.Annotation): An Annotation object.
+            annotation: An Annotation object.
         """
         if annotation.id in self._annotations:
             del self._annotations[annotation.id]
         self._dirty = True
 
     @property
-    def dirty(self):
+    def dirty(self) -> bool:
         return super(NodeAnnotations, self).dirty or any(
             (annotation.dirty for annotation in self._annotations.values())
         )
@@ -648,7 +648,7 @@ class NodeTimestamps(Element):
 
     TZ_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-    def __init__(self, create_time=None):
+    def __init__(self, create_time: str = None):
         super(NodeTimestamps, self).__init__()
         if create_time is None:
             create_time = time.time()
@@ -659,7 +659,7 @@ class NodeTimestamps(Element):
         self._updated = self.int_to_dt(create_time)
         self._edited = self.int_to_dt(create_time)
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(NodeTimestamps, self)._load(raw)
         if "created" in raw:
             self._created = self.str_to_dt(raw["created"])
@@ -670,7 +670,7 @@ class NodeTimestamps(Element):
             self.str_to_dt(raw["userEdited"]) if "userEdited" in raw else None
         )
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = super(NodeTimestamps, self).save(clean)
         ret["kind"] = "notes#timestamps"
         ret["created"] = self.dt_to_str(self._created)
@@ -684,114 +684,117 @@ class NodeTimestamps(Element):
         return ret
 
     @classmethod
-    def str_to_dt(cls, tzs):
+    def str_to_dt(cls, tzs: str) -> datetime.datetime:
         """Convert a datetime string into an object.
 
         Params:
-            tsz (str): Datetime string.
+            tsz: Datetime string.
 
         Returns:
-            datetime.datetime: Datetime.
+            Datetime.
         """
         return datetime.datetime.strptime(tzs, cls.TZ_FMT)
 
     @classmethod
-    def int_to_dt(cls, tz):
+    def int_to_dt(cls, tz: int) -> datetime.datetime:
         """Convert a unix timestamp into an object.
 
         Params:
-            ts (int): Unix timestamp.
+            ts: Unix timestamp.
 
         Returns:
-            datetime.datetime: Datetime.
+            Datetime.
         """
         return datetime.datetime.utcfromtimestamp(tz)
 
     @classmethod
-    def dt_to_str(cls, dt):
+    def dt_to_str(cls, dt: datetime.datetime) -> str:
         """Convert a datetime to a str.
 
+        Params:
+            dt: Datetime.
+
         Returns:
-            str: Datetime string.
+            Datetime string.
         """
         return dt.strftime(cls.TZ_FMT)
 
     @classmethod
-    def int_to_str(cls, tz):
+    def int_to_str(cls, tz: int) -> str:
         """Convert a unix timestamp to a str.
 
         Returns:
-            str: Datetime string.
+            Datetime string.
         """
         return cls.dt_to_str(cls.int_to_dt(tz))
 
     @property
-    def created(self):
+    def created(self) -> datetime.datetime:
         """Get the creation datetime.
 
         Returns:
-            datetime.datetime: Datetime.
+            Datetime.
         """
         return self._created
 
     @created.setter
-    def created(self, value):
+    def created(self, value) -> None:
         self._created = value
         self._dirty = True
 
     @property
-    def deleted(self):
+    def deleted(self) -> datetime.datetime:
         """Get the deletion datetime.
 
         Returns:
-            datetime.datetime: Datetime.
+            Datetime.
         """
         return self._deleted
 
     @deleted.setter
-    def deleted(self, value):
+    def deleted(self, value: datetime.datetime) -> None:
         self._deleted = value
         self._dirty = True
 
     @property
-    def trashed(self):
+    def trashed(self) -> datetime.datetime:
         """Get the move-to-trash datetime.
 
         Returns:
-            datetime.datetime: Datetime.
+            Datetime.
         """
         return self._trashed
 
     @trashed.setter
-    def trashed(self, value):
+    def trashed(self, value: datetime.datetime) -> None:
         self._trashed = value
         self._dirty = True
 
     @property
-    def updated(self):
+    def updated(self) -> datetime.datetime:
         """Get the updated datetime.
 
         Returns:
-            datetime.datetime: Datetime.
+            Datetime.
         """
         return self._updated
 
     @updated.setter
-    def updated(self, value):
+    def updated(self, value: datetime.datetime) -> None:
         self._updated = value
         self._dirty = True
 
     @property
-    def edited(self):
+    def edited(self) -> datetime.datetime:
         """Get the user edited datetime.
 
         Returns:
-            datetime.datetime: Datetime.
+            Datetime.
         """
         return self._edited
 
     @edited.setter
-    def edited(self, value):
+    def edited(self, value: datetime.datetime) -> None:
         self._edited = value
         self._dirty = True
 
@@ -805,7 +808,7 @@ class NodeSettings(Element):
         self._graveyard_state = GraveyardStateValue.Collapsed
         self._checked_listitems_policy = CheckedListItemsPolicyValue.Graveyard
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         super(NodeSettings, self)._load(raw)
         self._new_listitem_placement = NewListItemPlacementValue(
             raw["newListItemPlacement"]
@@ -815,7 +818,7 @@ class NodeSettings(Element):
             raw["checkedListItemsPolicy"]
         )
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         ret = super(NodeSettings, self).save(clean)
         ret["newListItemPlacement"] = self._new_listitem_placement.value
         ret["graveyardState"] = self._graveyard_state.value
@@ -823,44 +826,44 @@ class NodeSettings(Element):
         return ret
 
     @property
-    def new_listitem_placement(self):
+    def new_listitem_placement(self) -> NewListItemPlacementValue:
         """Get the default location to insert new listitems.
 
         Returns:
-            gkeepapi.node.NewListItemPlacementValue: Placement.
+            Placement.
         """
         return self._new_listitem_placement
 
     @new_listitem_placement.setter
-    def new_listitem_placement(self, value):
+    def new_listitem_placement(self, value: NewListItemPlacementValue) -> None:
         self._new_listitem_placement = value
         self._dirty = True
 
     @property
-    def graveyard_state(self):
+    def graveyard_state(self) -> GraveyardStateValue:
         """Get the visibility state for the list graveyard.
 
         Returns:
-            gkeepapi.node.GraveyardStateValue: Visibility.
+            Visibility.
         """
         return self._graveyard_state
 
     @graveyard_state.setter
-    def graveyard_state(self, value):
+    def graveyard_state(self, value: GraveyardStateValue) -> None:
         self._graveyard_state = value
         self._dirty = True
 
     @property
-    def checked_listitems_policy(self):
+    def checked_listitems_policy(self) -> CheckedListItemsPolicyValue:
         """Get the policy for checked listitems.
 
         Returns:
-            gkeepapi.node.CheckedListItemsPolicyValue: Policy.
+            Policy.
         """
         return self._checked_listitems_policy
 
     @checked_listitems_policy.setter
-    def checked_listitems_policy(self, value):
+    def checked_listitems_policy(self, value: CheckedListItemsPolicyValue) -> None:
         self._checked_listitems_policy = value
         self._dirty = True
 
@@ -872,10 +875,12 @@ class NodeCollaborators(Element):
         super(NodeCollaborators, self).__init__()
         self._collaborators = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._collaborators)
 
-    def load(self, collaborators_raw, requests_raw):  # pylint: disable=arguments-differ
+    def load(
+        self, collaborators_raw: List, requests_raw: List
+    ):  # pylint: disable=arguments-differ
         # Parent method not called.
         if requests_raw and isinstance(requests_raw[-1], bool):
             self._dirty = requests_raw.pop()
@@ -889,7 +894,7 @@ class NodeCollaborators(Element):
                 collaborator["type"]
             )
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Tuple[List, List]:
         # Parent method not called.
         collaborators = []
         requests = []
@@ -906,21 +911,21 @@ class NodeCollaborators(Element):
             self._dirty = False
         return (collaborators, requests)
 
-    def add(self, email):
+    def add(self, email: str) -> None:
         """Add a collaborator.
 
         Args:
-            str : Collaborator email address.
+            email: Collaborator email address.
         """
         if email not in self._collaborators:
             self._collaborators[email] = ShareRequestValue.Add
         self._dirty = True
 
-    def remove(self, email):
+    def remove(self, email: str) -> None:
         """Remove a Collaborator.
 
         Args:
-            str : Collaborator email address.
+            email: Collaborator email address.
         """
         if email in self._collaborators:
             if self._collaborators[email] == ShareRequestValue.Add:
@@ -929,11 +934,11 @@ class NodeCollaborators(Element):
                 self._collaborators[email] = ShareRequestValue.Remove
         self._dirty = True
 
-    def all(self):
+    def all(self) -> List[str]:
         """Get all collaborators.
 
         Returns:
-            List[str]: Collaborators.
+            Collaborators.
         """
         return [
             email
@@ -949,10 +954,10 @@ class NodeLabels(Element):
         super(NodeLabels, self).__init__()
         self._labels = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._labels)
 
-    def _load(self, raw):
+    def _load(self, raw: Dict):
         # Parent method not called.
         if raw and isinstance(raw[-1], bool):
             self._dirty = raw.pop()
@@ -962,7 +967,7 @@ class NodeLabels(Element):
         for raw_label in raw:
             self._labels[raw_label["labelId"]] = None
 
-    def save(self, clean=True):
+    def save(self, clean=True) -> Dict:
         # Parent method not called.
         ret = [
             {
@@ -979,11 +984,11 @@ class NodeLabels(Element):
             self._dirty = False
         return ret
 
-    def add(self, label):
+    def add(self, label: Label) -> None:
         """Add a label.
 
         Args:
-            label (gkeepapi.node.Label): The Label object.
+            label: The Label object.
         """
         self._labels[label.id] = label
         self._dirty = True
@@ -1015,7 +1020,7 @@ class NodeLabels(Element):
         return [label for _, label in self._labels.items() if label is not None]
 
 
-class TimestampsMixin(object):
+class TimestampsMixin:
     """A mixin to add methods for updating timestamps."""
 
     def touch(self, edited=False):
@@ -2065,14 +2070,14 @@ _type_map = {
 }
 
 
-def from_json(raw):
+def from_json(raw: Dict) -> Node:
     """Helper to construct a node from a dict.
 
     Args:
-        raw (dict): Raw node representation.
+        raw: Raw node representation.
 
     Returns:
-        Node: A Node object or None.
+        A Node object or None.
     """
     ncls = None
     _type = raw.get("type")
