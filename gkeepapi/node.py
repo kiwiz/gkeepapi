@@ -21,163 +21,175 @@ DEBUG = False
 
 logger = logging.getLogger(__name__)
 
+
 class NodeType(enum.Enum):
     """Valid note types."""
 
-    Note = 'NOTE'
+    Note = "NOTE"
     """A Note"""
 
-    List = 'LIST'
+    List = "LIST"
     """A List"""
 
-    ListItem = 'LIST_ITEM'
+    ListItem = "LIST_ITEM"
     """A List item"""
 
-    Blob = 'BLOB'
+    Blob = "BLOB"
     """A blob (attachment)"""
+
 
 class BlobType(enum.Enum):
     """Valid blob types."""
 
-    Audio = 'AUDIO'
+    Audio = "AUDIO"
     """Audio"""
 
-    Image = 'IMAGE'
+    Image = "IMAGE"
     """Image"""
 
-    Drawing = 'DRAWING'
+    Drawing = "DRAWING"
     """Drawing"""
+
 
 class ColorValue(enum.Enum):
     """Valid note colors."""
 
-    White = 'DEFAULT'
+    White = "DEFAULT"
     """White"""
 
-    Red = 'RED'
+    Red = "RED"
     """Red"""
 
-    Orange = 'ORANGE'
+    Orange = "ORANGE"
     """Orange"""
 
-    Yellow = 'YELLOW'
+    Yellow = "YELLOW"
     """Yellow"""
 
-    Green = 'GREEN'
+    Green = "GREEN"
     """Green"""
 
-    Teal = 'TEAL'
+    Teal = "TEAL"
     """Teal"""
 
-    Blue = 'BLUE'
+    Blue = "BLUE"
     """Blue"""
 
-    DarkBlue = 'CERULEAN'
+    DarkBlue = "CERULEAN"
     """Dark blue"""
 
-    Purple = 'PURPLE'
+    Purple = "PURPLE"
     """Purple"""
 
-    Pink = 'PINK'
+    Pink = "PINK"
     """Pink"""
 
-    Brown = 'BROWN'
+    Brown = "BROWN"
     """Brown"""
 
-    Gray = 'GRAY'
+    Gray = "GRAY"
     """Gray"""
+
 
 class CategoryValue(enum.Enum):
     """Valid note categories."""
 
-    Books = 'BOOKS'
+    Books = "BOOKS"
     """Books"""
 
-    Food = 'FOOD'
+    Food = "FOOD"
     """Food"""
 
-    Movies = 'MOVIES'
+    Movies = "MOVIES"
     """Movies"""
 
-    Music = 'MUSIC'
+    Music = "MUSIC"
     """Music"""
 
-    Places = 'PLACES'
+    Places = "PLACES"
     """Places"""
 
-    Quotes = 'QUOTES'
+    Quotes = "QUOTES"
     """Quotes"""
 
-    Travel = 'TRAVEL'
+    Travel = "TRAVEL"
     """Travel"""
 
-    TV = 'TV'
+    TV = "TV"
     """TV"""
+
 
 class SuggestValue(enum.Enum):
     """Valid task suggestion categories."""
 
-    GroceryItem = 'GROCERY_ITEM'
+    GroceryItem = "GROCERY_ITEM"
     """Grocery item"""
+
 
 class NewListItemPlacementValue(enum.Enum):
     """Target location to put new list items."""
 
-    Top = 'TOP'
+    Top = "TOP"
     """Top"""
 
-    Bottom = 'BOTTOM'
+    Bottom = "BOTTOM"
     """Bottom"""
+
 
 class GraveyardStateValue(enum.Enum):
     """Visibility setting for the graveyard."""
 
-    Expanded = 'EXPANDED'
+    Expanded = "EXPANDED"
     """Expanded"""
 
-    Collapsed = 'COLLAPSED'
+    Collapsed = "COLLAPSED"
     """Collapsed"""
+
 
 class CheckedListItemsPolicyValue(enum.Enum):
     """Movement setting for checked list items."""
 
-    Default = 'DEFAULT'
+    Default = "DEFAULT"
     """Default"""
 
-    Graveyard = 'GRAVEYARD'
+    Graveyard = "GRAVEYARD"
     """Graveyard"""
+
 
 class ShareRequestValue(enum.Enum):
     """Collaborator change type."""
 
-    Add = 'WR'
+    Add = "WR"
     """Grant access."""
 
-    Remove = 'RM'
+    Remove = "RM"
     """Remove access."""
+
 
 class RoleValue(enum.Enum):
     """Collaborator role type."""
 
-    Owner = 'O'
+    Owner = "O"
     """Note owner."""
 
-    User = 'W'
+    User = "W"
     """Note collaborator."""
+
 
 class Element(object):
     """Interface for elements that can be serialized and deserialized."""
+
     def __init__(self):
         self._dirty = False
 
-    def _find_discrepancies(self, raw): # pragma: no cover
+    def _find_discrepancies(self, raw):  # pragma: no cover
         s_raw = self.save(False)
         if isinstance(raw, dict):
             for key, val in raw.items():
-                if key in ['parentServerId', 'lastSavedSessionId']:
+                if key in ["parentServerId", "lastSavedSessionId"]:
                     continue
                 if key not in s_raw:
-                    logger.info('Missing key for %s key %s', type(self), key)
+                    logger.info("Missing key for %s key %s", type(self), key)
                     continue
 
                 if isinstance(val, (list, dict)):
@@ -196,10 +208,21 @@ class Element(object):
                     except (KeyError, ValueError):
                         pass
                 if val_a != val_b:
-                    logger.info('Different value for %s key %s: %s != %s', type(self), key, raw[key], s_raw[key])
+                    logger.info(
+                        "Different value for %s key %s: %s != %s",
+                        type(self),
+                        key,
+                        raw[key],
+                        s_raw[key],
+                    )
         elif isinstance(raw, list):
             if len(raw) != len(s_raw):
-                logger.info('Different length for %s: %d != %d', type(self), len(raw), len(s_raw))
+                logger.info(
+                    "Different length for %s: %d != %d",
+                    type(self),
+                    len(raw),
+                    len(s_raw),
+                )
 
     def load(self, raw):
         """Unserialize from raw representation. (Wrapper)
@@ -212,7 +235,7 @@ class Element(object):
         try:
             self._load(raw)
         except (KeyError, ValueError) as e:
-            raise exception.ParseException(f'Parse error in {type(self)}', raw) from e
+            raise exception.ParseException(f"Parse error in {type(self)}", raw) from e
 
     def _load(self, raw):
         """Unserialize from raw representation. (Implementation logic)
@@ -220,7 +243,7 @@ class Element(object):
         Args:
             raw (dict): Raw.
         """
-        self._dirty = raw.get('_dirty', False)
+        self._dirty = raw.get("_dirty", False)
 
     def save(self, clean=True):
         """Serialize into raw representation. Clears the dirty bit by default.
@@ -235,7 +258,7 @@ class Element(object):
         if clean:
             self._dirty = False
         else:
-            ret['_dirty'] = self._dirty
+            ret["_dirty"] = self._dirty
         return ret
 
     @property
@@ -247,60 +270,68 @@ class Element(object):
         """
         return self._dirty
 
+
 class Annotation(Element):
     """Note annotations base class."""
+
     def __init__(self):
         super(Annotation, self).__init__()
         self.id = self._generateAnnotationId()
 
     def _load(self, raw):
         super(Annotation, self)._load(raw)
-        self.id = raw.get('id')
+        self.id = raw.get("id")
 
     def save(self, clean=True):
         ret = {}
         if self.id is not None:
             ret = super(Annotation, self).save(clean)
         if self.id is not None:
-            ret['id'] = self.id
+            ret["id"] = self.id
         return ret
 
     @classmethod
     def _generateAnnotationId(cls):
-        return '%08x-%04x-%04x-%04x-%012x' % (
-            random.randint(0x00000000, 0xffffffff),
-            random.randint(0x0000, 0xffff),
-            random.randint(0x0000, 0xffff),
-            random.randint(0x0000, 0xffff),
-            random.randint(0x000000000000, 0xffffffffffff)
+        return "%08x-%04x-%04x-%04x-%012x" % (
+            random.randint(0x00000000, 0xFFFFFFFF),
+            random.randint(0x0000, 0xFFFF),
+            random.randint(0x0000, 0xFFFF),
+            random.randint(0x0000, 0xFFFF),
+            random.randint(0x000000000000, 0xFFFFFFFFFFFF),
         )
+
 
 class WebLink(Annotation):
     """Represents a link annotation on a :class:`TopLevelNode`."""
+
     def __init__(self):
         super(WebLink, self).__init__()
-        self._title = ''
-        self._url = ''
+        self._title = ""
+        self._url = ""
         self._image_url = None
-        self._provenance_url = ''
-        self._description = ''
+        self._provenance_url = ""
+        self._description = ""
 
     def _load(self, raw):
         super(WebLink, self)._load(raw)
-        self._title = raw['webLink']['title']
-        self._url = raw['webLink']['url']
-        self._image_url = raw['webLink']['imageUrl'] if 'imageUrl' in raw['webLink'] else self.image_url
-        self._provenance_url = raw['webLink']['provenanceUrl']
-        self._description = raw['webLink']['description']
+        self._title = raw["webLink"]["title"]
+        self._url = raw["webLink"]["url"]
+        self._image_url = (
+            raw["webLink"]["imageUrl"]
+            if "imageUrl" in raw["webLink"]
+            else self.image_url
+        )
+        self._provenance_url = raw["webLink"]["provenanceUrl"]
+        self._description = raw["webLink"]["description"]
 
     def save(self, clean=True):
         ret = super(WebLink, self).save(clean)
-        ret['webLink'] = {
-            'title': self._title,
-            'url': self._url,
-            'imageUrl': self._image_url,
-            'provenanceUrl': self._provenance_url,
-            'description': self._description,
+        ret["webLink"] = {
+            "title": self._title,
+            "url": self._url,
+            "imageUrl": self._image_url,
+            "provenanceUrl": self._provenance_url,
+            "description": self._description,
         }
         return ret
 
@@ -374,21 +405,21 @@ class WebLink(Annotation):
         self._description = value
         self._dirty = True
 
+
 class Category(Annotation):
     """Represents a category annotation on a :class:`TopLevelNode`."""
+
     def __init__(self):
         super(Category, self).__init__()
         self._category = None
 
     def _load(self, raw):
         super(Category, self)._load(raw)
-        self._category = CategoryValue(raw['topicCategory']['category'])
+        self._category = CategoryValue(raw["topicCategory"]["category"])
 
     def save(self, clean=True):
         ret = super(Category, self).save(clean)
-        ret['topicCategory'] = {
-            'category': self._category.value
-        }
+        ret["topicCategory"] = {"category": self._category.value}
         return ret
 
     @property
@@ -405,21 +436,21 @@ class Category(Annotation):
         self._category = value
         self._dirty = True
 
+
 class TaskAssist(Annotation):
     """Unknown."""
+
     def __init__(self):
         super(TaskAssist, self).__init__()
         self._suggest = None
 
     def _load(self, raw):
         super(TaskAssist, self)._load(raw)
-        self._suggest = raw['taskAssist']['suggestType']
+        self._suggest = raw["taskAssist"]["suggestType"]
 
     def save(self, clean=True):
         ret = super(TaskAssist, self).save(clean)
-        ret['taskAssist'] = {
-            'suggestType': self._suggest
-        }
+        ret["taskAssist"] = {"suggestType": self._suggest}
         return ret
 
     @property
@@ -436,8 +467,10 @@ class TaskAssist(Annotation):
         self._suggest = value
         self._dirty = True
 
+
 class Context(Annotation):
     """Represents a context annotation, which may contain other annotations."""
+
     def __init__(self):
         super(Context, self).__init__()
         self._entries = {}
@@ -445,7 +478,7 @@ class Context(Annotation):
     def _load(self, raw):
         super(Context, self)._load(raw)
         self._entries = {}
-        for key, entry in raw.get('context', {}).items():
+        for key, entry in raw.get("context", {}).items():
             self._entries[key] = NodeAnnotations.from_json({key: entry})
 
     def save(self, clean=True):
@@ -453,7 +486,7 @@ class Context(Annotation):
         context = {}
         for entry in self._entries.values():
             context.update(entry.save(clean))
-        ret['context'] = context
+        ret["context"] = context
         return ret
 
     def all(self):
@@ -466,10 +499,14 @@ class Context(Annotation):
 
     @property
     def dirty(self):
-        return super(Context, self).dirty or any((annotation.dirty for annotation in self._entries.values()))
+        return super(Context, self).dirty or any(
+            (annotation.dirty for annotation in self._entries.values())
+        )
+
 
 class NodeAnnotations(Element):
     """Represents the annotation container on a :class:`TopLevelNode`."""
+
     def __init__(self):
         super(NodeAnnotations, self).__init__()
         self._annotations = {}
@@ -488,17 +525,17 @@ class NodeAnnotations(Element):
             Node: An Annotation object or None.
         """
         bcls = None
-        if 'webLink' in raw:
+        if "webLink" in raw:
             bcls = WebLink
-        elif 'topicCategory' in raw:
+        elif "topicCategory" in raw:
             bcls = Category
-        elif 'taskAssist' in raw:
+        elif "taskAssist" in raw:
             bcls = TaskAssist
-        elif 'context' in raw:
+        elif "context" in raw:
             bcls = Context
 
         if bcls is None:
-            logger.warning('Unknown annotation type: %s', raw.keys())
+            logger.warning("Unknown annotation type: %s", raw.keys())
             return None
         annotation = bcls()
         annotation.load(raw)
@@ -516,18 +553,20 @@ class NodeAnnotations(Element):
     def _load(self, raw):
         super(NodeAnnotations, self)._load(raw)
         self._annotations = {}
-        if 'annotations' not in raw:
+        if "annotations" not in raw:
             return
 
-        for raw_annotation in raw['annotations']:
+        for raw_annotation in raw["annotations"]:
             annotation = self.from_json(raw_annotation)
             self._annotations[annotation.id] = annotation
 
     def save(self, clean=True):
         ret = super(NodeAnnotations, self).save(clean)
-        ret['kind'] = 'notes#annotationsGroup'
+        ret["kind"] = "notes#annotationsGroup"
         if self._annotations:
-            ret['annotations'] = [annotation.save(clean) for annotation in self._annotations.values()]
+            ret["annotations"] = [
+                annotation.save(clean) for annotation in self._annotations.values()
+            ]
         return ret
 
     def _get_category_node(self):
@@ -568,7 +607,9 @@ class NodeAnnotations(Element):
         Returns:
             list[gkeepapi.node.WebLink]: A list of links.
         """
-        return [annotation for annotation in self._annotations.values()
+        return [
+            annotation
+            for annotation in self._annotations.values()
             if isinstance(annotation, WebLink)
         ]
 
@@ -597,11 +638,15 @@ class NodeAnnotations(Element):
 
     @property
     def dirty(self):
-        return super(NodeAnnotations, self).dirty or any((annotation.dirty for annotation in self._annotations.values()))
+        return super(NodeAnnotations, self).dirty or any(
+            (annotation.dirty for annotation in self._annotations.values())
+        )
+
 
 class NodeTimestamps(Element):
     """Represents the timestamps associated with a :class:`TopLevelNode`."""
-    TZ_FMT = '%Y-%m-%dT%H:%M:%S.%fZ'
+
+    TZ_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
     def __init__(self, create_time=None):
         super(NodeTimestamps, self).__init__()
@@ -616,27 +661,26 @@ class NodeTimestamps(Element):
 
     def _load(self, raw):
         super(NodeTimestamps, self)._load(raw)
-        if 'created' in raw:
-            self._created = self.str_to_dt(raw['created'])
-        self._deleted = self.str_to_dt(raw['deleted']) \
-            if 'deleted' in raw else None
-        self._trashed = self.str_to_dt(raw['trashed']) \
-            if 'trashed' in raw else None
-        self._updated = self.str_to_dt(raw['updated'])
-        self._edited = self.str_to_dt(raw['userEdited']) \
-            if 'userEdited' in raw else None
+        if "created" in raw:
+            self._created = self.str_to_dt(raw["created"])
+        self._deleted = self.str_to_dt(raw["deleted"]) if "deleted" in raw else None
+        self._trashed = self.str_to_dt(raw["trashed"]) if "trashed" in raw else None
+        self._updated = self.str_to_dt(raw["updated"])
+        self._edited = (
+            self.str_to_dt(raw["userEdited"]) if "userEdited" in raw else None
+        )
 
     def save(self, clean=True):
         ret = super(NodeTimestamps, self).save(clean)
-        ret['kind'] = 'notes#timestamps'
-        ret['created'] = self.dt_to_str(self._created)
+        ret["kind"] = "notes#timestamps"
+        ret["created"] = self.dt_to_str(self._created)
         if self._deleted is not None:
-            ret['deleted'] = self.dt_to_str(self._deleted)
+            ret["deleted"] = self.dt_to_str(self._deleted)
         if self._trashed is not None:
-            ret['trashed'] = self.dt_to_str(self._trashed)
-        ret['updated'] = self.dt_to_str(self._updated)
+            ret["trashed"] = self.dt_to_str(self._trashed)
+        ret["updated"] = self.dt_to_str(self._updated)
         if self._edited is not None:
-            ret['userEdited'] = self.dt_to_str(self._edited)
+            ret["userEdited"] = self.dt_to_str(self._edited)
         return ret
 
     @classmethod
@@ -751,8 +795,10 @@ class NodeTimestamps(Element):
         self._edited = value
         self._dirty = True
 
+
 class NodeSettings(Element):
     """Represents the settings associated with a :class:`TopLevelNode`."""
+
     def __init__(self):
         super(NodeSettings, self).__init__()
         self._new_listitem_placement = NewListItemPlacementValue.Bottom
@@ -761,15 +807,19 @@ class NodeSettings(Element):
 
     def _load(self, raw):
         super(NodeSettings, self)._load(raw)
-        self._new_listitem_placement = NewListItemPlacementValue(raw['newListItemPlacement'])
-        self._graveyard_state = GraveyardStateValue(raw['graveyardState'])
-        self._checked_listitems_policy = CheckedListItemsPolicyValue(raw['checkedListItemsPolicy'])
+        self._new_listitem_placement = NewListItemPlacementValue(
+            raw["newListItemPlacement"]
+        )
+        self._graveyard_state = GraveyardStateValue(raw["graveyardState"])
+        self._checked_listitems_policy = CheckedListItemsPolicyValue(
+            raw["checkedListItemsPolicy"]
+        )
 
     def save(self, clean=True):
         ret = super(NodeSettings, self).save(clean)
-        ret['newListItemPlacement'] = self._new_listitem_placement.value
-        ret['graveyardState'] = self._graveyard_state.value
-        ret['checkedListItemsPolicy'] = self._checked_listitems_policy.value
+        ret["newListItemPlacement"] = self._new_listitem_placement.value
+        ret["graveyardState"] = self._graveyard_state.value
+        ret["checkedListItemsPolicy"] = self._checked_listitems_policy.value
         return ret
 
     @property
@@ -814,8 +864,10 @@ class NodeSettings(Element):
         self._checked_listitems_policy = value
         self._dirty = True
 
+
 class NodeCollaborators(Element):
     """Represents the collaborators on a :class:`TopLevelNode`."""
+
     def __init__(self):
         super(NodeCollaborators, self).__init__()
         self._collaborators = {}
@@ -823,7 +875,7 @@ class NodeCollaborators(Element):
     def __len__(self):
         return len(self._collaborators)
 
-    def load(self, collaborators_raw, requests_raw): # pylint: disable=arguments-differ
+    def load(self, collaborators_raw, requests_raw):  # pylint: disable=arguments-differ
         # Parent method not called.
         if requests_raw and isinstance(requests_raw[-1], bool):
             self._dirty = requests_raw.pop()
@@ -831,9 +883,11 @@ class NodeCollaborators(Element):
             self._dirty = False
         self._collaborators = {}
         for collaborator in collaborators_raw:
-            self._collaborators[collaborator['email']] = RoleValue(collaborator['role'])
+            self._collaborators[collaborator["email"]] = RoleValue(collaborator["role"])
         for collaborator in requests_raw:
-            self._collaborators[collaborator['email']] = ShareRequestValue(collaborator['type'])
+            self._collaborators[collaborator["email"]] = ShareRequestValue(
+                collaborator["type"]
+            )
 
     def save(self, clean=True):
         # Parent method not called.
@@ -841,9 +895,11 @@ class NodeCollaborators(Element):
         requests = []
         for email, action in self._collaborators.items():
             if isinstance(action, ShareRequestValue):
-                requests.append({'email': email, 'type': action.value})
+                requests.append({"email": email, "type": action.value})
             else:
-                collaborators.append({'email': email, 'role': action.value, 'auxiliary_type': 'None'})
+                collaborators.append(
+                    {"email": email, "role": action.value, "auxiliary_type": "None"}
+                )
         if not clean:
             requests.append(self._dirty)
         else:
@@ -879,10 +935,16 @@ class NodeCollaborators(Element):
         Returns:
             List[str]: Collaborators.
         """
-        return [email for email, action in self._collaborators.items() if action in [RoleValue.Owner, RoleValue.User, ShareRequestValue.Add]]
+        return [
+            email
+            for email, action in self._collaborators.items()
+            if action in [RoleValue.Owner, RoleValue.User, ShareRequestValue.Add]
+        ]
+
 
 class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
+
     def __init__(self):
         super(NodeLabels, self).__init__()
         self._labels = {}
@@ -898,13 +960,19 @@ class NodeLabels(Element):
             self._dirty = False
         self._labels = {}
         for raw_label in raw:
-            self._labels[raw_label['labelId']] = None
+            self._labels[raw_label["labelId"]] = None
 
     def save(self, clean=True):
         # Parent method not called.
         ret = [
-            {'labelId': label_id, 'deleted': NodeTimestamps.dt_to_str(datetime.datetime.utcnow()) if label is None else NodeTimestamps.int_to_str(0)}
-        for label_id, label in self._labels.items()]
+            {
+                "labelId": label_id,
+                "deleted": NodeTimestamps.dt_to_str(datetime.datetime.utcnow())
+                if label is None
+                else NodeTimestamps.int_to_str(0),
+            }
+            for label_id, label in self._labels.items()
+        ]
         if not clean:
             ret.append(self._dirty)
         else:
@@ -946,8 +1014,10 @@ class NodeLabels(Element):
         """
         return [label for _, label in self._labels.items() if label is not None]
 
+
 class TimestampsMixin(object):
     """A mixin to add methods for updating timestamps."""
+
     def touch(self, edited=False):
         """Mark the node as dirty.
 
@@ -967,7 +1037,10 @@ class TimestampsMixin(object):
         Returns:
             bool: Whether this item is trashed.
         """
-        return self.timestamps.trashed is not None and self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
+        return (
+            self.timestamps.trashed is not None
+            and self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
+        )
 
     def trash(self):
         """Mark the item as trashed."""
@@ -984,7 +1057,10 @@ class TimestampsMixin(object):
         Returns:
             bool: Whether this item is deleted.
         """
-        return self.timestamps.deleted is not None and self.timestamps.deleted > NodeTimestamps.int_to_dt(0)
+        return (
+            self.timestamps.deleted is not None
+            and self.timestamps.deleted > NodeTimestamps.int_to_dt(0)
+        )
 
     def delete(self):
         """Mark the item as deleted."""
@@ -994,8 +1070,10 @@ class TimestampsMixin(object):
         """Mark the item as undeleted."""
         self.timestamps.deleted = None
 
+
 class Node(Element, TimestampsMixin):
     """Node base class."""
+
     def __init__(self, id_=None, type_=None, parent_id=None):
         super(Node, self).__init__()
 
@@ -1008,7 +1086,7 @@ class Node(Element, TimestampsMixin):
         self.type = type_
         self._sort = random.randint(1000000000, 9999999999)
         self._version = None
-        self._text = ''
+        self._text = ""
         self._children = {}
         self.timestamps = NodeTimestamps(create_time)
         self.settings = NodeSettings()
@@ -1019,46 +1097,46 @@ class Node(Element, TimestampsMixin):
 
     @classmethod
     def _generateId(cls, tz):
-        return '%x.%016x' % (
+        return "%x.%016x" % (
             int(tz * 1000),
-            random.randint(0x0000000000000000, 0xffffffffffffffff)
+            random.randint(0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
         )
 
     def _load(self, raw):
         super(Node, self)._load(raw)
         # Verify this is a valid type
-        NodeType(raw['type'])
-        if raw['kind'] not in ['notes#node']:
-            logger.warning('Unknown node kind: %s', raw['kind'])
+        NodeType(raw["type"])
+        if raw["kind"] not in ["notes#node"]:
+            logger.warning("Unknown node kind: %s", raw["kind"])
 
-        if 'mergeConflict' in raw:
+        if "mergeConflict" in raw:
             raise exception.MergeException(raw)
 
-        self.id = raw['id']
-        self.server_id = raw['serverId'] if 'serverId' in raw else self.server_id
-        self.parent_id = raw['parentId']
-        self._sort = raw['sortValue'] if 'sortValue' in raw else self.sort
-        self._version = raw['baseVersion'] if 'baseVersion' in raw else self._version
-        self._text = raw['text'] if 'text' in raw else self._text
-        self.timestamps.load(raw['timestamps'])
-        self.settings.load(raw['nodeSettings'])
-        self.annotations.load(raw['annotationsGroup'])
+        self.id = raw["id"]
+        self.server_id = raw["serverId"] if "serverId" in raw else self.server_id
+        self.parent_id = raw["parentId"]
+        self._sort = raw["sortValue"] if "sortValue" in raw else self.sort
+        self._version = raw["baseVersion"] if "baseVersion" in raw else self._version
+        self._text = raw["text"] if "text" in raw else self._text
+        self.timestamps.load(raw["timestamps"])
+        self.settings.load(raw["nodeSettings"])
+        self.annotations.load(raw["annotationsGroup"])
 
     def save(self, clean=True):
         ret = super(Node, self).save(clean)
-        ret['id'] = self.id
-        ret['kind'] = 'notes#node'
-        ret['type'] = self.type.value
-        ret['parentId'] = self.parent_id
-        ret['sortValue'] = self._sort
+        ret["id"] = self.id
+        ret["kind"] = "notes#node"
+        ret["type"] = self.type.value
+        ret["parentId"] = self.parent_id
+        ret["sortValue"] = self._sort
         if not self._moved and self._version is not None:
-            ret['baseVersion'] = self._version
-        ret['text'] = self._text
+            ret["baseVersion"] = self._version
+        ret["text"] = self._text
         if self.server_id is not None:
-            ret['serverId'] = self.server_id
-        ret['timestamps'] = self.timestamps.save(clean)
-        ret['nodeSettings'] = self.settings.save(clean)
-        ret['annotationsGroup'] = self.annotations.save(clean)
+            ret["serverId"] = self.server_id
+        ret["timestamps"] = self.timestamps.save(clean)
+        ret["nodeSettings"] = self.settings.save(clean)
+        ret["annotationsGroup"] = self.annotations.save(clean)
         return ret
 
     @property
@@ -1162,11 +1240,20 @@ class Node(Element, TimestampsMixin):
 
     @property
     def dirty(self):
-        return super(Node, self).dirty or self.timestamps.dirty or self.annotations.dirty or self.settings.dirty or any((node.dirty for node in self.children))
+        return (
+            super(Node, self).dirty
+            or self.timestamps.dirty
+            or self.annotations.dirty
+            or self.settings.dirty
+            or any((node.dirty for node in self.children))
+        )
+
 
 class Root(Node):
     """Internal root node."""
-    ID = 'root'
+
+    ID = "root"
+
     def __init__(self):
         super(Root, self).__init__(id_=self.ID)
 
@@ -1174,46 +1261,49 @@ class Root(Node):
     def dirty(self):
         return False
 
+
 class TopLevelNode(Node):
     """Top level node base class."""
+
     _TYPE = None
+
     def __init__(self, **kwargs):
         super(TopLevelNode, self).__init__(parent_id=Root.ID, **kwargs)
         self._color = ColorValue.White
         self._archived = False
         self._pinned = False
-        self._title = ''
+        self._title = ""
         self.labels = NodeLabels()
         self.collaborators = NodeCollaborators()
 
     def _load(self, raw):
         super(TopLevelNode, self)._load(raw)
-        self._color = ColorValue(raw['color']) if 'color' in raw else ColorValue.White
-        self._archived = raw['isArchived'] if 'isArchived' in raw else False
-        self._pinned = raw['isPinned'] if 'isPinned' in raw else False
-        self._title = raw['title'] if 'title' in raw else ''
-        self.labels.load(raw['labelIds'] if 'labelIds' in raw else [])
+        self._color = ColorValue(raw["color"]) if "color" in raw else ColorValue.White
+        self._archived = raw["isArchived"] if "isArchived" in raw else False
+        self._pinned = raw["isPinned"] if "isPinned" in raw else False
+        self._title = raw["title"] if "title" in raw else ""
+        self.labels.load(raw["labelIds"] if "labelIds" in raw else [])
 
         self.collaborators.load(
-            raw['roleInfo'] if 'roleInfo' in raw else [],
-            raw['shareRequests'] if 'shareRequests' in raw else [],
+            raw["roleInfo"] if "roleInfo" in raw else [],
+            raw["shareRequests"] if "shareRequests" in raw else [],
         )
-        self._moved = 'moved' in raw
+        self._moved = "moved" in raw
 
     def save(self, clean=True):
         ret = super(TopLevelNode, self).save(clean)
-        ret['color'] = self._color.value
-        ret['isArchived'] = self._archived
-        ret['isPinned'] = self._pinned
-        ret['title'] = self._title
+        ret["color"] = self._color.value
+        ret["isArchived"] = self._archived
+        ret["isPinned"] = self._pinned
+        ret["title"] = self._title
         labels = self.labels.save(clean)
 
         collaborators, requests = self.collaborators.save(clean)
         if labels:
-            ret['labelIds'] = labels
-        ret['collaborators'] = collaborators
+            ret["labelIds"] = labels
+        ret["collaborators"] = collaborators
         if requests:
-            ret['shareRequests'] = requests
+            ret["shareRequests"] = requests
         return ret
 
     @property
@@ -1279,11 +1369,15 @@ class TopLevelNode(Node):
         Returns:
             str: Google Keep url.
         """
-        return 'https://keep.google.com/u/0/#' + self._TYPE.value + '/' + self.id
+        return "https://keep.google.com/u/0/#" + self._TYPE.value + "/" + self.id
 
     @property
     def dirty(self):
-        return super(TopLevelNode, self).dirty or self.labels.dirty or self.collaborators.dirty
+        return (
+            super(TopLevelNode, self).dirty
+            or self.labels.dirty
+            or self.collaborators.dirty
+        )
 
     @property
     def blobs(self):
@@ -1306,9 +1400,12 @@ class TopLevelNode(Node):
     def audio(self):
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeAudio)]
 
+
 class Note(TopLevelNode):
     """Represents a Google Keep note."""
+
     _TYPE = NodeType.Note
+
     def __init__(self, **kwargs):
         super(Note, self).__init__(type_=self._TYPE, **kwargs)
 
@@ -1339,12 +1436,15 @@ class Note(TopLevelNode):
         self.touch(True)
 
     def __str__(self):
-        return '\n'.join([self.title, self.text])
+        return "\n".join([self.title, self.text])
+
 
 class List(TopLevelNode):
     """Represents a Google Keep list."""
+
     _TYPE = NodeType.List
-    SORT_DELTA = 10000 # Arbitrary constant
+    SORT_DELTA = 10000  # Arbitrary constant
+
     def __init__(self, **kwargs):
         super(List, self).__init__(type_=self._TYPE, **kwargs)
 
@@ -1378,7 +1478,7 @@ class List(TopLevelNode):
 
     @property
     def text(self):
-        return '\n'.join((str(node) for node in self.items))
+        return "\n".join((str(node) for node in self.items))
 
     @classmethod
     def sorted_items(cls, items):
@@ -1389,8 +1489,10 @@ class List(TopLevelNode):
         Returns:
             list[gkeepapi.node.ListItem]: Sorted items.
         """
+
         class t(tuple):
             """Tuple with element-based sorting"""
+
             def __cmp__(self, other):
                 for a, b in itertools.zip_longest(self, other):
                     if a != b:
@@ -1401,35 +1503,41 @@ class List(TopLevelNode):
                         return a - b
                 return 0
 
-            def __lt__(self, other): # pragma: no cover
+            def __lt__(self, other):  # pragma: no cover
                 return self.__cmp__(other) < 0
-            def __gt_(self, other): # pragma: no cover
+
+            def __gt_(self, other):  # pragma: no cover
                 return self.__cmp__(other) > 0
-            def __le__(self, other): # pragma: no cover
+
+            def __le__(self, other):  # pragma: no cover
                 return self.__cmp__(other) <= 0
-            def __ge_(self, other): # pragma: no cover
+
+            def __ge_(self, other):  # pragma: no cover
                 return self.__cmp__(other) >= 0
-            def __eq__(self, other): # pragma: no cover
+
+            def __eq__(self, other):  # pragma: no cover
                 return self.__cmp__(other) == 0
-            def __ne__(self, other): # pragma: no cover
+
+            def __ne__(self, other):  # pragma: no cover
                 return self.__cmp__(other) != 0
 
         def key_func(x):
             if x.indented:
                 return t((int(x.parent_item.sort), int(x.sort)))
-            return t((int(x.sort), ))
+            return t((int(x.sort),))
 
         return sorted(items, key=key_func, reverse=True)
 
     def _items(self, checked=None):
         return [
-            node for node in self.children
-            if isinstance(node, ListItem) and not node.deleted and (
-                checked is None or node.checked == checked
-            )
+            node
+            for node in self.children
+            if isinstance(node, ListItem)
+            and not node.deleted
+            and (checked is None or node.checked == checked)
         ]
 
-    def sort_items(self, key=attrgetter('text'), reverse=False):
+    def sort_items(self, key=attrgetter("text"), reverse=False):
         """Sort list items in place. By default, the items are alphabetized,
         but a custom function can be specified.
 
@@ -1445,7 +1553,7 @@ class List(TopLevelNode):
             sort_value -= self.SORT_DELTA
 
     def __str__(self):
-        return '\n'.join(([self.title] + [str(node) for node in self.items]))
+        return "\n".join(([self.title] + [str(node) for node in self.items]))
 
     @property
     def items(self):
@@ -1474,13 +1582,19 @@ class List(TopLevelNode):
         """
         return self.sorted_items(self._items(False))
 
+
 class ListItem(Node):
     """Represents a Google Keep listitem.
     Interestingly enough, :class:`Note`s store their content in a single
     child :class:`ListItem`.
     """
-    def __init__(self, parent_id=None, parent_server_id=None, super_list_item_id=None, **kwargs):
-        super(ListItem, self).__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
+
+    def __init__(
+        self, parent_id=None, parent_server_id=None, super_list_item_id=None, **kwargs
+    ):
+        super(ListItem, self).__init__(
+            type_=NodeType.ListItem, parent_id=parent_id, **kwargs
+        )
         self.parent_item = None
         self.parent_server_id = parent_server_id
         self.super_list_item_id = super_list_item_id
@@ -1491,14 +1605,14 @@ class ListItem(Node):
     def _load(self, raw):
         super(ListItem, self)._load(raw)
         self.prev_super_list_item_id = self.super_list_item_id
-        self.super_list_item_id = raw.get('superListItemId') or None
-        self._checked = raw.get('checked', False)
+        self.super_list_item_id = raw.get("superListItemId") or None
+        self._checked = raw.get("checked", False)
 
     def save(self, clean=True):
         ret = super(ListItem, self).save(clean)
-        ret['parentServerId'] = self.parent_server_id
-        ret['superListItemId'] = self.super_list_item_id
-        ret['checked'] = self._checked
+        ret["parentServerId"] = self.parent_server_id
+        ret["superListItemId"] = self.super_list_item_id
+        ret["checked"] = self._checked
         return ret
 
     def add(self, text, checked=False, sort=None):
@@ -1510,7 +1624,7 @@ class ListItem(Node):
             sort (int): Item id for sorting.
         """
         if self.parent is None:
-            raise exception.InvalidException('Item has no parent')
+            raise exception.InvalidException("Item has no parent")
         node = self.parent.add(text, checked, sort)
         self.indent(node)
         return node
@@ -1554,9 +1668,7 @@ class ListItem(Node):
         Returns:
             list[gkeepapi.node.ListItem]: Subitems.
         """
-        return List.sorted_items(
-            self._subitems.values()
-        )
+        return List.sorted_items(self._subitems.values())
 
     @property
     def indented(self):
@@ -1582,57 +1694,63 @@ class ListItem(Node):
         self.touch(True)
 
     def __str__(self):
-        return '%s%s %s' % (
-            '  ' if self.indented else '',
-            '☑' if self.checked else '☐',
-            self.text
+        return "%s%s %s" % (
+            "  " if self.indented else "",
+            "☑" if self.checked else "☐",
+            self.text,
         )
+
 
 class NodeBlob(Element):
     """Represents a blob descriptor."""
+
     _TYPE = None
+
     def __init__(self, type_=None):
         super(NodeBlob, self).__init__()
         self.blob_id = None
         self.type = type_
         self._media_id = None
-        self._mimetype = ''
+        self._mimetype = ""
         self._is_uploaded = False
 
     def _load(self, raw):
         super(NodeBlob, self)._load(raw)
         # Verify this is a valid type
-        BlobType(raw['type'])
-        self.blob_id = raw.get('blob_id')
-        self._media_id = raw.get('media_id')
-        self._mimetype = raw.get('mimetype')
+        BlobType(raw["type"])
+        self.blob_id = raw.get("blob_id")
+        self._media_id = raw.get("media_id")
+        self._mimetype = raw.get("mimetype")
 
     def save(self, clean=True):
         ret = super(NodeBlob, self).save(clean)
-        ret['kind'] = 'notes#blob'
-        ret['type'] = self.type.value
+        ret["kind"] = "notes#blob"
+        ret["type"] = self.type.value
         if self.blob_id is not None:
-            ret['blob_id'] = self.blob_id
+            ret["blob_id"] = self.blob_id
         if self._media_id is not None:
-            ret['media_id'] = self._media_id
-        ret['mimetype'] = self._mimetype
+            ret["media_id"] = self._media_id
+        ret["mimetype"] = self._mimetype
         return ret
+
 
 class NodeAudio(NodeBlob):
     """Represents an audio blob."""
+
     _TYPE = BlobType.Audio
+
     def __init__(self):
         super(NodeAudio, self).__init__(type_=self._TYPE)
         self._length = None
 
     def _load(self, raw):
         super(NodeAudio, self)._load(raw)
-        self._length = raw.get('length')
+        self._length = raw.get("length")
 
     def save(self, clean=True):
         ret = super(NodeAudio, self).save(clean)
         if self._length is not None:
-            ret['length'] = self._length
+            ret["length"] = self._length
         return ret
 
     @property
@@ -1643,34 +1761,37 @@ class NodeAudio(NodeBlob):
         """
         return self._length
 
+
 class NodeImage(NodeBlob):
     """Represents an image blob."""
+
     _TYPE = BlobType.Image
+
     def __init__(self):
         super(NodeImage, self).__init__(type_=self._TYPE)
         self._is_uploaded = False
         self._width = 0
         self._height = 0
         self._byte_size = 0
-        self._extracted_text = ''
-        self._extraction_status = ''
+        self._extracted_text = ""
+        self._extraction_status = ""
 
     def _load(self, raw):
         super(NodeImage, self)._load(raw)
-        self._is_uploaded = raw.get('is_uploaded') or False
-        self._width = raw.get('width')
-        self._height = raw.get('height')
-        self._byte_size = raw.get('byte_size')
-        self._extracted_text = raw.get('extracted_text')
-        self._extraction_status = raw.get('extraction_status')
+        self._is_uploaded = raw.get("is_uploaded") or False
+        self._width = raw.get("width")
+        self._height = raw.get("height")
+        self._byte_size = raw.get("byte_size")
+        self._extracted_text = raw.get("extracted_text")
+        self._extraction_status = raw.get("extraction_status")
 
     def save(self, clean=True):
         ret = super(NodeImage, self).save(clean)
-        ret['width'] = self._width
-        ret['height'] = self._height
-        ret['byte_size'] = self._byte_size
-        ret['extracted_text'] = self._extracted_text
-        ret['extraction_status'] = self._extraction_status
+        ret["width"] = self._width
+        ret["height"] = self._height
+        ret["byte_size"] = self._byte_size
+        ret["extracted_text"] = self._extracted_text
+        ret["extraction_status"] = self._extraction_status
         return ret
 
     @property
@@ -1713,31 +1834,34 @@ class NodeImage(NodeBlob):
         """
         raise NotImplementedError()
 
+
 class NodeDrawing(NodeBlob):
     """Represents a drawing blob."""
+
     _TYPE = BlobType.Drawing
+
     def __init__(self):
         super(NodeDrawing, self).__init__(type_=self._TYPE)
-        self._extracted_text = ''
-        self._extraction_status = ''
+        self._extracted_text = ""
+        self._extraction_status = ""
         self._drawing_info = None
 
     def _load(self, raw):
         super(NodeDrawing, self)._load(raw)
-        self._extracted_text = raw.get('extracted_text')
-        self._extraction_status = raw.get('extraction_status')
+        self._extracted_text = raw.get("extracted_text")
+        self._extraction_status = raw.get("extraction_status")
         drawing_info = None
-        if 'drawingInfo' in raw:
+        if "drawingInfo" in raw:
             drawing_info = NodeDrawingInfo()
-            drawing_info.load(raw['drawingInfo'])
+            drawing_info.load(raw["drawingInfo"])
         self._drawing_info = drawing_info
 
     def save(self, clean=True):
         ret = super(NodeDrawing, self).save(clean)
-        ret['extracted_text'] = self._extracted_text
-        ret['extraction_status'] = self._extraction_status
+        ret["extracted_text"] = self._extracted_text
+        ret["extraction_status"] = self._extraction_status
         if self._drawing_info is not None:
-            ret['drawingInfo'] = self._drawing_info.save(clean)
+            ret["drawingInfo"] = self._drawing_info.save(clean)
         return ret
 
     @property
@@ -1746,41 +1870,62 @@ class NodeDrawing(NodeBlob):
         Returns:
             str: Extracted text.
         """
-        return self._drawing_info.snapshot.extracted_text \
-            if self._drawing_info is not None else ''
+        return (
+            self._drawing_info.snapshot.extracted_text
+            if self._drawing_info is not None
+            else ""
+        )
+
 
 class NodeDrawingInfo(Element):
     """Represents information about a drawing blob."""
+
     def __init__(self):
         super(NodeDrawingInfo, self).__init__()
-        self.drawing_id = ''
+        self.drawing_id = ""
         self.snapshot = NodeImage()
-        self._snapshot_fingerprint = ''
+        self._snapshot_fingerprint = ""
         self._thumbnail_generated_time = NodeTimestamps.int_to_dt(0)
-        self._ink_hash = ''
-        self._snapshot_proto_fprint = ''
+        self._ink_hash = ""
+        self._snapshot_proto_fprint = ""
 
     def _load(self, raw):
         super(NodeDrawingInfo, self)._load(raw)
-        self.drawing_id = raw['drawingId']
-        self.snapshot.load(raw['snapshotData'])
-        self._snapshot_fingerprint = raw['snapshotFingerprint'] if 'snapshotFingerprint' in raw else self._snapshot_fingerprint
-        self._thumbnail_generated_time = NodeTimestamps.str_to_dt(raw['thumbnailGeneratedTime']) if 'thumbnailGeneratedTime' in raw else NodeTimestamps.int_to_dt(0)
-        self._ink_hash = raw['inkHash'] if 'inkHash' in raw else ''
-        self._snapshot_proto_fprint = raw['snapshotProtoFprint'] if 'snapshotProtoFprint' in raw else self._snapshot_proto_fprint
+        self.drawing_id = raw["drawingId"]
+        self.snapshot.load(raw["snapshotData"])
+        self._snapshot_fingerprint = (
+            raw["snapshotFingerprint"]
+            if "snapshotFingerprint" in raw
+            else self._snapshot_fingerprint
+        )
+        self._thumbnail_generated_time = (
+            NodeTimestamps.str_to_dt(raw["thumbnailGeneratedTime"])
+            if "thumbnailGeneratedTime" in raw
+            else NodeTimestamps.int_to_dt(0)
+        )
+        self._ink_hash = raw["inkHash"] if "inkHash" in raw else ""
+        self._snapshot_proto_fprint = (
+            raw["snapshotProtoFprint"]
+            if "snapshotProtoFprint" in raw
+            else self._snapshot_proto_fprint
+        )
 
     def save(self, clean=True):
         ret = super(NodeDrawingInfo, self).save(clean)
-        ret['drawingId'] = self.drawing_id
-        ret['snapshotData'] = self.snapshot.save(clean)
-        ret['snapshotFingerprint'] = self._snapshot_fingerprint
-        ret['thumbnailGeneratedTime'] = NodeTimestamps.dt_to_str(self._thumbnail_generated_time)
-        ret['inkHash'] = self._ink_hash
-        ret['snapshotProtoFprint'] = self._snapshot_proto_fprint
+        ret["drawingId"] = self.drawing_id
+        ret["snapshotData"] = self.snapshot.save(clean)
+        ret["snapshotFingerprint"] = self._snapshot_fingerprint
+        ret["thumbnailGeneratedTime"] = NodeTimestamps.dt_to_str(
+            self._thumbnail_generated_time
+        )
+        ret["inkHash"] = self._ink_hash
+        ret["snapshotProtoFprint"] = self._snapshot_proto_fprint
         return ret
+
 
 class Blob(Node):
     """Represents a Google Keep blob."""
+
     _blob_type_map = {
         BlobType.Audio: NodeAudio,
         BlobType.Image: NodeImage,
@@ -1804,7 +1949,7 @@ class Blob(Node):
         if raw is None:
             return None
 
-        _type = raw.get('type')
+        _type = raw.get("type")
         if _type is None:
             return None
 
@@ -1812,9 +1957,9 @@ class Blob(Node):
         try:
             bcls = cls._blob_type_map[BlobType(_type)]
         except (KeyError, ValueError) as e:
-            logger.warning('Unknown blob type: %s', _type)
-            if DEBUG: # pragma: no cover
-                raise exception.ParseException(f'Parse error for {_type}', raw) from e
+            logger.warning("Unknown blob type: %s", _type)
+            if DEBUG:  # pragma: no cover
+                raise exception.ParseException(f"Parse error for {_type}", raw) from e
             return None
         blob = bcls()
         blob.load(raw)
@@ -1823,46 +1968,57 @@ class Blob(Node):
 
     def _load(self, raw):
         super(Blob, self)._load(raw)
-        self.blob = self.from_json(raw.get('blob'))
+        self.blob = self.from_json(raw.get("blob"))
 
     def save(self, clean=True):
         ret = super(Blob, self).save(clean)
         if self.blob is not None:
-            ret['blob'] = self.blob.save(clean)
+            ret["blob"] = self.blob.save(clean)
         return ret
+
 
 class Label(Element, TimestampsMixin):
     """Represents a label."""
+
     def __init__(self):
         super(Label, self).__init__()
 
         create_time = time.time()
 
         self.id = self._generateId(create_time)
-        self._name = ''
+        self._name = ""
         self.timestamps = NodeTimestamps(create_time)
         self._merged = NodeTimestamps.int_to_dt(0)
 
     @classmethod
     def _generateId(cls, tz):
-        return 'tag.%s.%x' % (
-            ''.join([random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for _ in range(12)]),
-            int(tz * 1000)
+        return "tag.%s.%x" % (
+            "".join(
+                [
+                    random.choice("abcdefghijklmnopqrstuvwxyz0123456789")
+                    for _ in range(12)
+                ]
+            ),
+            int(tz * 1000),
         )
 
     def _load(self, raw):
         super(Label, self)._load(raw)
-        self.id = raw['mainId']
-        self._name = raw['name']
-        self.timestamps.load(raw['timestamps'])
-        self._merged = NodeTimestamps.str_to_dt(raw['lastMerged']) if 'lastMerged' in raw else NodeTimestamps.int_to_dt(0)
+        self.id = raw["mainId"]
+        self._name = raw["name"]
+        self.timestamps.load(raw["timestamps"])
+        self._merged = (
+            NodeTimestamps.str_to_dt(raw["lastMerged"])
+            if "lastMerged" in raw
+            else NodeTimestamps.int_to_dt(0)
+        )
 
     def save(self, clean=True):
         ret = super(Label, self).save(clean)
-        ret['mainId'] = self.id
-        ret['name'] = self._name
-        ret['timestamps'] = self.timestamps.save(clean)
-        ret['lastMerged'] = NodeTimestamps.dt_to_str(self._merged)
+        ret["mainId"] = self.id
+        ret["name"] = self._name
+        ret["timestamps"] = self.timestamps.save(clean)
+        ret["lastMerged"] = NodeTimestamps.dt_to_str(self._merged)
         return ret
 
     @property
@@ -1900,12 +2056,14 @@ class Label(Element, TimestampsMixin):
     def __str__(self):
         return self.name
 
+
 _type_map = {
     NodeType.Note: Note,
     NodeType.List: List,
     NodeType.ListItem: ListItem,
     NodeType.Blob: Blob,
 }
+
 
 def from_json(raw):
     """Helper to construct a node from a dict.
@@ -1917,22 +2075,25 @@ def from_json(raw):
         Node: A Node object or None.
     """
     ncls = None
-    _type = raw.get('type')
+    _type = raw.get("type")
     try:
         ncls = _type_map[NodeType(_type)]
     except (KeyError, ValueError) as e:
-        logger.warning('Unknown node type: %s', _type)
-        if DEBUG: # pragma: no cover
-            raise exception.ParseException(f'Parse error for {_type}', raw) from e
+        logger.warning("Unknown node type: %s", _type)
+        if DEBUG:  # pragma: no cover
+            raise exception.ParseException(f"Parse error for {_type}", raw) from e
         return None
     node = ncls()
     node.load(raw)
 
     return node
 
-if DEBUG: # pragma: no cover
-    Node.__load = Node._load # pylint: disable=protected-access
-    def _load(self, raw): # pylint: disable=missing-docstring
-        self.__load(raw) # pylint: disable=protected-access
-        self._find_discrepancies(raw) # pylint: disable=protected-access
-    Node._load = _load # pylint: disable=protected-access
+
+if DEBUG:  # pragma: no cover
+    Node.__load = Node._load  # pylint: disable=protected-access
+
+    def _load(self, raw):  # pylint: disable=missing-docstring
+        self.__load(raw)  # pylint: disable=protected-access
+        self._find_discrepancies(raw)  # pylint: disable=protected-access
+
+    Node._load = _load  # pylint: disable=protected-access
