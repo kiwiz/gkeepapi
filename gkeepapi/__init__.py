@@ -23,10 +23,10 @@ from . import exception
 logger = logging.getLogger(__name__)
 
 
-class APIAuth(object):
+class APIAuth:
     """Authentication token manager"""
 
-    def __init__(self, scopes):
+    def __init__(self, scopes: str):
         self._master_token = None
         self._auth_token = None
         self._email = None
@@ -87,11 +87,11 @@ class APIAuth(object):
         """Gets the master token.
 
         Returns:
-            str: The account master token.
+            The account master token.
         """
         return self._master_token
 
-    def setMasterToken(self, master_token) -> None:
+    def setMasterToken(self, master_token: str) -> None:
         """Sets the master token. This is useful if you'd like to authenticate
         with the API without providing your username & password.
         Do note that the master token has full access to your account.
@@ -109,7 +109,7 @@ class APIAuth(object):
         """
         return self._email
 
-    def setEmail(self, email) -> None:
+    def setEmail(self, email: str) -> None:
         """Sets the account email.
 
         Args:
@@ -125,7 +125,7 @@ class APIAuth(object):
         """
         return self._device_id
 
-    def setDeviceId(self, device_id) -> None:
+    def setDeviceId(self, device_id: str) -> None:
         """Sets the device id.
 
         Args:
@@ -176,12 +176,12 @@ class APIAuth(object):
         self._device_id = None
 
 
-class API(object):
+class API:
     """Base API wrapper"""
 
     RETRY_CNT = 2
 
-    def __init__(self, base_url: str, auth=None):
+    def __init__(self, base_url: str, auth: APIAuth = None):
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
@@ -200,7 +200,7 @@ class API(object):
         """
         return self._auth
 
-    def setAuth(self, auth: APIAuth):
+    def setAuth(self, auth: APIAuth) -> None:
         """Set authentication details for this API.
 
         Args:
@@ -279,7 +279,7 @@ class KeepAPI(API):
 
     API_URL = "https://www.googleapis.com/notes/v1/"
 
-    def __init__(self, auth=None):
+    def __init__(self, auth: APIAuth = None):
         super(KeepAPI, self).__init__(self.API_URL, auth)
 
         create_time = time.time()
@@ -371,7 +371,7 @@ class MediaAPI(API):
 
     API_URL = "https://keep.google.com/media/v2/"
 
-    def __init__(self, auth=None):
+    def __init__(self, auth: APIAuth = None):
         super(MediaAPI, self).__init__(self.API_URL, auth)
 
     def get(self, blob: _node.Blob) -> str:
@@ -399,7 +399,7 @@ class RemindersAPI(API):
 
     API_URL = "https://www.googleapis.com/reminders/v1internal/reminders/"
 
-    def __init__(self, auth=None):
+    def __init__(self, auth: APIAuth = None):
         super(RemindersAPI, self).__init__(self.API_URL, auth)
         self.static_params = {
             "taskList": [
@@ -623,7 +623,7 @@ class RemindersAPI(API):
         return self.send(url=self._base_url + "update", method="POST", json=params)
 
 
-class Keep(object):
+class Keep:
     """High level Google Keep client.
 
     Stores a local copy of the Keep node tree. To start, first login::
@@ -743,6 +743,7 @@ class Keep(object):
         Args:
             auth: Authentication object.
             state: Serialized state to load.
+            sync: Whether to sync data.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -802,7 +803,6 @@ class Keep(object):
         """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
         :py:meth:`createNote` or :py:meth:`createList` as they are automatically added.
 
-            LoginException: If :py:meth:`login` has not been called.
         Args:
             node: The node to sync.
 
