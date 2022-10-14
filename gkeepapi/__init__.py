@@ -9,6 +9,7 @@ import logging
 import re
 import time
 import random
+from typing import Callable, Iterator, List, Optional, Tuple, Dict, Union
 
 from uuid import getnode as get_mac
 
@@ -19,11 +20,6 @@ from . import node as _node
 from . import exception
 
 logger = logging.getLogger(__name__)
-
-try:
-    Pattern = re._pattern_type # pylint: disable=protected-access
-except AttributeError:
-    Pattern = re.Pattern # pylint: disable=no-member
 
 class APIAuth(object):
     """Authentication token manager"""
@@ -653,7 +649,7 @@ class Keep(object):
     """
     OAUTH_SCOPES = 'oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders'
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._keep_api = KeepAPI()
         self._reminders_api = RemindersAPI()
         self._media_api = MediaAPI()
@@ -675,13 +671,13 @@ class Keep(object):
         root_node = _node.Root()
         self._nodes[_node.Root.ID] = root_node
 
-    def login(self, email, password, state=None, sync=True, device_id=None):
+    def login(self, email: str, password: str, state: Optional[Dict] = None, sync=True, device_id: Optional[str] = None):
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
-            email (str): The account to use.
-            password (str): The account password.
-            state (dict): Serialized state to load.
+            email: The account to use.
+            password: The account password.
+            state: Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -690,19 +686,18 @@ class Keep(object):
         if device_id is None:
             device_id = get_mac()
 
-        ret = auth.login(email, password, device_id)
-        if ret:
-            self.load(auth, state, sync)
+        auth.login(email, password, device_id)
+        self.load(auth, state, sync)
 
-        return ret
+        return True
 
-    def resume(self, email, master_token, state=None, sync=True, device_id=None):
+    def resume(self, email: str, master_token: str, state: Optional[Dict] = None, sync=True, device_id: Optional[int] = None):
         """Authenticate to Google with the provided master token & sync.
 
         Args:
-            email (str): The account to use.
-            master_token (str): The master token.
-            state (dict): Serialized state to load.
+            email: The account to use.
+            master_token: The master token.
+            state: Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -711,25 +706,24 @@ class Keep(object):
         if device_id is None:
             device_id = get_mac()
 
-        ret = auth.load(email, master_token, device_id)
-        if ret:
-            self.load(auth, state, sync)
+        auth.load(email, master_token, device_id)
+        self.load(auth, state, sync)
 
-        return ret
+        return True
 
-    def getMasterToken(self):
+    def getMasterToken(self) -> str:
         """Get master token for resuming.
 
         Returns:
-            str: The master token.
+            The master token.
         """
         return self._keep_api.getAuth().getMasterToken()
 
-    def load(self, auth, state=None, sync=True):
+    def load(self, auth: APIAuth, state: Optional[Dict] = None, sync=True) -> None:
         """Authenticate to Google with a prepared authentication object & sync.
         Args:
-            auth (APIAuth): Authentication object.
-            state (dict): Serialized state to load.
+            auth: Authentication object.
+            state: Serialized state to load.
 
         Raises:
             LoginException: If there was a problem logging in.
@@ -742,11 +736,11 @@ class Keep(object):
         if sync:
             self.sync(True)
 
-    def dump(self):
+    def dump(self) -> Dict:
         """Serialize note data.
 
-        Args:
-            state (dict): Serialized state to load.
+        Returns:
+            Serialized state.
         """
         # Find all nodes manually, as the Keep object isn't aware of new
         # ListItems until they've been synced to the server.
@@ -761,40 +755,40 @@ class Keep(object):
             'nodes': [node.save(False) for node in nodes]
         }
 
-    def restore(self, state):
+    def restore(self, state: Dict) -> None:
         """Unserialize saved note data.
 
         Args:
-            state (dict): Serialized state to load.
+            state: Serialized state to load.
         """
         self._clear()
         self._parseUserInfo({'labels': state['labels']})
         self._parseNodes(state['nodes'])
         self._keep_version = state['keep_version']
 
-    def get(self, node_id):
+    def get(self, node_id: str) -> _node.TopLevelNode:
         """Get a note with the given ID.
 
         Args:
-            node_id (str): The note ID.
+            node_id: The note ID.
 
         Returns:
-            gkeepapi.node.TopLevelNode: The Note or None if not found.
+            The Note or None if not found.
         """
         return \
             self._nodes[_node.Root.ID].get(node_id) or \
             self._nodes[_node.Root.ID].get(self._sid_map.get(node_id))
 
-    def add(self, node):
+    def add(self, node: _node.Node) -> None:
         """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
         :py:meth:`createNote` or :py:meth:`createList` as they are automatically added.
 
             LoginException: If :py:meth:`login` has not been called.
         Args:
-            node (gkeepapi.node.Node): The node to sync.
+            node: The node to sync.
 
         Raises:
-            Invalid: If the parent node is not found.
+            InvalidException: If the parent node is not found.
         """
         if node.parent_id != _node.Root.ID:
             raise exception.InvalidException('Not a top level node')
@@ -802,20 +796,29 @@ class Keep(object):
         self._nodes[node.id] = node
         self._nodes[node.parent_id].append(node, False)
 
-    def find(self, query=None, func=None, labels=None, colors=None, pinned=None, archived=None, trashed=False): # pylint: disable=too-many-arguments
+    def find(
+        self,
+        query: Union[re.Pattern, str, None] = None,
+        func: Optional[Callable] = None,
+        labels: Optional[List[str]] = None,
+        colors: Optional[List[str]] = None,
+        pinned: Optional[bool] = None,
+        archived: Optional[bool] = None,
+        trashed: Optional[bool] = False
+    ) -> Iterator[_node.TopLevelNode]: # pylint: disable=too-many-arguments
         """Find Notes based on the specified criteria.
 
         Args:
-            query (Union[_sre.SRE_Pattern, str, None]): A str or regular expression to match against the title and text.
-            func (Union[callable, None]): A filter function.
-            labels (Union[List[str], None]): A list of label ids or objects to match. An empty list matches notes with no labels.
-            colors (Union[List[str], None]): A list of colors to match.
-            pinned (Union[bool, None]): Whether to match pinned notes.
-            archived (Union[bool, None]): Whether to match archived notes.
-            trashed (Union[bool, None]): Whether to match trashed notes.
+            query: A str or regular expression to match against the title and text.
+            func: A filter function.
+            labels: A list of label ids or objects to match. An empty list matches notes with no labels.
+            colors: A list of colors to match.
+            pinned: Whether to match pinned notes.
+            archived: Whether to match archived notes.
+            trashed: Whether to match trashed notes.
 
         Return:
-            Generator[gkeepapi.node.TopLevelNode]: Results.
+            Search results.
         """
         if labels is not None:
             labels = [i.id if isinstance(i, _node.Label) else i for i in labels]
@@ -824,7 +827,7 @@ class Keep(object):
             # Process the query.
             (query is None or (
                 (isinstance(query, str) and (query in node.title or query in node.text)) or
-                (isinstance(query, Pattern) and (
+                (isinstance(query, re.Pattern) and (
                     query.search(node.title) or query.search(node.text)
                 ))
             )) and
@@ -845,15 +848,15 @@ class Keep(object):
             (trashed is None or node.trashed == trashed)
         )
 
-    def createNote(self, title=None, text=None):
+    def createNote(self, title: Optional[str] = None, text: Optional[str] = None) -> _node.Node:
         """Create a new managed note. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
-            title (str): The title of the note.
-            text (str): The text of the note.
+            title: The title of the note.
+            text: The text of the note.
 
         Returns:
-            gkeepapi.node.List: The new note.
+            The new note.
         """
         node = _node.Note()
         if title is not None:
@@ -863,15 +866,15 @@ class Keep(object):
         self.add(node)
         return node
 
-    def createList(self, title=None, items=None):
+    def createList(self, title: Optional[str] = None, items: Optional[List[Tuple[str, bool]]] = None) -> _node.List:
         """Create a new list and populate it. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
-            title (str): The title of the list.
-            items (List[(str, bool)]): A list of tuples. Each tuple represents the text and checked status of the listitem.
+            title: The title of the list.
+            items: A list of tuples. Each tuple represents the text and checked status of the listitem.
 
         Returns:
-            gkeepapi.node.List: The new list.
+            The new list.
         """
         if items is None:
             items = []
@@ -887,14 +890,14 @@ class Keep(object):
         self.add(node)
         return node
 
-    def createLabel(self, name):
+    def createLabel(self, name: str) -> _node.Label:
         """Create a new label.
 
         Args:
-            name (str): Label name.
+            name: Label name.
 
         Returns:
-            gkeepapi.node.Label: The new label.
+            The new label.
 
         Raises:
             LabelException: If the label exists.
@@ -906,15 +909,15 @@ class Keep(object):
         self._labels[node.id] = node # pylint: disable=protected-access
         return node
 
-    def findLabel(self, query, create=False):
+    def findLabel(self, query: Union[re.Pattern, str], create=False) -> Optional[_node.Label]:
         """Find a label with the given name.
 
         Args:
-            name (Union[_sre.SRE_Pattern, str]): A str or regular expression to match against the name.
-            create (bool): Whether to create the label if it doesn't exist (only if name is a str).
+            name: A str or regular expression to match against the name.
+            create: Whether to create the label if it doesn't exist (only if name is a str).
 
         Returns:
-            Union[gkeepapi.node.Label, None]: The label.
+            The label.
         """
         is_str = isinstance(query, str)
         name = None
@@ -925,27 +928,27 @@ class Keep(object):
         for label in self._labels.values():
             # Match the label against query, which may be a str or Pattern.
             if (is_str and query == label.name.lower()) or \
-                (isinstance(query, Pattern) and query.search(label.name)):
+                (isinstance(query, re.Pattern) and query.search(label.name)):
                 return label
 
         return self.createLabel(name) if create and is_str else None
 
-    def getLabel(self, label_id):
+    def getLabel(self, label_id: str) -> Optional[_node.Label]:
         """Get an existing label.
 
         Args:
-            label_id (str): Label id.
+            label_id: Label id.
 
         Returns:
-            Union[gkeepapi.node.Label, None]: The label.
+            The label.
         """
         return self._labels.get(label_id)
 
-    def deleteLabel(self, label_id):
+    def deleteLabel(self, label_id: str) -> None:
         """Deletes a label.
 
         Args:
-            label_id (str): Label id.
+            label_id: Label id.
         """
         if label_id not in self._labels:
             return
@@ -955,38 +958,38 @@ class Keep(object):
         for node in self.all():
             node.labels.remove(label)
 
-    def labels(self):
+    def labels(self) -> List[_node.Label]:
         """Get all labels.
 
         Returns:
-            List[gkeepapi.node.Label]: Labels
+            Labels
         """
         return self._labels.values()
 
-    def getMediaLink(self, blob):
+    def getMediaLink(self, blob: _node.Blob) -> str:
         """Get the canonical link to media.
 
         Args:
-            blob (gkeepapi.node.Blob): The media resource.
+            blob: The media resource.
 
         Returns:
-            str: A link to the media.
+            A link to the media.
         """
         return self._media_api.get(blob)
 
-    def all(self):
+    def all(self) -> List[_node.TopLevelNode]:
         """Get all Notes.
 
         Returns:
-            List[gkeepapi.node.TopLevelNode]: Notes
+            Notes
         """
         return self._nodes[_node.Root.ID].children
 
-    def sync(self, resync=False):
+    def sync(self, resync=False) -> None:
         """Sync the local Keep tree with the server. If resyncing, local changes will be destroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
 
         Args:
-            resync (bool): Whether to resync data.
+            resync: Whether to resync data.
 
         Raises:
             SyncException: If there is a consistency issue.
