@@ -437,6 +437,10 @@ This usually occurs when Google thinks the login request looks suspicious. Here 
 
 This is due to the enforcement of Android device policies on your G-Suite account. To resolve this, you can try disabling that setting `here <https://admin.google.com/AdminHome?hl=no#MobileSettings:section=advanced&flyout=security>`_.
 
+3. My notes take a long time to sync
+
+Follow the instructions in the caching notes section and see if that helps. If you only need to update notes, you can try creating a new Google account and sharing & managing your notes through that.
+
 Known Issues
 ============
 
