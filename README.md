@@ -14,6 +14,7 @@ An unofficial client for the [Google Keep](https://keep.google.com) API.
 import gkeepapi
 
 keep = gkeepapi.Keep()
+# You'll need to use an 'app password' here. To create a new app password, go to https://myaccount.google.com/apppasswords
 success = keep.login('user@gmail.com', 'password')
 
 note = keep.createNote('Todo', 'Eat breakfast')
