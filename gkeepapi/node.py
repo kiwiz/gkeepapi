@@ -1508,7 +1508,7 @@ class ListItem(Node):
         Args:
             text (str): The text.
             checked (bool): Whether this item is checked.
-            sort (int): Item id for sorting.
+            sort (Union[gkeepapi.node.NewListItemPlacementValue, int]): Item id for sorting or a placement policy.
         """
         if self.parent is None:
             raise exception.InvalidException('Item has no parent')
