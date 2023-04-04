@@ -1463,11 +1463,7 @@ class TopLevelNode(Node):
 
     @property
     def dirty(self):
-        return (
-            super().dirty
-            or self.labels.dirty
-            or self.collaborators.dirty
-        )
+        return super().dirty or self.labels.dirty or self.collaborators.dirty
 
     @property
     def blobs(self):
@@ -1500,9 +1496,7 @@ class ListItem(Node):
     def __init__(
         self, parent_id=None, parent_server_id=None, super_list_item_id=None, **kwargs
     ):
-        super().__init__(
-            type_=NodeType.ListItem, parent_id=parent_id, **kwargs
-        )
+        super().__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
         self.parent_item = None
         self.parent_server_id = parent_server_id
         self.super_list_item_id = super_list_item_id
