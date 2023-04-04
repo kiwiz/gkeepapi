@@ -1,24 +1,23 @@
-# -*- coding: utf-8 -*-
 """
 .. moduleauthor:: Kai <z@kwi.li>
 """
 
 __version__ = "1.0.0"
 
+import datetime
 import logging
+import random
 import re
 import time
-import datetime
-import random
-from typing import Callable, Iterator, Tuple, Any
-
+from collections.abc import Callable, Iterator
+from typing import Any
 from uuid import getnode as get_mac
 
 import gpsoauth
 import requests
 
-from . import node as _node
 from . import exception
+from . import node as _node
 
 logger = logging.getLogger(__name__)
 
@@ -160,9 +159,8 @@ class APIAuth:
             client_sig="38918a453d07199354f8b19af05ec6562ced5788",
         )
         # Bail if no token was returned.
-        if "Auth" not in res:
-            if "Token" not in res:
-                raise exception.LoginException(res.get("Error"))
+        if "Auth" not in res and "Token" not in res:
+            raise exception.LoginException(res.get("Error"))
 
         self._auth_token = res["Auth"]
         return self._auth_token
@@ -865,7 +863,7 @@ class Keep:
             and (  # Process the labels.
                 labels is None
                 or (not labels and not node.labels.all())
-                or (any((node.labels.get(i) is not None for i in labels)))
+                or (any(node.labels.get(i) is not None for i in labels))
             )
             and (colors is None or node.color in colors)  # Process the colors.
             and (pinned is None or node.pinned == pinned)  # Process the pinned state.
@@ -898,7 +896,7 @@ class Keep:
     def createList(
         self,
         title: str | None = None,
-        items: list[Tuple[str, bool]] | None = None,
+        items: list[tuple[str, bool]] | None = None,
     ) -> _node.List:
         """Create a new list and populate it. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
@@ -1062,7 +1060,7 @@ class Keep:
             logger.debug("Starting keep sync: %s", self._keep_version)
 
             # Collect any changes and send them up to the server.
-            labels_updated = any((i.dirty for i in self._labels.values()))
+            labels_updated = any(i.dirty for i in self._labels.values())
             changes = self._keep_api.changes(
                 target_version=self._keep_version,
                 nodes=[i.save() for i in self._findDirtyNodes()],

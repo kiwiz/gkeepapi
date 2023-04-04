@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. automodule:: gkeepapi
    :members:
@@ -8,14 +7,13 @@
 """
 
 import datetime
-import logging
-import time
-import random
 import enum
 import itertools
+import logging
+import random
+import time
+from collections.abc import Callable
 from operator import attrgetter
-
-from typing import Type, Tuple, Callable
 
 from . import exception
 
@@ -194,7 +192,7 @@ class Element:
                     logger.info("Missing key for %s key %s", type(self), key)
                     continue
 
-                if isinstance(val, (list, dict)):
+                if isinstance(val, list | dict):
                     continue
 
                 val_a = raw[key]
@@ -217,14 +215,13 @@ class Element:
                         raw[key],
                         s_raw[key],
                     )
-        elif isinstance(raw, list):
-            if len(raw) != len(s_raw):
-                logger.info(
-                    "Different length for %s: %d != %d",
-                    type(self),
-                    len(raw),
-                    len(s_raw),
-                )
+        elif isinstance(raw, list) and len(raw) != len(s_raw):
+            logger.info(
+                "Different length for %s: %d != %d",
+                type(self),
+                len(raw),
+                len(s_raw),
+            )
 
     def load(self, raw: dict):
         """Unserialize from raw representation. (Wrapper)
@@ -294,7 +291,7 @@ class Annotation(Element):
 
     @classmethod
     def _generateAnnotationId(cls) -> str:
-        return "%08x-%04x-%04x-%04x-%012x" % (
+        return "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}".format(
             random.randint(0x00000000, 0xFFFFFFFF),
             random.randint(0x0000, 0xFFFF),
             random.randint(0x0000, 0xFFFF),
@@ -502,7 +499,7 @@ class Context(Annotation):
     @property
     def dirty(self) -> bool:
         return super().dirty or any(
-            (annotation.dirty for annotation in self._entries.values())
+            annotation.dirty for annotation in self._entries.values()
         )
 
 
@@ -641,7 +638,7 @@ class NodeAnnotations(Element):
     @property
     def dirty(self) -> bool:
         return super().dirty or any(
-            (annotation.dirty for annotation in self._annotations.values())
+            annotation.dirty for annotation in self._annotations.values()
         )
 
 
@@ -896,7 +893,7 @@ class NodeCollaborators(Element):
                 collaborator["type"]
             )
 
-    def save(self, clean=True) -> Tuple[list, list]:
+    def save(self, clean=True) -> tuple[list, list]:
         # Parent method not called.
         collaborators = []
         requests = []
@@ -1023,7 +1020,7 @@ class Label(Element, TimestampsMixin):
 
     @classmethod
     def _generateId(cls, tz):
-        return "tag.%s.%x" % (
+        return "tag.{}.{:x}".format(
             "".join(
                 [
                     random.choice("abcdefghijklmnopqrstuvwxyz0123456789")
@@ -1108,7 +1105,7 @@ class NodeLabels(Element):
         for raw_label in raw:
             self._labels[raw_label["labelId"]] = None
 
-    def save(self, clean=True) -> Tuple[dict] | Tuple[dict, bool]:
+    def save(self, clean=True) -> tuple[dict] | tuple[dict, bool]:
         # Parent method not called.
         ret = [
             {
@@ -1187,7 +1184,7 @@ class Node(Element, TimestampsMixin):
 
     @classmethod
     def _generateId(cls, tz):
-        return "%x.%016x" % (
+        return "{:x}.{:016x}".format(
             int(tz * 1000),
             random.randint(0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
         )
@@ -1335,7 +1332,7 @@ class Node(Element, TimestampsMixin):
             or self.timestamps.dirty
             or self.annotations.dirty
             or self.settings.dirty
-            or any((node.dirty for node in self.children))
+            or any(node.dirty for node in self.children)
         )
 
 
@@ -1601,7 +1598,7 @@ class ListItem(Node):
         self.touch(True)
 
     def __str__(self):
-        return "%s%s %s" % (
+        return "{}{} {}".format(
             "  " if self.indented else "",
             "☑" if self.checked else "☐",
             self.text,
@@ -1682,7 +1679,7 @@ class List(TopLevelNode):
                 func = min
                 delta *= -1
 
-            node.sort = func((int(item.sort) for item in items)) + delta
+            node.sort = func(int(item.sort) for item in items) + delta
 
         self.append(node, True)
         self.touch(True)
@@ -1690,7 +1687,7 @@ class List(TopLevelNode):
 
     @property
     def text(self):
-        return "\n".join((str(node) for node in self.items))
+        return "\n".join(str(node) for node in self.items)
 
     @classmethod
     def sorted_items(cls, items: list[ListItem]) -> list[ListItem]:
@@ -1765,7 +1762,7 @@ class List(TopLevelNode):
             sort_value -= self.SORT_DELTA
 
     def __str__(self) -> str:
-        return "\n".join(([self.title] + [str(node) for node in self.items]))
+        return "\n".join([self.title] + [str(node) for node in self.items])
 
     @property
     def items(self) -> list[ListItem]:
@@ -2031,7 +2028,7 @@ class Blob(Node):
         self.blob = None
 
     @classmethod
-    def from_json(cls: Type, raw: dict) -> NodeBlob | None:
+    def from_json(cls: type, raw: dict) -> NodeBlob | None:
         """Helper to construct a blob from a dict.
 
         Args:
