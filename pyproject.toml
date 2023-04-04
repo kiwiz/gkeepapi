@@ -40,7 +40,13 @@ select = [
     # https://beta.ruff.rs/docs/rules/
     "E",  # pycodestyle (on by ruff's default)
     "F",  # Pyflakes (on by ruff's default)
+    "I",  # isort
+    "UP",  # pyupgrade
+    "C4",  # flake8-comprehensions
+    "PIE",  # flake8-pie
+    "SIM",  # flake8-simplify
     "PL",  # pylint
+    "RUF",  # ruff
 ]
 ignore = [
     "E501",  # line-too-long -- disabled as black takes care of this
