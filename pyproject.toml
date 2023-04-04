@@ -1,0 +1,27 @@
+[project]
+name = "gkeepapi"
+version = "1.0.0"
+authors = [
+  { name="Kai", email="z@kwi.li" },
+]
+description = "An unofficial Google Keep API client"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "gpsoauth >= 1.0.2",
+  "future >= 0.16.0",
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/kiwiz/gkeepapi"
+"Bug Tracker" = "https://github.com/kiwiz/gkeepapi/issues"
