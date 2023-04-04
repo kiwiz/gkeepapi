@@ -524,7 +524,7 @@ class NodeAnnotations(Element):
             raw: Raw annotation representation.
 
         Returns:
-            Node: An Annotation object or None.
+            An Annotation object or None.
         """
         bcls = None
         if "webLink" in raw:
@@ -949,6 +949,145 @@ class NodeCollaborators(Element):
         ]
 
 
+class TimestampsMixin:
+    """A mixin to add methods for updating timestamps."""
+
+    def __init__(self):
+        self.timestamps: NodeTimestamps
+
+    def touch(self, edited=False):
+        """Mark the node as dirty.
+
+        Args:
+            edited: Whether to set the edited time.
+        """
+        self._dirty = True
+        dt = datetime.datetime.utcnow()
+        self.timestamps.updated = dt
+        if edited:
+            self.timestamps.edited = dt
+
+    @property
+    def trashed(self):
+        """Get the trashed state.
+
+        Returns:
+            bool: Whether this item is trashed.
+        """
+        return (
+            self.timestamps.trashed is not None
+            and self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
+        )
+
+    def trash(self):
+        """Mark the item as trashed."""
+        self.timestamps.trashed = datetime.datetime.utcnow()
+
+    def untrash(self):
+        """Mark the item as untrashed."""
+        self.timestamps.trashed = self.timestamps.int_to_dt(0)
+
+    @property
+    def deleted(self):
+        """Get the deleted state.
+
+        Returns:
+            bool: Whether this item is deleted.
+        """
+        return (
+            self.timestamps.deleted is not None
+            and self.timestamps.deleted > NodeTimestamps.int_to_dt(0)
+        )
+
+    def delete(self):
+        """Mark the item as deleted."""
+        self.timestamps.deleted = datetime.datetime.utcnow()
+
+    def undelete(self):
+        """Mark the item as undeleted."""
+        self.timestamps.deleted = None
+
+
+class Label(Element, TimestampsMixin):
+    """Represents a label."""
+
+    def __init__(self):
+        super(Label, self).__init__()
+
+        create_time = time.time()
+
+        self.id = self._generateId(create_time)
+        self._name = ""
+        self.timestamps = NodeTimestamps(create_time)
+        self._merged = NodeTimestamps.int_to_dt(0)
+
+    @classmethod
+    def _generateId(cls, tz):
+        return "tag.%s.%x" % (
+            "".join(
+                [
+                    random.choice("abcdefghijklmnopqrstuvwxyz0123456789")
+                    for _ in range(12)
+                ]
+            ),
+            int(tz * 1000),
+        )
+
+    def _load(self, raw):
+        super(Label, self)._load(raw)
+        self.id = raw["mainId"]
+        self._name = raw["name"]
+        self.timestamps.load(raw["timestamps"])
+        self._merged = (
+            NodeTimestamps.str_to_dt(raw["lastMerged"])
+            if "lastMerged" in raw
+            else NodeTimestamps.int_to_dt(0)
+        )
+
+    def save(self, clean=True):
+        ret = super(Label, self).save(clean)
+        ret["mainId"] = self.id
+        ret["name"] = self._name
+        ret["timestamps"] = self.timestamps.save(clean)
+        ret["lastMerged"] = NodeTimestamps.dt_to_str(self._merged)
+        return ret
+
+    @property
+    def name(self):
+        """Get the label name.
+
+        Returns:
+            str: Label name.
+        """
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+        self.touch(True)
+
+    @property
+    def merged(self):
+        """Get last merge datetime.
+
+        Returns:
+            datetime: Datetime.
+        """
+        return self._merged
+
+    @merged.setter
+    def merged(self, value):
+        self._merged = value
+        self.touch()
+
+    @property
+    def dirty(self):
+        return super(Label, self).dirty or self.timestamps.dirty
+
+    def __str__(self):
+        return self.name
+
+
 class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
 
@@ -1020,65 +1159,6 @@ class NodeLabels(Element):
             list[gkeepapi.node.Label]: Labels.
         """
         return [label for _, label in self._labels.items() if label is not None]
-
-
-class TimestampsMixin:
-    """A mixin to add methods for updating timestamps."""
-
-    def __init__(self):
-        self.timestamps: NodeTimestamps
-
-    def touch(self, edited=False):
-        """Mark the node as dirty.
-
-        Args:
-            edited: Whether to set the edited time.
-        """
-        self._dirty = True
-        dt = datetime.datetime.utcnow()
-        self.timestamps.updated = dt
-        if edited:
-            self.timestamps.edited = dt
-
-    @property
-    def trashed(self):
-        """Get the trashed state.
-
-        Returns:
-            bool: Whether this item is trashed.
-        """
-        return (
-            self.timestamps.trashed is not None
-            and self.timestamps.trashed > NodeTimestamps.int_to_dt(0)
-        )
-
-    def trash(self):
-        """Mark the item as trashed."""
-        self.timestamps.trashed = datetime.datetime.utcnow()
-
-    def untrash(self):
-        """Mark the item as untrashed."""
-        self.timestamps.trashed = self.timestamps.int_to_dt(0)
-
-    @property
-    def deleted(self):
-        """Get the deleted state.
-
-        Returns:
-            bool: Whether this item is deleted.
-        """
-        return (
-            self.timestamps.deleted is not None
-            and self.timestamps.deleted > NodeTimestamps.int_to_dt(0)
-        )
-
-    def delete(self):
-        """Mark the item as deleted."""
-        self.timestamps.deleted = datetime.datetime.utcnow()
-
-    def undelete(self):
-        """Mark the item as undeleted."""
-        self.timestamps.deleted = None
 
 
 class Node(Element, TimestampsMixin):
@@ -1193,26 +1273,26 @@ class Node(Element, TimestampsMixin):
         self.touch(True)
 
     @property
-    def children(self):
+    def children(self) -> list["Node"]:
         """Get all children.
 
         Returns:
-            list[gkeepapi.Node]: Children nodes.
+            Children nodes.
         """
         return list(self._children.values())
 
-    def get(self, node_id: str):
+    def get(self, node_id: str) -> "Node | None":
         """Get child node with the given ID.
 
         Args:
             node_id: The node ID.
 
         Returns:
-            gkeepapi.Node: Child node.
+            Child node.
         """
         return self._children.get(node_id)
 
-    def append(self, node: Node, dirty=True):
+    def append(self, node: "Node", dirty=True):
         """Add a new child node.
 
         Args:
@@ -1226,7 +1306,7 @@ class Node(Element, TimestampsMixin):
 
         return node
 
-    def remove(self, node: Node, dirty=True):
+    def remove(self, node: "Node", dirty=True):
         """Remove the given child node.
 
         Args:
@@ -1462,7 +1542,7 @@ class ListItem(Node):
         self.indent(node)
         return node
 
-    def indent(self, node: ListItem, dirty=True):
+    def indent(self, node: "ListItem", dirty=True):
         """Indent an item. Does nothing if the target has subitems.
 
         Args:
@@ -1478,7 +1558,7 @@ class ListItem(Node):
         if dirty:
             node.touch(True)
 
-    def dedent(self, node: ListItem, dirty=True):
+    def dedent(self, node: "ListItem", dirty=True):
         """Dedent an item. Does nothing if the target is not indented under this item.
 
         Args:
@@ -1995,86 +2075,6 @@ class Blob(Node):
         if self.blob is not None:
             ret["blob"] = self.blob.save(clean)
         return ret
-
-
-class Label(Element, TimestampsMixin):
-    """Represents a label."""
-
-    def __init__(self):
-        super(Label, self).__init__()
-
-        create_time = time.time()
-
-        self.id = self._generateId(create_time)
-        self._name = ""
-        self.timestamps = NodeTimestamps(create_time)
-        self._merged = NodeTimestamps.int_to_dt(0)
-
-    @classmethod
-    def _generateId(cls, tz):
-        return "tag.%s.%x" % (
-            "".join(
-                [
-                    random.choice("abcdefghijklmnopqrstuvwxyz0123456789")
-                    for _ in range(12)
-                ]
-            ),
-            int(tz * 1000),
-        )
-
-    def _load(self, raw):
-        super(Label, self)._load(raw)
-        self.id = raw["mainId"]
-        self._name = raw["name"]
-        self.timestamps.load(raw["timestamps"])
-        self._merged = (
-            NodeTimestamps.str_to_dt(raw["lastMerged"])
-            if "lastMerged" in raw
-            else NodeTimestamps.int_to_dt(0)
-        )
-
-    def save(self, clean=True):
-        ret = super(Label, self).save(clean)
-        ret["mainId"] = self.id
-        ret["name"] = self._name
-        ret["timestamps"] = self.timestamps.save(clean)
-        ret["lastMerged"] = NodeTimestamps.dt_to_str(self._merged)
-        return ret
-
-    @property
-    def name(self):
-        """Get the label name.
-
-        Returns:
-            str: Label name.
-        """
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
-        self.touch(True)
-
-    @property
-    def merged(self):
-        """Get last merge datetime.
-
-        Returns:
-            datetime: Datetime.
-        """
-        return self._merged
-
-    @merged.setter
-    def merged(self, value):
-        self._merged = value
-        self.touch()
-
-    @property
-    def dirty(self):
-        return super(Label, self).dirty or self.timestamps.dirty
-
-    def __str__(self):
-        return self.name
 
 
 _type_map = {
