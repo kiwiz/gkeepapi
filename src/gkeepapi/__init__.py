@@ -1199,7 +1199,7 @@ class Keep:
         # Find nodes that aren't in our internal nodes list and insert them.
         for node in list(self._nodes.values()):
             for child in node.children:
-                if not child.id in self._nodes:
+                if child.id not in self._nodes:
                     self._nodes[child.id] = child
 
         nodes = []
