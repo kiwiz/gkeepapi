@@ -10,7 +10,7 @@ import re
 import time
 import datetime
 import random
-from typing import Callable, Iterator, List, Optional, Tuple, Dict, Union
+from typing import Callable, Iterator, Tuple, Any
 
 from uuid import getnode as get_mac
 
@@ -33,7 +33,7 @@ class APIAuth:
         self._device_id = None
         self._scopes = scopes
 
-    def login(self, email: str, password: str, device_id: str) -> bool:
+    def login(self, email: str, password: str, device_id: str):
         """Authenticate to Google with the provided credentials.
 
         Args:
@@ -62,7 +62,6 @@ class APIAuth:
 
         # Obtain an OAuth token.
         self.refresh()
-        return True
 
     def load(self, email: str, master_token: str, device_id: str) -> bool:
         """Authenticate to Google with the provided master token.
@@ -91,7 +90,7 @@ class APIAuth:
         """
         return self._master_token
 
-    def setMasterToken(self, master_token: str) -> None:
+    def setMasterToken(self, master_token: str):
         """Sets the master token. This is useful if you'd like to authenticate
         with the API without providing your username & password.
         Do note that the master token has full access to your account.
@@ -109,7 +108,7 @@ class APIAuth:
         """
         return self._email
 
-    def setEmail(self, email: str) -> None:
+    def setEmail(self, email: str):
         """Sets the account email.
 
         Args:
@@ -125,7 +124,7 @@ class APIAuth:
         """
         return self._device_id
 
-    def setDeviceId(self, device_id: str) -> None:
+    def setDeviceId(self, device_id: str):
         """Sets the device id.
 
         Args:
@@ -133,7 +132,7 @@ class APIAuth:
         """
         self._device_id = device_id
 
-    def getAuthToken(self) -> Optional[str]:
+    def getAuthToken(self) -> str | None:
         """Gets the auth token.
 
         Returns:
@@ -168,7 +167,7 @@ class APIAuth:
         self._auth_token = res["Auth"]
         return self._auth_token
 
-    def logout(self) -> None:
+    def logout(self):
         """Log out of the account."""
         self._master_token = None
         self._auth_token = None
@@ -181,7 +180,7 @@ class API:
 
     RETRY_CNT = 2
 
-    def __init__(self, base_url: str, auth: APIAuth = None):
+    def __init__(self, base_url: str, auth: APIAuth | None = None):
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
@@ -200,7 +199,7 @@ class API:
         """
         return self._auth
 
-    def setAuth(self, auth: APIAuth) -> None:
+    def setAuth(self, auth: APIAuth):
         """Set authentication details for this API.
 
         Args:
@@ -208,7 +207,7 @@ class API:
         """
         self._auth = auth
 
-    def send(self, **req_kwargs) -> Dict:
+    def send(self, **req_kwargs) -> dict:
         """Send an authenticated request to a Google API.
         Automatically retries if the access token has expired.
 
@@ -279,7 +278,7 @@ class KeepAPI(API):
 
     API_URL = "https://www.googleapis.com/notes/v1/"
 
-    def __init__(self, auth: APIAuth = None):
+    def __init__(self, auth: APIAuth | None = None):
         super(KeepAPI, self).__init__(self.API_URL, auth)
 
         create_time = time.time()
@@ -291,10 +290,10 @@ class KeepAPI(API):
 
     def changes(
         self,
-        target_version: str = None,
-        nodes: List[Dict] = None,
-        labels: List[Dict] = None,
-    ) -> Dict:
+        target_version: str | None = None,
+        nodes: list[dict] | None = None,
+        labels: list[dict] | None = None,
+    ) -> dict:
         """Sync up (and down) all changes.
 
         Args:
@@ -371,7 +370,7 @@ class MediaAPI(API):
 
     API_URL = "https://keep.google.com/media/v2/"
 
-    def __init__(self, auth: APIAuth = None):
+    def __init__(self, auth: APIAuth | None = None):
         super(MediaAPI, self).__init__(self.API_URL, auth)
 
     def get(self, blob: _node.Blob) -> str:
@@ -399,7 +398,7 @@ class RemindersAPI(API):
 
     API_URL = "https://www.googleapis.com/reminders/v1internal/reminders/"
 
-    def __init__(self, auth: APIAuth = None):
+    def __init__(self, auth: APIAuth | None = None):
         super(RemindersAPI, self).__init__(self.API_URL, auth)
         self.static_params = {
             "taskList": [
@@ -417,7 +416,9 @@ class RemindersAPI(API):
             },
         }
 
-    def create(self, node_id: str, node_server_id: str, dtime: datetime.datetime):
+    def create(
+        self, node_id: str, node_server_id: str, dtime: datetime.datetime
+    ) -> Any:
         """Create a new reminder.
 
         Args:
@@ -464,7 +465,9 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "create", method="POST", json=params)
 
-    def update(self, node_id: str, node_server_id: str, dtime: datetime.datetime):
+    def update(
+        self, node_id: str, node_server_id: str, dtime: datetime.datetime
+    ) -> Any:
         """Update an existing reminder.
 
         Args:
@@ -519,7 +522,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "update", method="POST", json=params)
 
-    def delete(self, node_server_id: str):
+    def delete(self, node_server_id: str) -> Any:
         """Delete an existing reminder.
 
         Args:
@@ -550,7 +553,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "batchmutate", method="POST", json=params)
 
-    def list(self, master=True):
+    def list(self, master=True) -> Any:
         """List current reminders.
 
         Args:
@@ -597,7 +600,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "list", method="POST", json=params)
 
-    def history(self, storage_version: str):
+    def history(self, storage_version: str) -> Any:
         """Get reminder changes.
 
         Args:
@@ -617,7 +620,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "history", method="POST", json=params)
 
-    def update(self):
+    def update(self) -> Any:
         """Sync up changes to reminders."""
         params = {}
         return self.send(url=self._base_url + "update", method="POST", json=params)
@@ -662,7 +665,7 @@ class Keep:
 
         self._clear()
 
-    def _clear(self) -> None:
+    def _clear(self):
         self._keep_version = None
         self._reminder_version = None
         self._labels = {}
@@ -676,9 +679,9 @@ class Keep:
         self,
         email: str,
         password: str,
-        state: Optional[Dict] = None,
+        state: dict | None = None,
         sync=True,
-        device_id: Optional[str] = None,
+        device_id: str | None = None,
     ):
         """Authenticate to Google with the provided credentials & sync.
 
@@ -694,20 +697,18 @@ class Keep:
         """
         auth = APIAuth(self.OAUTH_SCOPES)
         if device_id is None:
-            device_id = get_mac()
+            device_id = f"{get_mac():x}"
 
         auth.login(email, password, device_id)
         self.load(auth, state, sync)
-
-        return True
 
     def resume(
         self,
         email: str,
         master_token: str,
-        state: Optional[Dict] = None,
+        state: dict | None = None,
         sync=True,
-        device_id: Optional[str] = None,
+        device_id: str | None = None,
     ):
         """Authenticate to Google with the provided master token & sync.
 
@@ -723,12 +724,10 @@ class Keep:
         """
         auth = APIAuth(self.OAUTH_SCOPES)
         if device_id is None:
-            device_id = get_mac()
+            device_id = f"{get_mac():x}"
 
         auth.load(email, master_token, device_id)
         self.load(auth, state, sync)
-
-        return True
 
     def getMasterToken(self) -> str:
         """Get master token for resuming.
@@ -738,7 +737,7 @@ class Keep:
         """
         return self._keep_api.getAuth().getMasterToken()
 
-    def load(self, auth: APIAuth, state: Optional[Dict] = None, sync=True) -> None:
+    def load(self, auth: APIAuth, state: dict | None = None, sync=True):
         """Authenticate to Google with a prepared authentication object & sync.
         Args:
             auth: Authentication object.
@@ -756,7 +755,7 @@ class Keep:
         if sync:
             self.sync(True)
 
-    def dump(self) -> Dict:
+    def dump(self) -> dict:
         """Serialize note data.
 
         Returns:
@@ -775,7 +774,7 @@ class Keep:
             "nodes": [node.save(False) for node in nodes],
         }
 
-    def restore(self, state: Dict) -> None:
+    def restore(self, state: dict):
         """Unserialize saved note data.
 
         Args:
@@ -799,7 +798,7 @@ class Keep:
             _node.Root.ID
         ].get(self._sid_map.get(node_id))
 
-    def add(self, node: _node.Node) -> None:
+    def add(self, node: _node.Node):
         """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
         :py:meth:`createNote` or :py:meth:`createList` as they are automatically added.
 
@@ -817,12 +816,12 @@ class Keep:
 
     def find(
         self,
-        query: Union[re.Pattern, str, None] = None,
-        func: Optional[Callable] = None,
-        labels: Optional[List[str]] = None,
-        colors: Optional[List[str]] = None,
-        pinned: Optional[bool] = None,
-        archived: Optional[bool] = None,
+        query: re.Pattern | str | None = None,
+        func: Callable | None = None,
+        labels: list[str] | None = None,
+        colors: list[str] | None = None,
+        pinned: bool | None = None,
+        archived: bool | None = None,
         trashed: bool = False,
     ) -> Iterator[_node.TopLevelNode]:  # pylint: disable=too-many-arguments
         """Find Notes based on the specified criteria.
@@ -877,7 +876,7 @@ class Keep:
         )
 
     def createNote(
-        self, title: Optional[str] = None, text: Optional[str] = None
+        self, title: str | None = None, text: str | None = None
     ) -> _node.Node:
         """Create a new managed note. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
@@ -898,8 +897,8 @@ class Keep:
 
     def createList(
         self,
-        title: Optional[str] = None,
-        items: Optional[List[Tuple[str, bool]]] = None,
+        title: str | None = None,
+        items: list[Tuple[str, bool]] | None = None,
     ) -> _node.List:
         """Create a new list and populate it. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
@@ -943,9 +942,7 @@ class Keep:
         self._labels[node.id] = node  # pylint: disable=protected-access
         return node
 
-    def findLabel(
-        self, query: Union[re.Pattern, str], create=False
-    ) -> Optional[_node.Label]:
+    def findLabel(self, query: re.Pattern | str, create=False) -> _node.Label | None:
         """Find a label with the given name.
 
         Args:
@@ -970,7 +967,7 @@ class Keep:
 
         return self.createLabel(name) if create and is_str else None
 
-    def getLabel(self, label_id: str) -> Optional[_node.Label]:
+    def getLabel(self, label_id: str) -> _node.Label | None:
         """Get an existing label.
 
         Args:
@@ -981,7 +978,7 @@ class Keep:
         """
         return self._labels.get(label_id)
 
-    def deleteLabel(self, label_id: str) -> None:
+    def deleteLabel(self, label_id: str):
         """Deletes a label.
 
         Args:
@@ -995,13 +992,13 @@ class Keep:
         for node in self.all():
             node.labels.remove(label)
 
-    def labels(self) -> List[_node.Label]:
+    def labels(self) -> list[_node.Label]:
         """Get all labels.
 
         Returns:
             Labels
         """
-        return self._labels.values()
+        return list(self._labels.values())
 
     def getMediaLink(self, blob: _node.Blob) -> str:
         """Get the canonical link to media.
@@ -1014,7 +1011,7 @@ class Keep:
         """
         return self._media_api.get(blob)
 
-    def all(self) -> List[_node.TopLevelNode]:
+    def all(self) -> list[_node.TopLevelNode]:
         """Get all Notes.
 
         Returns:
@@ -1022,7 +1019,7 @@ class Keep:
         """
         return self._nodes[_node.Root.ID].children
 
-    def sync(self, resync=False) -> None:
+    def sync(self, resync=False):
         """Sync the local Keep tree with the server. If resyncing, local changes will be destroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
 
         Args:
@@ -1035,13 +1032,13 @@ class Keep:
         if resync:
             self._clear()
 
-        # self._sync_reminders(resync)
-        self._sync_notes(resync)
+        # self._sync_reminders()
+        self._sync_notes()
 
         if _node.DEBUG:
             self._clean()
 
-    def _sync_reminders(self, resync=False):
+    def _sync_reminders(self):
         # Fetch updates until we reach the newest version.
         while True:
             logger.debug("Starting reminder sync: %s", self._reminder_version)
@@ -1059,7 +1056,7 @@ class Keep:
             if self._reminder_version == history["highestStorageVersion"]:
                 break
 
-    def _sync_notes(self, resync=False):
+    def _sync_notes(self):
         # Fetch updates until we reach the newest version.
         while True:
             logger.debug("Starting keep sync: %s", self._keep_version)
@@ -1095,10 +1092,10 @@ class Keep:
             if not changes["truncated"]:
                 break
 
-    def _parseTasks(self, raw) -> None:
+    def _parseTasks(self, raw: dict):
         pass
 
-    def _parseNodes(self, raw) -> None:  # pylint: disable=too-many-branches
+    def _parseNodes(self, raw: dict):  # pylint: disable=too-many-branches
         created_nodes = []
         deleted_nodes = []
         listitem_nodes = []
@@ -1175,7 +1172,7 @@ class Keep:
                     label_id
                 )  # pylint: disable=protected-access
 
-    def _parseUserInfo(self, raw) -> None:
+    def _parseUserInfo(self, raw: dict):
         labels = {}
         if "labels" in raw:
             for label in raw["labels"]:
@@ -1198,7 +1195,7 @@ class Keep:
 
         self._labels = labels
 
-    def _findDirtyNodes(self) -> List[_node.Node]:
+    def _findDirtyNodes(self) -> list[_node.Node]:
         # Find nodes that aren't in our internal nodes list and insert them.
         for node in list(self._nodes.values()):
             for child in node.children:
@@ -1213,15 +1210,15 @@ class Keep:
 
         return nodes
 
-    def _clean(self) -> None:
+    def _clean(self):
         """Recursively check that all nodes are reachable."""
-        found_ids = {}
+        found_ids = set()
         nodes = [self._nodes[_node.Root.ID]]
 
         # Enumerate all nodes from the root node
         while nodes:
             node = nodes.pop()
-            found_ids[node.id] = None
+            found_ids.add(node.id)
             nodes = nodes + node.children
 
         # Find nodes that can't be reached from the root

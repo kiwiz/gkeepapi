@@ -15,6 +15,8 @@ import enum
 import itertools
 from operator import attrgetter
 
+from typing import Type, Tuple, Callable
+
 from . import exception
 
 DEBUG = False
@@ -489,13 +491,13 @@ class Context(Annotation):
         ret["context"] = context
         return ret
 
-    def all(self) -> Iterator[Annotation]:
+    def all(self) -> list[Annotation]:
         """Get all sub annotations.
 
         Returns:
             Sub Annotations.
         """
-        return self._entries.values()
+        return list(self._entries.values())
 
     @property
     def dirty(self) -> bool:
@@ -542,13 +544,13 @@ class NodeAnnotations(Element):
 
         return annotation
 
-    def all(self) -> Iterator[Annotation]:
+    def all(self) -> list[Annotation]:
         """Get all annotations.
 
         Returns:
             Annotations.
         """
-        return self._annotations.values()
+        return list(self._annotations.values())
 
     def _load(self, raw: dict):
         super(NodeAnnotations, self)._load(raw)
@@ -648,14 +650,14 @@ class NodeTimestamps(Element):
 
     TZ_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-    def __init__(self, create_time: str = None):
+    def __init__(self, create_time: float | None = None):
         super(NodeTimestamps, self).__init__()
         if create_time is None:
             create_time = time.time()
 
         self._created = self.int_to_dt(create_time)
-        self._deleted = self.int_to_dt(0)
-        self._trashed = self.int_to_dt(0)
+        self._deleted = None
+        self._trashed = None
         self._updated = self.int_to_dt(create_time)
         self._edited = self.int_to_dt(create_time)
 
@@ -696,7 +698,7 @@ class NodeTimestamps(Element):
         return datetime.datetime.strptime(tzs, cls.TZ_FMT)
 
     @classmethod
-    def int_to_dt(cls, tz: int) -> datetime.datetime:
+    def int_to_dt(cls, tz: int | float) -> datetime.datetime:
         """Convert a unix timestamp into an object.
 
         Params:
@@ -743,7 +745,7 @@ class NodeTimestamps(Element):
         self._dirty = True
 
     @property
-    def deleted(self) -> datetime.datetime:
+    def deleted(self) -> datetime.datetime | None:
         """Get the deletion datetime.
 
         Returns:
@@ -757,7 +759,7 @@ class NodeTimestamps(Element):
         self._dirty = True
 
     @property
-    def trashed(self) -> datetime.datetime:
+    def trashed(self) -> datetime.datetime | None:
         """Get the move-to-trash datetime.
 
         Returns:
@@ -879,7 +881,7 @@ class NodeCollaborators(Element):
         return len(self._collaborators)
 
     def load(
-        self, collaborators_raw: List, requests_raw: List
+        self, collaborators_raw: list, requests_raw: list
     ):  # pylint: disable=arguments-differ
         # Parent method not called.
         if requests_raw and isinstance(requests_raw[-1], bool):
@@ -894,7 +896,7 @@ class NodeCollaborators(Element):
                 collaborator["type"]
             )
 
-    def save(self, clean=True) -> Tuple[List, List]:
+    def save(self, clean=True) -> Tuple[list, list]:
         # Parent method not called.
         collaborators = []
         requests = []
@@ -957,7 +959,7 @@ class NodeLabels(Element):
     def __len__(self) -> int:
         return len(self._labels)
 
-    def _load(self, raw: dict):
+    def _load(self, raw: list):
         # Parent method not called.
         if raw and isinstance(raw[-1], bool):
             self._dirty = raw.pop()
@@ -967,7 +969,7 @@ class NodeLabels(Element):
         for raw_label in raw:
             self._labels[raw_label["labelId"]] = None
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean=True) -> Tuple[dict] | Tuple[dict, bool]:
         # Parent method not called.
         ret = [
             {
@@ -993,21 +995,21 @@ class NodeLabels(Element):
         self._labels[label.id] = label
         self._dirty = True
 
-    def remove(self, label):
+    def remove(self, label: Label):
         """Remove a label.
 
         Args:
-            label (gkeepapi.node.Label): The Label object.
+            label: The Label object.
         """
         if label.id in self._labels:
             self._labels[label.id] = None
         self._dirty = True
 
-    def get(self, label_id):
+    def get(self, label_id: str):
         """Get a label by ID.
 
         Args:
-            label_id (str): The label ID.
+            label_id: The label ID.
         """
         return self._labels.get(label_id)
 
@@ -1023,11 +1025,14 @@ class NodeLabels(Element):
 class TimestampsMixin:
     """A mixin to add methods for updating timestamps."""
 
+    def __init__(self):
+        self.timestamps: NodeTimestamps
+
     def touch(self, edited=False):
         """Mark the node as dirty.
 
         Args:
-            edited (bool): Whether to set the edited time.
+            edited: Whether to set the edited time.
         """
         self._dirty = True
         dt = datetime.datetime.utcnow()
@@ -1177,11 +1182,11 @@ class Node(Element, TimestampsMixin):
         return self._text
 
     @text.setter
-    def text(self, value):
+    def text(self, value: str):
         """Set the text value.
 
         Args:
-            value (str): Text value.
+            value: Text value.
         """
         self._text = value
         self.timestamps.edited = datetime.datetime.utcnow()
@@ -1196,23 +1201,23 @@ class Node(Element, TimestampsMixin):
         """
         return list(self._children.values())
 
-    def get(self, node_id):
+    def get(self, node_id: str):
         """Get child node with the given ID.
 
         Args:
-            node_id (str): The node ID.
+            node_id: The node ID.
 
         Returns:
             gkeepapi.Node: Child node.
         """
         return self._children.get(node_id)
 
-    def append(self, node, dirty=True):
+    def append(self, node: Node, dirty=True):
         """Add a new child node.
 
         Args:
-            node (gkeepapi.Node): Node to add.
-            dirty (bool): Whether this node should be marked dirty.
+            node: Node to add.
+            dirty: Whether this node should be marked dirty.
         """
         self._children[node.id] = node
         node.parent = self
@@ -1221,12 +1226,12 @@ class Node(Element, TimestampsMixin):
 
         return node
 
-    def remove(self, node, dirty=True):
+    def remove(self, node: Node, dirty=True):
         """Remove the given child node.
 
         Args:
-            node (gkeepapi.Node): Node to remove.
-            dirty (bool): Whether this node should be marked dirty.
+            node: Node to remove.
+            dirty: Whether this node should be marked dirty.
         """
         if node.id in self._children:
             self._children[node.id].parent = None
@@ -1406,188 +1411,6 @@ class TopLevelNode(Node):
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeAudio)]
 
 
-class Note(TopLevelNode):
-    """Represents a Google Keep note."""
-
-    _TYPE = NodeType.Note
-
-    def __init__(self, **kwargs):
-        super(Note, self).__init__(type_=self._TYPE, **kwargs)
-
-    def _get_text_node(self):
-        node = None
-        for child_node in self.children:
-            if isinstance(child_node, ListItem):
-                node = child_node
-                break
-
-        return node
-
-    @property
-    def text(self):
-        node = self._get_text_node()
-
-        if node is None:
-            return self._text
-        return node.text
-
-    @text.setter
-    def text(self, value):
-        node = self._get_text_node()
-        if node is None:
-            node = ListItem(parent_id=self.id)
-            self.append(node, True)
-        node.text = value
-        self.touch(True)
-
-    def __str__(self):
-        return "\n".join([self.title, self.text])
-
-
-class List(TopLevelNode):
-    """Represents a Google Keep list."""
-
-    _TYPE = NodeType.List
-    SORT_DELTA = 10000  # Arbitrary constant
-
-    def __init__(self, **kwargs):
-        super(List, self).__init__(type_=self._TYPE, **kwargs)
-
-    def add(self, text, checked=False, sort=None):
-        """Add a new item to the list.
-
-        Args:
-            text (str): The text.
-            checked (bool): Whether this item is checked.
-            sort (Union[gkeepapi.node.NewListItemPlacementValue, int]): Item id for sorting or a placement policy.
-        """
-        node = ListItem(parent_id=self.id, parent_server_id=self.server_id)
-        node.checked = checked
-        node.text = text
-
-        items = list(self.items)
-        if isinstance(sort, int):
-            node.sort = sort
-        elif isinstance(sort, NewListItemPlacementValue) and len(items):
-            func = max
-            delta = self.SORT_DELTA
-            if sort == NewListItemPlacementValue.Bottom:
-                func = min
-                delta *= -1
-
-            node.sort = func((int(item.sort) for item in items)) + delta
-
-        self.append(node, True)
-        self.touch(True)
-        return node
-
-    @property
-    def text(self):
-        return "\n".join((str(node) for node in self.items))
-
-    @classmethod
-    def sorted_items(cls, items):
-        """Generate a list of sorted list items, taking into account parent items.
-
-        Args:
-            items (list[gkeepapi.node.ListItem]): Items to sort.
-        Returns:
-            list[gkeepapi.node.ListItem]: Sorted items.
-        """
-
-        class t(tuple):
-            """Tuple with element-based sorting"""
-
-            def __cmp__(self, other):
-                for a, b in itertools.zip_longest(self, other):
-                    if a != b:
-                        if a is None:
-                            return 1
-                        if b is None:
-                            return -1
-                        return a - b
-                return 0
-
-            def __lt__(self, other):  # pragma: no cover
-                return self.__cmp__(other) < 0
-
-            def __gt_(self, other):  # pragma: no cover
-                return self.__cmp__(other) > 0
-
-            def __le__(self, other):  # pragma: no cover
-                return self.__cmp__(other) <= 0
-
-            def __ge_(self, other):  # pragma: no cover
-                return self.__cmp__(other) >= 0
-
-            def __eq__(self, other):  # pragma: no cover
-                return self.__cmp__(other) == 0
-
-            def __ne__(self, other):  # pragma: no cover
-                return self.__cmp__(other) != 0
-
-        def key_func(x):
-            if x.indented:
-                return t((int(x.parent_item.sort), int(x.sort)))
-            return t((int(x.sort),))
-
-        return sorted(items, key=key_func, reverse=True)
-
-    def _items(self, checked=None):
-        return [
-            node
-            for node in self.children
-            if isinstance(node, ListItem)
-            and not node.deleted
-            and (checked is None or node.checked == checked)
-        ]
-
-    def sort_items(self, key=attrgetter("text"), reverse=False):
-        """Sort list items in place. By default, the items are alphabetized,
-        but a custom function can be specified.
-
-        Args:
-            key (callable): A filter function.
-            reverse (bool): Whether to reverse the output.
-        """
-        sorted_children = sorted(self._items(), key=key, reverse=reverse)
-        sort_value = random.randint(1000000000, 9999999999)
-
-        for node in sorted_children:
-            node.sort = sort_value
-            sort_value -= self.SORT_DELTA
-
-    def __str__(self):
-        return "\n".join(([self.title] + [str(node) for node in self.items]))
-
-    @property
-    def items(self):
-        """Get all listitems.
-
-        Returns:
-            list[gkeepapi.node.ListItem]: List items.
-        """
-        return self.sorted_items(self._items())
-
-    @property
-    def checked(self):
-        """Get all checked listitems.
-
-        Returns:
-            list[gkeepapi.node.ListItem]: List items.
-        """
-        return self.sorted_items(self._items(True))
-
-    @property
-    def unchecked(self):
-        """Get all unchecked listitems.
-
-        Returns:
-            list[gkeepapi.node.ListItem]: List items.
-        """
-        return self.sorted_items(self._items(False))
-
-
 class ListItem(Node):
     """Represents a Google Keep listitem.
     Interestingly enough, :class:`Note`s store their content in a single
@@ -1620,13 +1443,18 @@ class ListItem(Node):
         ret["checked"] = self._checked
         return ret
 
-    def add(self, text, checked=False, sort=None):
+    def add(
+        self,
+        text: str,
+        checked=False,
+        sort: NewListItemPlacementValue | int | None = None,
+    ):
         """Add a new sub item to the list. This item must already be attached to a list.
 
         Args:
-            text (str): The text.
-            checked (bool): Whether this item is checked.
-            sort (int): Item id for sorting.
+            text: The text.
+            checked: Whether this item is checked.
+            sort: Item id for sorting.
         """
         if self.parent is None:
             raise exception.InvalidException("Item has no parent")
@@ -1634,12 +1462,12 @@ class ListItem(Node):
         self.indent(node)
         return node
 
-    def indent(self, node, dirty=True):
+    def indent(self, node: ListItem, dirty=True):
         """Indent an item. Does nothing if the target has subitems.
 
         Args:
-            node (gkeepapi.node.ListItem): Item to indent.
-            dirty (bool): Whether this node should be marked dirty.
+            node: Item to indent.
+            dirty: Whether this node should be marked dirty.
         """
         if node.subitems:
             return
@@ -1650,12 +1478,12 @@ class ListItem(Node):
         if dirty:
             node.touch(True)
 
-    def dedent(self, node, dirty=True):
+    def dedent(self, node: ListItem, dirty=True):
         """Dedent an item. Does nothing if the target is not indented under this item.
 
         Args:
-            node (gkeepapi.node.ListItem): Item to dedent.
-            dirty (bool): Whether this node should be marked dirty.
+            node: Item to dedent.
+            dirty : Whether this node should be marked dirty.
         """
         if node.id not in self._subitems:
             return
@@ -1704,6 +1532,193 @@ class ListItem(Node):
             "☑" if self.checked else "☐",
             self.text,
         )
+
+
+class Note(TopLevelNode):
+    """Represents a Google Keep note."""
+
+    _TYPE = NodeType.Note
+
+    def __init__(self, **kwargs):
+        super(Note, self).__init__(type_=self._TYPE, **kwargs)
+
+    def _get_text_node(self):
+        node = None
+        for child_node in self.children:
+            if isinstance(child_node, ListItem):
+                node = child_node
+                break
+
+        return node
+
+    @property
+    def text(self):
+        node = self._get_text_node()
+
+        if node is None:
+            return self._text
+        return node.text
+
+    @text.setter
+    def text(self, value):
+        node = self._get_text_node()
+        if node is None:
+            node = ListItem(parent_id=self.id)
+            self.append(node, True)
+        node.text = value
+        self.touch(True)
+
+    def __str__(self):
+        return "\n".join([self.title, self.text])
+
+
+class List(TopLevelNode):
+    """Represents a Google Keep list."""
+
+    _TYPE = NodeType.List
+    SORT_DELTA = 10000  # Arbitrary constant
+
+    def __init__(self, **kwargs):
+        super(List, self).__init__(type_=self._TYPE, **kwargs)
+
+    def add(
+        self,
+        text: str,
+        checked=False,
+        sort: NewListItemPlacementValue | int | None = None,
+    ):
+        """Add a new item to the list.
+
+        Args:
+            text: The text.
+            checked: Whether this item is checked.
+            sort: Item id for sorting or a placement policy.
+        """
+        node = ListItem(parent_id=self.id, parent_server_id=self.server_id)
+        node.checked = checked
+        node.text = text
+
+        items = list(self.items)
+        if isinstance(sort, int):
+            node.sort = sort
+        elif isinstance(sort, NewListItemPlacementValue) and len(items):
+            func = max
+            delta = self.SORT_DELTA
+            if sort == NewListItemPlacementValue.Bottom:
+                func = min
+                delta *= -1
+
+            node.sort = func((int(item.sort) for item in items)) + delta
+
+        self.append(node, True)
+        self.touch(True)
+        return node
+
+    @property
+    def text(self):
+        return "\n".join((str(node) for node in self.items))
+
+    @classmethod
+    def sorted_items(cls, items: list[ListItem]) -> list[ListItem]:
+        """Generate a list of sorted list items, taking into account parent items.
+
+        Args:
+            items: Items to sort.
+        Returns:
+            Sorted items.
+        """
+
+        class t(tuple):
+            """Tuple with element-based sorting"""
+
+            def __cmp__(self, other):
+                for a, b in itertools.zip_longest(self, other):
+                    if a != b:
+                        if a is None:
+                            return 1
+                        if b is None:
+                            return -1
+                        return a - b
+                return 0
+
+            def __lt__(self, other):  # pragma: no cover
+                return self.__cmp__(other) < 0
+
+            def __gt_(self, other):  # pragma: no cover
+                return self.__cmp__(other) > 0
+
+            def __le__(self, other):  # pragma: no cover
+                return self.__cmp__(other) <= 0
+
+            def __ge_(self, other):  # pragma: no cover
+                return self.__cmp__(other) >= 0
+
+            def __eq__(self, other):  # pragma: no cover
+                return self.__cmp__(other) == 0
+
+            def __ne__(self, other):  # pragma: no cover
+                return self.__cmp__(other) != 0
+
+        def key_func(x):
+            if x.indented:
+                return t((int(x.parent_item.sort), int(x.sort)))
+            return t((int(x.sort),))
+
+        return sorted(items, key=key_func, reverse=True)
+
+    def _items(self, checked: bool | None = None) -> list[ListItem]:
+        return [
+            node
+            for node in self.children
+            if isinstance(node, ListItem)
+            and not node.deleted
+            and (checked is None or node.checked == checked)
+        ]
+
+    def sort_items(self, key: Callable = attrgetter("text"), reverse=False):
+        """Sort list items in place. By default, the items are alphabetized,
+        but a custom function can be specified.
+
+        Args:
+            key: A filter function.
+            reverse: Whether to reverse the output.
+        """
+        sorted_children = sorted(self._items(), key=key, reverse=reverse)
+        sort_value = random.randint(1000000000, 9999999999)
+
+        for node in sorted_children:
+            node.sort = sort_value
+            sort_value -= self.SORT_DELTA
+
+    def __str__(self) -> str:
+        return "\n".join(([self.title] + [str(node) for node in self.items]))
+
+    @property
+    def items(self) -> list[ListItem]:
+        """Get all listitems.
+
+        Returns:
+            List items.
+        """
+        return self.sorted_items(self._items())
+
+    @property
+    def checked(self) -> list[ListItem]:
+        """Get all checked listitems.
+
+        Returns:
+            List items.
+        """
+        return self.sorted_items(self._items(True))
+
+    @property
+    def unchecked(self) -> list[ListItem]:
+        """Get all unchecked listitems.
+
+        Returns:
+            List items.
+        """
+        return self.sorted_items(self._items(False))
 
 
 class NodeBlob(Element):
@@ -1942,14 +1957,14 @@ class Blob(Node):
         self.blob = None
 
     @classmethod
-    def from_json(cls, raw):
+    def from_json(cls: Type, raw: dict) -> NodeBlob | None:
         """Helper to construct a blob from a dict.
 
         Args:
-            raw (dict): Raw blob representation.
+            raw: Raw blob representation.
 
         Returns:
-            NodeBlob: A NodeBlob object or None.
+            A NodeBlob object or None.
         """
         if raw is None:
             return None
