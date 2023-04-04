@@ -20,6 +20,10 @@ dependencies = [
   "gpsoauth >= 1.0.2",
   "future >= 0.16.0",
 ]
+optional-dependencies = [
+  "pylint>=2.17.2",
+  "black>=23.3.0",
+]
 
 
 [project.urls]

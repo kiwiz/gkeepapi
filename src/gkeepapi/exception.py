@@ -8,7 +8,7 @@ class APIException(Exception):
     """The API server returned an error."""
 
     def __init__(self, code: int, msg: str):
-        super(APIException, self).__init__(msg)
+        super().__init__(msg)
         self.code = code
 
 
@@ -55,5 +55,5 @@ class ParseException(KeepException):
     """Parse error."""
 
     def __init__(self, msg: str, raw: dict):
-        super(ParseException, self).__init__(msg)
+        super().__init__(msg)
         self.raw = raw

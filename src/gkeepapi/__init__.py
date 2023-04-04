@@ -279,7 +279,7 @@ class KeepAPI(API):
     API_URL = "https://www.googleapis.com/notes/v1/"
 
     def __init__(self, auth: APIAuth | None = None):
-        super(KeepAPI, self).__init__(self.API_URL, auth)
+        super().__init__(self.API_URL, auth)
 
         create_time = time.time()
         self._session_id = self._generateId(create_time)
@@ -371,7 +371,7 @@ class MediaAPI(API):
     API_URL = "https://keep.google.com/media/v2/"
 
     def __init__(self, auth: APIAuth | None = None):
-        super(MediaAPI, self).__init__(self.API_URL, auth)
+        super().__init__(self.API_URL, auth)
 
     def get(self, blob: _node.Blob) -> str:
         """Get the canonical link to a media blob.
@@ -399,7 +399,7 @@ class RemindersAPI(API):
     API_URL = "https://www.googleapis.com/reminders/v1internal/reminders/"
 
     def __init__(self, auth: APIAuth | None = None):
-        super(RemindersAPI, self).__init__(self.API_URL, auth)
+        super().__init__(self.API_URL, auth)
         self.static_params = {
             "taskList": [
                 {"systemListId": "MEMENTO"},

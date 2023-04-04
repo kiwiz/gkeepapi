@@ -277,17 +277,17 @@ class Annotation(Element):
     """Note annotations base class."""
 
     def __init__(self):
-        super(Annotation, self).__init__()
+        super().__init__()
         self.id = self._generateAnnotationId()
 
     def _load(self, raw: dict):
-        super(Annotation, self)._load(raw)
+        super()._load(raw)
         self.id = raw.get("id")
 
     def save(self, clean=True) -> dict:
         ret = {}
         if self.id is not None:
-            ret = super(Annotation, self).save(clean)
+            ret = super().save(clean)
         if self.id is not None:
             ret["id"] = self.id
         return ret
@@ -307,7 +307,7 @@ class WebLink(Annotation):
     """Represents a link annotation on a :class:`TopLevelNode`."""
 
     def __init__(self):
-        super(WebLink, self).__init__()
+        super().__init__()
         self._title = ""
         self._url = ""
         self._image_url = None
@@ -315,7 +315,7 @@ class WebLink(Annotation):
         self._description = ""
 
     def _load(self, raw: dict):
-        super(WebLink, self)._load(raw)
+        super()._load(raw)
         self._title = raw["webLink"]["title"]
         self._url = raw["webLink"]["url"]
         self._image_url = (
@@ -327,7 +327,7 @@ class WebLink(Annotation):
         self._description = raw["webLink"]["description"]
 
     def save(self, clean=True) -> dict:
-        ret = super(WebLink, self).save(clean)
+        ret = super().save(clean)
         ret["webLink"] = {
             "title": self._title,
             "url": self._url,
@@ -412,15 +412,15 @@ class Category(Annotation):
     """Represents a category annotation on a :class:`TopLevelNode`."""
 
     def __init__(self):
-        super(Category, self).__init__()
+        super().__init__()
         self._category = None
 
     def _load(self, raw: dict):
-        super(Category, self)._load(raw)
+        super()._load(raw)
         self._category = CategoryValue(raw["topicCategory"]["category"])
 
     def save(self, clean=True) -> dict:
-        ret = super(Category, self).save(clean)
+        ret = super().save(clean)
         ret["topicCategory"] = {"category": self._category.value}
         return ret
 
@@ -443,15 +443,15 @@ class TaskAssist(Annotation):
     """Unknown."""
 
     def __init__(self):
-        super(TaskAssist, self).__init__()
+        super().__init__()
         self._suggest = None
 
     def _load(self, raw: dict):
-        super(TaskAssist, self)._load(raw)
+        super()._load(raw)
         self._suggest = raw["taskAssist"]["suggestType"]
 
     def save(self, clean=True) -> dict:
-        ret = super(TaskAssist, self).save(clean)
+        ret = super().save(clean)
         ret["taskAssist"] = {"suggestType": self._suggest}
         return ret
 
@@ -474,17 +474,17 @@ class Context(Annotation):
     """Represents a context annotation, which may contain other annotations."""
 
     def __init__(self):
-        super(Context, self).__init__()
+        super().__init__()
         self._entries = {}
 
     def _load(self, raw: dict):
-        super(Context, self)._load(raw)
+        super()._load(raw)
         self._entries = {}
         for key, entry in raw.get("context", {}).items():
             self._entries[key] = NodeAnnotations.from_json({key: entry})
 
     def save(self, clean=True) -> dict:
-        ret = super(Context, self).save(clean)
+        ret = super().save(clean)
         context = {}
         for entry in self._entries.values():
             context.update(entry.save(clean))
@@ -501,7 +501,7 @@ class Context(Annotation):
 
     @property
     def dirty(self) -> bool:
-        return super(Context, self).dirty or any(
+        return super().dirty or any(
             (annotation.dirty for annotation in self._entries.values())
         )
 
@@ -510,7 +510,7 @@ class NodeAnnotations(Element):
     """Represents the annotation container on a :class:`TopLevelNode`."""
 
     def __init__(self):
-        super(NodeAnnotations, self).__init__()
+        super().__init__()
         self._annotations = {}
 
     def __len__(self):
@@ -553,7 +553,7 @@ class NodeAnnotations(Element):
         return list(self._annotations.values())
 
     def _load(self, raw: dict):
-        super(NodeAnnotations, self)._load(raw)
+        super()._load(raw)
         self._annotations = {}
         if "annotations" not in raw:
             return
@@ -563,7 +563,7 @@ class NodeAnnotations(Element):
             self._annotations[annotation.id] = annotation
 
     def save(self, clean=True) -> dict:
-        ret = super(NodeAnnotations, self).save(clean)
+        ret = super().save(clean)
         ret["kind"] = "notes#annotationsGroup"
         if self._annotations:
             ret["annotations"] = [
@@ -640,7 +640,7 @@ class NodeAnnotations(Element):
 
     @property
     def dirty(self) -> bool:
-        return super(NodeAnnotations, self).dirty or any(
+        return super().dirty or any(
             (annotation.dirty for annotation in self._annotations.values())
         )
 
@@ -651,7 +651,7 @@ class NodeTimestamps(Element):
     TZ_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
     def __init__(self, create_time: float | None = None):
-        super(NodeTimestamps, self).__init__()
+        super().__init__()
         if create_time is None:
             create_time = time.time()
 
@@ -662,7 +662,7 @@ class NodeTimestamps(Element):
         self._edited = self.int_to_dt(create_time)
 
     def _load(self, raw: dict):
-        super(NodeTimestamps, self)._load(raw)
+        super()._load(raw)
         if "created" in raw:
             self._created = self.str_to_dt(raw["created"])
         self._deleted = self.str_to_dt(raw["deleted"]) if "deleted" in raw else None
@@ -673,7 +673,7 @@ class NodeTimestamps(Element):
         )
 
     def save(self, clean=True) -> dict:
-        ret = super(NodeTimestamps, self).save(clean)
+        ret = super().save(clean)
         ret["kind"] = "notes#timestamps"
         ret["created"] = self.dt_to_str(self._created)
         if self._deleted is not None:
@@ -805,13 +805,13 @@ class NodeSettings(Element):
     """Represents the settings associated with a :class:`TopLevelNode`."""
 
     def __init__(self):
-        super(NodeSettings, self).__init__()
+        super().__init__()
         self._new_listitem_placement = NewListItemPlacementValue.Bottom
         self._graveyard_state = GraveyardStateValue.Collapsed
         self._checked_listitems_policy = CheckedListItemsPolicyValue.Graveyard
 
     def _load(self, raw: dict):
-        super(NodeSettings, self)._load(raw)
+        super()._load(raw)
         self._new_listitem_placement = NewListItemPlacementValue(
             raw["newListItemPlacement"]
         )
@@ -821,7 +821,7 @@ class NodeSettings(Element):
         )
 
     def save(self, clean=True) -> dict:
-        ret = super(NodeSettings, self).save(clean)
+        ret = super().save(clean)
         ret["newListItemPlacement"] = self._new_listitem_placement.value
         ret["graveyardState"] = self._graveyard_state.value
         ret["checkedListItemsPolicy"] = self._checked_listitems_policy.value
@@ -874,7 +874,7 @@ class NodeCollaborators(Element):
     """Represents the collaborators on a :class:`TopLevelNode`."""
 
     def __init__(self):
-        super(NodeCollaborators, self).__init__()
+        super().__init__()
         self._collaborators = {}
 
     def __len__(self) -> int:
@@ -1012,7 +1012,7 @@ class Label(Element, TimestampsMixin):
     """Represents a label."""
 
     def __init__(self):
-        super(Label, self).__init__()
+        super().__init__()
 
         create_time = time.time()
 
@@ -1034,7 +1034,7 @@ class Label(Element, TimestampsMixin):
         )
 
     def _load(self, raw):
-        super(Label, self)._load(raw)
+        super()._load(raw)
         self.id = raw["mainId"]
         self._name = raw["name"]
         self.timestamps.load(raw["timestamps"])
@@ -1045,7 +1045,7 @@ class Label(Element, TimestampsMixin):
         )
 
     def save(self, clean=True):
-        ret = super(Label, self).save(clean)
+        ret = super().save(clean)
         ret["mainId"] = self.id
         ret["name"] = self._name
         ret["timestamps"] = self.timestamps.save(clean)
@@ -1082,7 +1082,7 @@ class Label(Element, TimestampsMixin):
 
     @property
     def dirty(self):
-        return super(Label, self).dirty or self.timestamps.dirty
+        return super().dirty or self.timestamps.dirty
 
     def __str__(self):
         return self.name
@@ -1092,7 +1092,7 @@ class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
 
     def __init__(self):
-        super(NodeLabels, self).__init__()
+        super().__init__()
         self._labels = {}
 
     def __len__(self) -> int:
@@ -1165,7 +1165,7 @@ class Node(Element, TimestampsMixin):
     """Node base class."""
 
     def __init__(self, id_=None, type_=None, parent_id=None):
-        super(Node, self).__init__()
+        super().__init__()
 
         create_time = time.time()
 
@@ -1193,7 +1193,7 @@ class Node(Element, TimestampsMixin):
         )
 
     def _load(self, raw):
-        super(Node, self)._load(raw)
+        super()._load(raw)
         # Verify this is a valid type
         NodeType(raw["type"])
         if raw["kind"] not in ["notes#node"]:
@@ -1213,7 +1213,7 @@ class Node(Element, TimestampsMixin):
         self.annotations.load(raw["annotationsGroup"])
 
     def save(self, clean=True):
-        ret = super(Node, self).save(clean)
+        ret = super().save(clean)
         ret["id"] = self.id
         ret["kind"] = "notes#node"
         ret["type"] = self.type.value
@@ -1331,7 +1331,7 @@ class Node(Element, TimestampsMixin):
     @property
     def dirty(self):
         return (
-            super(Node, self).dirty
+            super().dirty
             or self.timestamps.dirty
             or self.annotations.dirty
             or self.settings.dirty
@@ -1345,7 +1345,7 @@ class Root(Node):
     ID = "root"
 
     def __init__(self):
-        super(Root, self).__init__(id_=self.ID)
+        super().__init__(id_=self.ID)
 
     @property
     def dirty(self):
@@ -1358,7 +1358,7 @@ class TopLevelNode(Node):
     _TYPE = None
 
     def __init__(self, **kwargs):
-        super(TopLevelNode, self).__init__(parent_id=Root.ID, **kwargs)
+        super().__init__(parent_id=Root.ID, **kwargs)
         self._color = ColorValue.White
         self._archived = False
         self._pinned = False
@@ -1367,7 +1367,7 @@ class TopLevelNode(Node):
         self.collaborators = NodeCollaborators()
 
     def _load(self, raw):
-        super(TopLevelNode, self)._load(raw)
+        super()._load(raw)
         self._color = ColorValue(raw["color"]) if "color" in raw else ColorValue.White
         self._archived = raw["isArchived"] if "isArchived" in raw else False
         self._pinned = raw["isPinned"] if "isPinned" in raw else False
@@ -1381,7 +1381,7 @@ class TopLevelNode(Node):
         self._moved = "moved" in raw
 
     def save(self, clean=True):
-        ret = super(TopLevelNode, self).save(clean)
+        ret = super().save(clean)
         ret["color"] = self._color.value
         ret["isArchived"] = self._archived
         ret["isPinned"] = self._pinned
@@ -1464,7 +1464,7 @@ class TopLevelNode(Node):
     @property
     def dirty(self):
         return (
-            super(TopLevelNode, self).dirty
+            super().dirty
             or self.labels.dirty
             or self.collaborators.dirty
         )
@@ -1500,7 +1500,7 @@ class ListItem(Node):
     def __init__(
         self, parent_id=None, parent_server_id=None, super_list_item_id=None, **kwargs
     ):
-        super(ListItem, self).__init__(
+        super().__init__(
             type_=NodeType.ListItem, parent_id=parent_id, **kwargs
         )
         self.parent_item = None
@@ -1511,13 +1511,13 @@ class ListItem(Node):
         self._checked = False
 
     def _load(self, raw):
-        super(ListItem, self)._load(raw)
+        super()._load(raw)
         self.prev_super_list_item_id = self.super_list_item_id
         self.super_list_item_id = raw.get("superListItemId") or None
         self._checked = raw.get("checked", False)
 
     def save(self, clean=True):
-        ret = super(ListItem, self).save(clean)
+        ret = super().save(clean)
         ret["parentServerId"] = self.parent_server_id
         ret["superListItemId"] = self.super_list_item_id
         ret["checked"] = self._checked
@@ -1620,7 +1620,7 @@ class Note(TopLevelNode):
     _TYPE = NodeType.Note
 
     def __init__(self, **kwargs):
-        super(Note, self).__init__(type_=self._TYPE, **kwargs)
+        super().__init__(type_=self._TYPE, **kwargs)
 
     def _get_text_node(self):
         node = None
@@ -1659,7 +1659,7 @@ class List(TopLevelNode):
     SORT_DELTA = 10000  # Arbitrary constant
 
     def __init__(self, **kwargs):
-        super(List, self).__init__(type_=self._TYPE, **kwargs)
+        super().__init__(type_=self._TYPE, **kwargs)
 
     def add(
         self,
@@ -1807,7 +1807,7 @@ class NodeBlob(Element):
     _TYPE = None
 
     def __init__(self, type_=None):
-        super(NodeBlob, self).__init__()
+        super().__init__()
         self.blob_id = None
         self.type = type_
         self._media_id = None
@@ -1815,7 +1815,7 @@ class NodeBlob(Element):
         self._is_uploaded = False
 
     def _load(self, raw):
-        super(NodeBlob, self)._load(raw)
+        super()._load(raw)
         # Verify this is a valid type
         BlobType(raw["type"])
         self.blob_id = raw.get("blob_id")
@@ -1823,7 +1823,7 @@ class NodeBlob(Element):
         self._mimetype = raw.get("mimetype")
 
     def save(self, clean=True):
-        ret = super(NodeBlob, self).save(clean)
+        ret = super().save(clean)
         ret["kind"] = "notes#blob"
         ret["type"] = self.type.value
         if self.blob_id is not None:
@@ -1840,15 +1840,15 @@ class NodeAudio(NodeBlob):
     _TYPE = BlobType.Audio
 
     def __init__(self):
-        super(NodeAudio, self).__init__(type_=self._TYPE)
+        super().__init__(type_=self._TYPE)
         self._length = None
 
     def _load(self, raw):
-        super(NodeAudio, self)._load(raw)
+        super()._load(raw)
         self._length = raw.get("length")
 
     def save(self, clean=True):
-        ret = super(NodeAudio, self).save(clean)
+        ret = super().save(clean)
         if self._length is not None:
             ret["length"] = self._length
         return ret
@@ -1868,7 +1868,7 @@ class NodeImage(NodeBlob):
     _TYPE = BlobType.Image
 
     def __init__(self):
-        super(NodeImage, self).__init__(type_=self._TYPE)
+        super().__init__(type_=self._TYPE)
         self._is_uploaded = False
         self._width = 0
         self._height = 0
@@ -1877,7 +1877,7 @@ class NodeImage(NodeBlob):
         self._extraction_status = ""
 
     def _load(self, raw):
-        super(NodeImage, self)._load(raw)
+        super()._load(raw)
         self._is_uploaded = raw.get("is_uploaded") or False
         self._width = raw.get("width")
         self._height = raw.get("height")
@@ -1886,7 +1886,7 @@ class NodeImage(NodeBlob):
         self._extraction_status = raw.get("extraction_status")
 
     def save(self, clean=True):
-        ret = super(NodeImage, self).save(clean)
+        ret = super().save(clean)
         ret["width"] = self._width
         ret["height"] = self._height
         ret["byte_size"] = self._byte_size
@@ -1941,13 +1941,13 @@ class NodeDrawing(NodeBlob):
     _TYPE = BlobType.Drawing
 
     def __init__(self):
-        super(NodeDrawing, self).__init__(type_=self._TYPE)
+        super().__init__(type_=self._TYPE)
         self._extracted_text = ""
         self._extraction_status = ""
         self._drawing_info = None
 
     def _load(self, raw):
-        super(NodeDrawing, self)._load(raw)
+        super()._load(raw)
         self._extracted_text = raw.get("extracted_text")
         self._extraction_status = raw.get("extraction_status")
         drawing_info = None
@@ -1957,7 +1957,7 @@ class NodeDrawing(NodeBlob):
         self._drawing_info = drawing_info
 
     def save(self, clean=True):
-        ret = super(NodeDrawing, self).save(clean)
+        ret = super().save(clean)
         ret["extracted_text"] = self._extracted_text
         ret["extraction_status"] = self._extraction_status
         if self._drawing_info is not None:
@@ -1981,7 +1981,7 @@ class NodeDrawingInfo(Element):
     """Represents information about a drawing blob."""
 
     def __init__(self):
-        super(NodeDrawingInfo, self).__init__()
+        super().__init__()
         self.drawing_id = ""
         self.snapshot = NodeImage()
         self._snapshot_fingerprint = ""
@@ -1990,7 +1990,7 @@ class NodeDrawingInfo(Element):
         self._snapshot_proto_fprint = ""
 
     def _load(self, raw):
-        super(NodeDrawingInfo, self)._load(raw)
+        super()._load(raw)
         self.drawing_id = raw["drawingId"]
         self.snapshot.load(raw["snapshotData"])
         self._snapshot_fingerprint = (
@@ -2011,7 +2011,7 @@ class NodeDrawingInfo(Element):
         )
 
     def save(self, clean=True):
-        ret = super(NodeDrawingInfo, self).save(clean)
+        ret = super().save(clean)
         ret["drawingId"] = self.drawing_id
         ret["snapshotData"] = self.snapshot.save(clean)
         ret["snapshotFingerprint"] = self._snapshot_fingerprint
@@ -2033,7 +2033,7 @@ class Blob(Node):
     }
 
     def __init__(self, parent_id=None, **kwargs):
-        super(Blob, self).__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
+        super().__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
         self.blob = None
 
     @classmethod
@@ -2067,11 +2067,11 @@ class Blob(Node):
         return blob
 
     def _load(self, raw):
-        super(Blob, self)._load(raw)
+        super()._load(raw)
         self.blob = self.from_json(raw.get("blob"))
 
     def save(self, clean=True):
-        ret = super(Blob, self).save(clean)
+        ret = super().save(clean)
         if self.blob is not None:
             ret["blob"] = self.blob.save(clean)
         return ret
