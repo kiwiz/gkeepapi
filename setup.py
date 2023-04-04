@@ -23,6 +23,7 @@ setup(
     author_email="z@kwi.li",
     # Choose your license
     license="MIT",
+    python_requires=">=3.10.0",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
