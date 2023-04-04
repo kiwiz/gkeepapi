@@ -224,7 +224,7 @@ class Element:
                     len(s_raw),
                 )
 
-    def load(self, raw: Dict):
+    def load(self, raw: dict):
         """Unserialize from raw representation. (Wrapper)
 
         Args:
@@ -237,7 +237,7 @@ class Element:
         except (KeyError, ValueError) as e:
             raise exception.ParseException(f"Parse error in {type(self)}", raw) from e
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         """Unserialize from raw representation. (Implementation logic)
 
         Args:
@@ -245,7 +245,7 @@ class Element:
         """
         self._dirty = raw.get("_dirty", False)
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         """Serialize into raw representation. Clears the dirty bit by default.
 
         Args:
@@ -278,11 +278,11 @@ class Annotation(Element):
         super(Annotation, self).__init__()
         self.id = self._generateAnnotationId()
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(Annotation, self)._load(raw)
         self.id = raw.get("id")
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = {}
         if self.id is not None:
             ret = super(Annotation, self).save(clean)
@@ -312,7 +312,7 @@ class WebLink(Annotation):
         self._provenance_url = ""
         self._description = ""
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(WebLink, self)._load(raw)
         self._title = raw["webLink"]["title"]
         self._url = raw["webLink"]["url"]
@@ -324,7 +324,7 @@ class WebLink(Annotation):
         self._provenance_url = raw["webLink"]["provenanceUrl"]
         self._description = raw["webLink"]["description"]
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = super(WebLink, self).save(clean)
         ret["webLink"] = {
             "title": self._title,
@@ -413,11 +413,11 @@ class Category(Annotation):
         super(Category, self).__init__()
         self._category = None
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(Category, self)._load(raw)
         self._category = CategoryValue(raw["topicCategory"]["category"])
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = super(Category, self).save(clean)
         ret["topicCategory"] = {"category": self._category.value}
         return ret
@@ -444,11 +444,11 @@ class TaskAssist(Annotation):
         super(TaskAssist, self).__init__()
         self._suggest = None
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(TaskAssist, self)._load(raw)
         self._suggest = raw["taskAssist"]["suggestType"]
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = super(TaskAssist, self).save(clean)
         ret["taskAssist"] = {"suggestType": self._suggest}
         return ret
@@ -475,13 +475,13 @@ class Context(Annotation):
         super(Context, self).__init__()
         self._entries = {}
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(Context, self)._load(raw)
         self._entries = {}
         for key, entry in raw.get("context", {}).items():
             self._entries[key] = NodeAnnotations.from_json({key: entry})
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = super(Context, self).save(clean)
         context = {}
         for entry in self._entries.values():
@@ -515,7 +515,7 @@ class NodeAnnotations(Element):
         return len(self._annotations)
 
     @classmethod
-    def from_json(cls, raw: Dict) -> Optional[Annotation]:
+    def from_json(cls, raw: dict) -> Annotation | None:
         """Helper to construct an annotation from a dict.
 
         Args:
@@ -550,7 +550,7 @@ class NodeAnnotations(Element):
         """
         return self._annotations.values()
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(NodeAnnotations, self)._load(raw)
         self._annotations = {}
         if "annotations" not in raw:
@@ -560,7 +560,7 @@ class NodeAnnotations(Element):
             annotation = self.from_json(raw_annotation)
             self._annotations[annotation.id] = annotation
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = super(NodeAnnotations, self).save(clean)
         ret["kind"] = "notes#annotationsGroup"
         if self._annotations:
@@ -569,14 +569,14 @@ class NodeAnnotations(Element):
             ]
         return ret
 
-    def _get_category_node(self) -> Optional[Category]:
+    def _get_category_node(self) -> Category | None:
         for annotation in self._annotations.values():
             if isinstance(annotation, Category):
                 return annotation
         return None
 
     @property
-    def category(self) -> Optional[CategoryValue]:
+    def category(self) -> CategoryValue | None:
         """Get the category.
 
         Returns:
@@ -601,7 +601,7 @@ class NodeAnnotations(Element):
         self._dirty = True
 
     @property
-    def links(self) -> List[WebLink]:
+    def links(self) -> list[WebLink]:
         """Get all links.
 
         Returns:
@@ -659,7 +659,7 @@ class NodeTimestamps(Element):
         self._updated = self.int_to_dt(create_time)
         self._edited = self.int_to_dt(create_time)
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(NodeTimestamps, self)._load(raw)
         if "created" in raw:
             self._created = self.str_to_dt(raw["created"])
@@ -670,7 +670,7 @@ class NodeTimestamps(Element):
             self.str_to_dt(raw["userEdited"]) if "userEdited" in raw else None
         )
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = super(NodeTimestamps, self).save(clean)
         ret["kind"] = "notes#timestamps"
         ret["created"] = self.dt_to_str(self._created)
@@ -808,7 +808,7 @@ class NodeSettings(Element):
         self._graveyard_state = GraveyardStateValue.Collapsed
         self._checked_listitems_policy = CheckedListItemsPolicyValue.Graveyard
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         super(NodeSettings, self)._load(raw)
         self._new_listitem_placement = NewListItemPlacementValue(
             raw["newListItemPlacement"]
@@ -818,7 +818,7 @@ class NodeSettings(Element):
             raw["checkedListItemsPolicy"]
         )
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         ret = super(NodeSettings, self).save(clean)
         ret["newListItemPlacement"] = self._new_listitem_placement.value
         ret["graveyardState"] = self._graveyard_state.value
@@ -934,7 +934,7 @@ class NodeCollaborators(Element):
                 self._collaborators[email] = ShareRequestValue.Remove
         self._dirty = True
 
-    def all(self) -> List[str]:
+    def all(self) -> list[str]:
         """Get all collaborators.
 
         Returns:
@@ -957,7 +957,7 @@ class NodeLabels(Element):
     def __len__(self) -> int:
         return len(self._labels)
 
-    def _load(self, raw: Dict):
+    def _load(self, raw: dict):
         # Parent method not called.
         if raw and isinstance(raw[-1], bool):
             self._dirty = raw.pop()
@@ -967,7 +967,7 @@ class NodeLabels(Element):
         for raw_label in raw:
             self._labels[raw_label["labelId"]] = None
 
-    def save(self, clean=True) -> Dict:
+    def save(self, clean=True) -> dict:
         # Parent method not called.
         ret = [
             {
@@ -1015,7 +1015,7 @@ class NodeLabels(Element):
         """Get all labels.
 
         Returns:
-            List[gkeepapi.node.Label]: Labels.
+            list[gkeepapi.node.Label]: Labels.
         """
         return [label for _, label in self._labels.items() if label is not None]
 
@@ -2070,7 +2070,7 @@ _type_map = {
 }
 
 
-def from_json(raw: Dict) -> Node:
+def from_json(raw: dict) -> Node | None:
     """Helper to construct a node from a dict.
 
     Args:

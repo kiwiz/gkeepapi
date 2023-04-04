@@ -15,13 +15,9 @@ class APIException(Exception):
 class KeepException(Exception):
     """Generic Keep error."""
 
-    pass
-
 
 class LoginException(KeepException):
     """Login exception."""
-
-    pass
 
 
 class BrowserLoginRequiredException(LoginException):
@@ -34,42 +30,30 @@ class BrowserLoginRequiredException(LoginException):
 class LabelException(KeepException):
     """Keep label error."""
 
-    pass
-
 
 class SyncException(KeepException):
     """Keep consistency error."""
-
-    pass
 
 
 class ResyncRequiredException(SyncException):
     """Full resync required error."""
 
-    pass
-
 
 class UpgradeRecommendedException(SyncException):
     """Upgrade recommended error."""
-
-    pass
 
 
 class MergeException(KeepException):
     """Node consistency error."""
 
-    pass
-
 
 class InvalidException(KeepException):
     """Constraint error."""
-
-    pass
 
 
 class ParseException(KeepException):
     """Parse error."""
 
-    def __init__(self, msg: str, raw):
+    def __init__(self, msg: str, raw: dict):
         super(ParseException, self).__init__(msg)
         self.raw = raw
