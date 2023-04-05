@@ -1,7 +1,8 @@
 .PHONY: lint test coverage build clean upload all
 
 lint:
-	pylint src
+	-ruff --fix src
+	black src
 
 test:
 	python3 -m unittest discover

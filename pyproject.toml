@@ -21,11 +21,33 @@ dependencies = [
   "future >= 0.16.0",
 ]
 optional-dependencies = [
-  "pylint>=2.17.2",
   "black>=23.3.0",
+  "ruff>=0.0.260",
 ]
 
 
 [project.urls]
 "Homepage" = "https://github.com/kiwiz/gkeepapi"
 "Bug Tracker" = "https://github.com/kiwiz/gkeepapi/issues"
+
+
+[tool.black]
+target-version = ["py310"]
+
+[tool.ruff]
+target-version = "py310"
+select = [
+    # https://beta.ruff.rs/docs/rules/
+    "E",  # pycodestyle (on by ruff's default)
+    "F",  # Pyflakes (on by ruff's default)
+    "I",  # isort
+    "UP",  # pyupgrade
+    "C4",  # flake8-comprehensions
+    "PIE",  # flake8-pie
+    "SIM",  # flake8-simplify
+    "PL",  # pylint
+    "RUF",  # ruff
+]
+ignore = [
+    "E501",  # line-too-long -- disabled as black takes care of this
+]

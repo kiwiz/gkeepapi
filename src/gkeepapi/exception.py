@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. moduleauthor:: Kai <z@kwi.li>
 """
