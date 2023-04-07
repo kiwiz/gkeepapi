@@ -925,7 +925,7 @@ class NodeCollaborators(Element):
 
     def load(
         self, collaborators_raw: list, requests_raw: list
-    )->None:  # pylint: disable=arguments-differ
+    ) -> None:  # pylint: disable=arguments-differ
         # Parent method not called.
         if requests_raw and isinstance(requests_raw[-1], bool):
             self._dirty = requests_raw.pop()
@@ -1071,7 +1071,7 @@ class Label(Element, TimestampsMixin):
         self._merged = NodeTimestamps.int_to_dt(0)
 
     @classmethod
-    def _generateId(cls, tz)-> str:
+    def _generateId(cls, tz) -> str:
         return "tag.{}.{:x}".format(
             "".join(
                 [
@@ -1104,7 +1104,7 @@ class Label(Element, TimestampsMixin):
         return ret
 
     @property
-    def name(self)-> str:
+    def name(self) -> str:
         """Get the label name.
 
         Returns:
@@ -1114,12 +1114,12 @@ class Label(Element, TimestampsMixin):
         return self._name
 
     @name.setter
-    def name(self, value)->None:
+    def name(self, value) -> None:
         self._name = value
         self.touch(True)
 
     @property
-    def merged(self)->datetime.datetime:
+    def merged(self) -> datetime.datetime:
         """Get last merge datetime.
 
         Returns:
@@ -1129,12 +1129,12 @@ class Label(Element, TimestampsMixin):
         return self._merged
 
     @merged.setter
-    def merged(self, value)->None:
+    def merged(self, value) -> None:
         self._merged = value
         self.touch()
 
     @property
-    def dirty(self)-> bool:
+    def dirty(self) -> bool:
         return super().dirty or self.timestamps.dirty
 
     def __str__(self) -> str:
@@ -1188,7 +1188,7 @@ class NodeLabels(Element):
         self._labels[label.id] = label
         self._dirty = True
 
-    def remove(self, label: Label)->None:
+    def remove(self, label: Label) -> None:
         """Remove a label.
 
         Args:
@@ -1199,7 +1199,7 @@ class NodeLabels(Element):
             self._labels[label.id] = None
         self._dirty = True
 
-    def get(self, label_id: str)->str:
+    def get(self, label_id: str) -> str:
         """Get a label by ID.
 
         Args:
@@ -1208,7 +1208,7 @@ class NodeLabels(Element):
         """
         return self._labels.get(label_id)
 
-    def all(self)-> list[Label]:
+    def all(self) -> list[Label]:
         """Get all labels.
 
         Returns:
@@ -1245,7 +1245,7 @@ class Node(Element, TimestampsMixin):
         self._moved = False
 
     @classmethod
-    def _generateId(cls, tz)->str:
+    def _generateId(cls, tz) -> str:
         return "{:x}.{:016x}".format(
             int(tz * 1000),
             random.randint(
@@ -1301,7 +1301,7 @@ class Node(Element, TimestampsMixin):
         return int(self._sort)
 
     @sort.setter
-    def sort(self, value)->None:
+    def sort(self, value) -> None:
         self._sort = value
         self.touch()
 
@@ -1360,7 +1360,7 @@ class Node(Element, TimestampsMixin):
         """
         return self._children.get(node_id)
 
-    def append(self, node: "Node", dirty=True)->"Node":
+    def append(self, node: "Node", dirty=True) -> "Node":
         """Add a new child node.
 
         Args:
@@ -1375,7 +1375,7 @@ class Node(Element, TimestampsMixin):
 
         return node
 
-    def remove(self, node: "Node", dirty=True)->None:
+    def remove(self, node: "Node", dirty=True) -> None:
         """Remove the given child node.
 
         Args:
@@ -1400,7 +1400,7 @@ class Node(Element, TimestampsMixin):
         return self.server_id is None
 
     @property
-    def dirty(self)->bool:
+    def dirty(self) -> bool:
         return (
             super().dirty
             or self.timestamps.dirty
@@ -1419,7 +1419,7 @@ class Root(Node):
         super().__init__(id_=self.ID)
 
     @property
-    def dirty(self)->bool:
+    def dirty(self) -> bool:
         return False
 
 
@@ -1468,7 +1468,7 @@ class TopLevelNode(Node):
         return ret
 
     @property
-    def color(self)-> ColorValue:
+    def color(self) -> ColorValue:
         """Get the node color.
 
         Returns:
@@ -1478,7 +1478,7 @@ class TopLevelNode(Node):
         return self._color
 
     @color.setter
-    def color(self, value)->None:
+    def color(self, value) -> None:
         self._color = value
         self.touch(True)
 
@@ -1493,7 +1493,7 @@ class TopLevelNode(Node):
         return self._archived
 
     @archived.setter
-    def archived(self, value)->None:
+    def archived(self, value) -> None:
         self._archived = value
         self.touch(True)
 
@@ -1508,12 +1508,12 @@ class TopLevelNode(Node):
         return self._pinned
 
     @pinned.setter
-    def pinned(self, value)->None:
+    def pinned(self, value) -> None:
         self._pinned = value
         self.touch(True)
 
     @property
-    def title(self)-> str:
+    def title(self) -> str:
         """Get the title.
 
         Returns:
@@ -1523,12 +1523,12 @@ class TopLevelNode(Node):
         return self._title
 
     @title.setter
-    def title(self, value)->None:
+    def title(self, value) -> None:
         self._title = value
         self.touch(True)
 
     @property
-    def url(self)-> str:
+    def url(self) -> str:
         """Get the url for this node.
 
         Returns:
@@ -1538,11 +1538,11 @@ class TopLevelNode(Node):
         return "https://keep.google.com/u/0/#" + self._TYPE.value + "/" + self.id
 
     @property
-    def dirty(self)->bool:
+    def dirty(self) -> bool:
         return super().dirty or self.labels.dirty or self.collaborators.dirty
 
     @property
-    def blobs(self)-> list[Blob]:
+    def blobs(self) -> list[Blob]:
         """Get all media blobs.
 
         Returns:
@@ -1552,15 +1552,15 @@ class TopLevelNode(Node):
         return [node for node in self.children if isinstance(node, Blob)]
 
     @property
-    def images(self)->list[NodeImage]:
+    def images(self) -> list[NodeImage]:
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeImage)]
 
     @property
-    def drawings(self)->list[NodeDrawing]:
+    def drawings(self) -> list[NodeDrawing]:
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeDrawing)]
 
     @property
-    def audio(self)->list[NodeAudio]:
+    def audio(self) -> list[NodeAudio]:
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeAudio)]
 
 
@@ -1614,7 +1614,7 @@ class ListItem(Node):
         self.indent(node)
         return node
 
-    def indent(self, node: "ListItem", dirty=True)->None:
+    def indent(self, node: "ListItem", dirty=True) -> None:
         """Indent an item. Does nothing if the target has subitems.
 
         Args:
@@ -1631,7 +1631,7 @@ class ListItem(Node):
         if dirty:
             node.touch(True)
 
-    def dedent(self, node: "ListItem", dirty=True)-> None:
+    def dedent(self, node: "ListItem", dirty=True) -> None:
         """Dedent an item. Does nothing if the target is not indented under this item.
 
         Args:
@@ -1649,7 +1649,7 @@ class ListItem(Node):
             node.touch(True)
 
     @property
-    def subitems(self)->list[ListItem]:
+    def subitems(self) -> list[ListItem]:
         """Get subitems for this item.
 
         Returns:
@@ -1679,7 +1679,7 @@ class ListItem(Node):
         return self._checked
 
     @checked.setter
-    def checked(self, value)-> None:
+    def checked(self, value) -> None:
         self._checked = value
         self.touch(True)
 
@@ -1743,7 +1743,7 @@ class List(TopLevelNode):
         text: str,
         checked=False,
         sort: NewListItemPlacementValue | int | None = None,
-    )-> ListItem:
+    ) -> ListItem:
         """Add a new item to the list.
 
         Args:
@@ -1793,7 +1793,7 @@ class List(TopLevelNode):
         class t(tuple):
             """Tuple with element-based sorting"""
 
-            def __cmp__(self, other)->int:
+            def __cmp__(self, other) -> int:
                 for a, b in itertools.zip_longest(self, other):
                     if a != b:
                         if a is None:
@@ -1803,25 +1803,25 @@ class List(TopLevelNode):
                         return a - b
                 return 0
 
-            def __lt__(self, other)->bool:  # pragma: no cover
+            def __lt__(self, other) -> bool:  # pragma: no cover
                 return self.__cmp__(other) < 0
 
-            def __gt_(self, other)->bool:  # pragma: no cover
+            def __gt_(self, other) -> bool:  # pragma: no cover
                 return self.__cmp__(other) > 0
 
-            def __le__(self, other)->bool:  # pragma: no cover
+            def __le__(self, other) -> bool:  # pragma: no cover
                 return self.__cmp__(other) <= 0
 
-            def __ge_(self, other)->bool:  # pragma: no cover
+            def __ge_(self, other) -> bool:  # pragma: no cover
                 return self.__cmp__(other) >= 0
 
-            def __eq__(self, other)->bool:  # pragma: no cover
+            def __eq__(self, other) -> bool:  # pragma: no cover
                 return self.__cmp__(other) == 0
 
-            def __ne__(self, other)->bool:  # pragma: no cover
+            def __ne__(self, other) -> bool:  # pragma: no cover
                 return self.__cmp__(other) != 0
 
-        def key_func(x)->t:
+        def key_func(x) -> t:
             if x.indented:
                 return t((int(x.parent_item.sort), int(x.sort)))
             return t((int(x.sort),))
@@ -1837,7 +1837,7 @@ class List(TopLevelNode):
             and (checked is None or node.checked == checked)
         ]
 
-    def sort_items(self, key: Callable = attrgetter("text"), reverse=False)-> None:
+    def sort_items(self, key: Callable = attrgetter("text"), reverse=False) -> None:
         """Sort list items in place. By default, the items are alphabetized,
         but a custom function can be specified.
 
@@ -1847,7 +1847,7 @@ class List(TopLevelNode):
             reverse: Whether to reverse the output.
         """
         sorted_children = sorted(self._items(), key=key, reverse=reverse)
-        sort_value = random.randint( # noqa: suspicious-non-cryptographic-random-usage
+        sort_value = random.randint(  # noqa: suspicious-non-cryptographic-random-usage
             1000000000, 9999999999
         )
 
@@ -2023,7 +2023,7 @@ class NodeImage(NodeBlob):
         return self._extracted_text
 
     @property
-    def url(self)-> str:
+    def url(self) -> str:
         """Get a url to the image.
 
         Returns:
@@ -2063,7 +2063,7 @@ class NodeDrawing(NodeBlob):
         return ret
 
     @property
-    def extracted_text(self)-> str:
+    def extracted_text(self) -> str:
         """Get text extracted from image
         Returns:
             Extracted text.
