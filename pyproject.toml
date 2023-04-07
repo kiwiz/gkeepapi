@@ -50,7 +50,7 @@ select = [
   "ANN",  # flake8-annotations
   "S",  # flake8-bandit
   "BLE",  # flake8-blind-except
-  "FBT",  # flake8-boolean-trap
+  # "FBT",  # flake8-boolean-trap
   "B",  # flake8-bugbear
   "A",  # flake8-builtins
   "COM",  # flake8-commas
@@ -83,7 +83,7 @@ select = [
   "PLE",  # pylint
   "PLR",  # pylint
   "PLW",  # pylint
-  "TRY",  # tryceratops
+  # "TRY",  # tryceratops
   "RUF",  # ruff-specific rules
 ]
 ignore = [
@@ -92,4 +92,11 @@ ignore = [
   "COM812",
   "D400",
   "D415",
+  "D203",
+  "D213",
+  "EM102",
+  "ANN101",
 ]
+
+[tool.ruff.pydocstyle]
+convention = "google"

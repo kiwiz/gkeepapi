@@ -24,6 +24,7 @@ class APIAuth:
     """Authentication token manager"""
 
     def __init__(self, scopes: str) -> None:
+        """Construct API authentication manager"""
         self._master_token = None
         self._auth_token = None
         self._email = None
@@ -86,7 +87,7 @@ class APIAuth:
     def getMasterToken(self) -> str:
         """Gets the master token.
 
-        Returns
+        Returns:
         -------
             The account master token.
         """
@@ -106,7 +107,7 @@ class APIAuth:
     def getEmail(self) -> str:
         """Gets the account email.
 
-        Returns
+        Returns:
         -------
             The account email.
         """
@@ -124,7 +125,7 @@ class APIAuth:
     def getDeviceId(self) -> str:
         """Gets the device id.
 
-        Returns
+        Returns:
         -------
             The device id.
         """
@@ -142,7 +143,7 @@ class APIAuth:
     def getAuthToken(self) -> str | None:
         """Gets the auth token.
 
-        Returns
+        Returns:
         -------
             The auth token.
         """
@@ -151,11 +152,11 @@ class APIAuth:
     def refresh(self) -> str:
         """Refresh the OAuth token.
 
-        Returns
+        Returns:
         -------
             The auth token.
 
-        Raises
+        Raises:
         ------
             LoginException: If there was a problem refreshing the OAuth token.
         """
@@ -190,6 +191,7 @@ class API:
     RETRY_CNT = 2
 
     def __init__(self, base_url: str, auth: APIAuth | None = None) -> None:
+        """Construct a low-level API client"""
         self._session = requests.Session()
         self._auth = auth
         self._base_url = base_url
@@ -296,6 +298,7 @@ class KeepAPI(API):
     API_URL = "https://www.googleapis.com/notes/v1/"
 
     def __init__(self, auth: APIAuth | None = None) -> None:
+        """Construct a low-level Google Keep API client"""
         super().__init__(self.API_URL, auth)
 
         create_time = time.time()
@@ -391,6 +394,7 @@ class MediaAPI(API):
     API_URL = "https://keep.google.com/media/v2/"
 
     def __init__(self, auth: APIAuth | None = None) -> None:
+        """Construct a low-level Google Media API client"""
         super().__init__(self.API_URL, auth)
 
     def get(self, blob: _node.Blob) -> str:
@@ -421,6 +425,7 @@ class RemindersAPI(API):
     API_URL = "https://www.googleapis.com/reminders/v1internal/reminders/"
 
     def __init__(self, auth: APIAuth | None = None) -> None:
+        """Construct a low-level Google Reminders API client"""
         super().__init__(self.API_URL, auth)
         self.static_params = {
             "taskList": [
@@ -634,7 +639,7 @@ class RemindersAPI(API):
 
         Args:
         ----
-            storage_version (str): The local storage version.
+            storage_version: The local storage version.
 
         Returns:
         -------
@@ -686,6 +691,7 @@ class Keep:
     OAUTH_SCOPES = "oauth2:https://www.googleapis.com/auth/memento https://www.googleapis.com/auth/reminders"
 
     def __init__(self) -> None:
+        """Construct a Google Keep client"""
         self._keep_api = KeepAPI()
         self._reminders_api = RemindersAPI()
         self._media_api = MediaAPI()
@@ -768,7 +774,7 @@ class Keep:
     def getMasterToken(self) -> str:
         """Get master token for resuming.
 
-        Returns
+        Returns:
         -------
             The master token.
         """
@@ -798,7 +804,7 @@ class Keep:
     def dump(self) -> dict:
         """Serialize note data.
 
-        Returns
+        Returns:
         -------
             Serialized state.
         """
@@ -1055,7 +1061,7 @@ class Keep:
     def labels(self) -> list[_node.Label]:
         """Get all labels.
 
-        Returns
+        Returns:
         -------
             Labels
         """
@@ -1077,10 +1083,10 @@ class Keep:
     def all(self) -> list[_node.TopLevelNode]:
         """Get all Notes.
 
-        Returns
+        Returns:
         -------
 
-        Notes
+        Notes:
         -----
         """
         return self._nodes[_node.Root.ID].children
