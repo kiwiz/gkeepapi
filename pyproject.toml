@@ -8,13 +8,13 @@ description = "An unofficial Google Keep API client"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Development Status :: 4 - Beta",
-    "Operating System :: OS Independent",
-    "Intended Audience :: Developers",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Development Status :: 4 - Beta",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
   "gpsoauth >= 1.0.2",
@@ -22,7 +22,7 @@ dependencies = [
 ]
 optional-dependencies = [
   "black>=23.3.0",
-  "ruff>=0.0.260",
+  "ruff>=0.0.261",
 ]
 
 
@@ -37,17 +37,59 @@ target-version = ["py310"]
 [tool.ruff]
 target-version = "py310"
 select = [
-    # https://beta.ruff.rs/docs/rules/
-    "E",  # pycodestyle (on by ruff's default)
-    "F",  # Pyflakes (on by ruff's default)
-    "I",  # isort
-    "UP",  # pyupgrade
-    "C4",  # flake8-comprehensions
-    "PIE",  # flake8-pie
-    "SIM",  # flake8-simplify
-    "PL",  # pylint
-    "RUF",  # ruff
+  # https://beta.ruff.rs/docs/rules/
+  "F",  # pyflakes
+  "E",  # pycodestyle
+  "W",  # pycodestyle
+  "C90",  # mccabe
+  "I",  # isort
+  "N",  # pep8-naming
+  "D",  # pydocstyle
+  "UP",  # pyupgrade
+  "YTT",  # flake8-2020
+  "ANN",  # flake8-annotations
+  "S",  # flake8-bandit
+  "BLE",  # flake8-blind-except
+  "FBT",  # flake8-boolean-trap
+  "B",  # flake8-bugbear
+  "A",  # flake8-builtins
+  "COM",  # flake8-commas
+  "C4",  # flake8-comprehensions
+  "DTZ",  # flake8-datetimez
+  "T10",  # flake8-debugger
+  "DJ",  # flake8-django
+  "EM",  # flake8-errmsg
+  "EXE",  # flake8-executable
+  "ISC",  # flake8-implicit-str-concat
+  "ICN",  # flake8-import-conventions
+  "G",  # flake8-logging-format
+  "INP",  # flake8-no-pep420
+  "PIE",  # flake8-pie
+  "T20",  # flake8-print
+  "PYI",  # flake8-pyi
+  "PT",  # flake8-pytest-style
+  "Q",  # flake8-quotes
+  "RSE",  # flake8-raise
+  "RET",  # flake8-return
+  "SLF",  # flake8-self
+  "SIM",  # flake8-simplify
+  "TID",  # flake8-tidy-imports
+  "TCH",  # flake8-type-checking
+  "INT",  # flake8-gettext
+  "ARG",  # flake8-unused-arguments
+  "PTH",  # flake8-use-pathlib
+  "PGH",  # pygrep-hooks
+  "PLC",  # pylint
+  "PLE",  # pylint
+  "PLR",  # pylint
+  "PLW",  # pylint
+  "TRY",  # tryceratops
+  "RUF",  # ruff-specific rules
 ]
 ignore = [
-    "E501",  # line-too-long -- disabled as black takes care of this
+  "E501",  # line-too-long -- disabled as black takes care of this
+  "N802",
+  "COM812",
+  "D400",
+  "D415",
 ]

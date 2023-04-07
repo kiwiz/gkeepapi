@@ -1,12 +1,10 @@
-"""
-.. moduleauthor:: Kai <z@kwi.li>
-"""
+""".. moduleauthor:: Kai <z@kwi.li>"""
 
 
 class APIException(Exception):
     """The API server returned an error."""
 
-    def __init__(self, code: int, msg: str):
+    def __init__(self, code: int, msg: str) -> None:
         super().__init__(msg)
         self.code = code
 
@@ -22,7 +20,7 @@ class LoginException(KeepException):
 class BrowserLoginRequiredException(LoginException):
     """Browser login required error."""
 
-    def __init__(self, url):
+    def __init__(self, url) -> None:
         self.url = url
 
 
@@ -53,6 +51,6 @@ class InvalidException(KeepException):
 class ParseException(KeepException):
     """Parse error."""
 
-    def __init__(self, msg: str, raw: dict):
+    def __init__(self, msg: str, raw: dict) -> None:
         super().__init__(msg)
         self.raw = raw

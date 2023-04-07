@@ -1,5 +1,4 @@
-"""
-.. automodule:: gkeepapi
+""".. automodule:: gkeepapi
    :members:
    :inherited-members:
 
@@ -179,7 +178,7 @@ class RoleValue(enum.Enum):
 class Element:
     """Interface for elements that can be serialized and deserialized."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._dirty = False
 
     def _find_discrepancies(self, raw):  # pragma: no cover
@@ -227,8 +226,12 @@ class Element:
         """Unserialize from raw representation. (Wrapper)
 
         Args:
+        ----
             raw: Raw.
+
+
         Raises:
+        ------
             ParseException: If there was an error parsing data.
         """
         try:
@@ -240,6 +243,7 @@ class Element:
         """Unserialize from raw representation. (Implementation logic)
 
         Args:
+        ----
             raw: Raw.
         """
         self._dirty = raw.get("_dirty", False)
@@ -248,9 +252,11 @@ class Element:
         """Serialize into raw representation. Clears the dirty bit by default.
 
         Args:
+        ----
             clean: Whether to clear the dirty bit.
 
         Returns:
+        -------
             Raw.
         """
         ret = {}
@@ -264,7 +270,8 @@ class Element:
     def dirty(self) -> bool:
         """Get dirty state.
 
-        Returns:
+        Returns
+        -------
             Whether this element is dirty.
         """
         return self._dirty
@@ -273,7 +280,7 @@ class Element:
 class Annotation(Element):
     """Note annotations base class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.id = self._generateAnnotationId()
 
@@ -303,7 +310,7 @@ class Annotation(Element):
 class WebLink(Annotation):
     """Represents a link annotation on a :class:`TopLevelNode`."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._title = ""
         self._url = ""
@@ -338,7 +345,8 @@ class WebLink(Annotation):
     def title(self) -> str:
         """Get the link title.
 
-        Returns:
+        Returns
+        -------
             The link title.
         """
         return self._title
@@ -352,7 +360,8 @@ class WebLink(Annotation):
     def url(self) -> str:
         """Get the link url.
 
-        Returns:
+        Returns
+        -------
             The link url.
         """
         return self._url
@@ -366,7 +375,8 @@ class WebLink(Annotation):
     def image_url(self) -> str:
         """Get the link image url.
 
-        Returns:
+        Returns
+        -------
             The image url or None.
         """
         return self._image_url
@@ -380,7 +390,8 @@ class WebLink(Annotation):
     def provenance_url(self) -> str:
         """Get the provenance url.
 
-        Returns:
+        Returns
+        -------
             The provenance url.
         """
         return self._provenance_url
@@ -394,7 +405,8 @@ class WebLink(Annotation):
     def description(self) -> str:
         """Get the link description.
 
-        Returns:
+        Returns
+        -------
             The link description.
         """
         return self._description
@@ -408,7 +420,7 @@ class WebLink(Annotation):
 class Category(Annotation):
     """Represents a category annotation on a :class:`TopLevelNode`."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._category = None
 
@@ -425,7 +437,8 @@ class Category(Annotation):
     def category(self) -> CategoryValue:
         """Get the category.
 
-        Returns:
+        Returns
+        -------
             The category.
         """
         return self._category
@@ -439,7 +452,7 @@ class Category(Annotation):
 class TaskAssist(Annotation):
     """Unknown."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._suggest = None
 
@@ -456,7 +469,8 @@ class TaskAssist(Annotation):
     def suggest(self) -> str:
         """Get the suggestion.
 
-        Returns:
+        Returns
+        -------
             The suggestion.
         """
         return self._suggest
@@ -470,7 +484,7 @@ class TaskAssist(Annotation):
 class Context(Annotation):
     """Represents a context annotation, which may contain other annotations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._entries = {}
 
@@ -491,7 +505,8 @@ class Context(Annotation):
     def all(self) -> list[Annotation]:
         """Get all sub annotations.
 
-        Returns:
+        Returns
+        -------
             Sub Annotations.
         """
         return list(self._entries.values())
@@ -506,11 +521,11 @@ class Context(Annotation):
 class NodeAnnotations(Element):
     """Represents the annotation container on a :class:`TopLevelNode`."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._annotations = {}
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._annotations)
 
     @classmethod
@@ -518,9 +533,11 @@ class NodeAnnotations(Element):
         """Helper to construct an annotation from a dict.
 
         Args:
+        ----
             raw: Raw annotation representation.
 
         Returns:
+        -------
             An Annotation object or None.
         """
         bcls = None
@@ -544,7 +561,8 @@ class NodeAnnotations(Element):
     def all(self) -> list[Annotation]:
         """Get all annotations.
 
-        Returns:
+        Returns
+        -------
             Annotations.
         """
         return list(self._annotations.values())
@@ -578,7 +596,8 @@ class NodeAnnotations(Element):
     def category(self) -> CategoryValue | None:
         """Get the category.
 
-        Returns:
+        Returns
+        -------
             The category.
         """
         node = self._get_category_node()
@@ -603,7 +622,8 @@ class NodeAnnotations(Element):
     def links(self) -> list[WebLink]:
         """Get all links.
 
-        Returns:
+        Returns
+        -------
             A list of links.
         """
         return [
@@ -616,9 +636,11 @@ class NodeAnnotations(Element):
         """Add an annotation.
 
         Args:
+        ----
             annotation: An Annotation object.
 
         Returns:
+        -------
             The Annotation.
         """
         self._annotations[annotation.id] = annotation
@@ -629,6 +651,7 @@ class NodeAnnotations(Element):
         """Removes an annotation.
 
         Args:
+        ----
             annotation: An Annotation object.
         """
         if annotation.id in self._annotations:
@@ -647,7 +670,7 @@ class NodeTimestamps(Element):
 
     TZ_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-    def __init__(self, create_time: float | None = None):
+    def __init__(self, create_time: float | None = None) -> None:
         super().__init__()
         if create_time is None:
             create_time = time.time()
@@ -689,7 +712,8 @@ class NodeTimestamps(Element):
         Params:
             tsz: Datetime string.
 
-        Returns:
+        Returns
+        -------
             Datetime.
         """
         return datetime.datetime.strptime(tzs, cls.TZ_FMT)
@@ -701,7 +725,8 @@ class NodeTimestamps(Element):
         Params:
             ts: Unix timestamp.
 
-        Returns:
+        Returns
+        -------
             Datetime.
         """
         return datetime.datetime.utcfromtimestamp(tz)
@@ -713,7 +738,8 @@ class NodeTimestamps(Element):
         Params:
             dt: Datetime.
 
-        Returns:
+        Returns
+        -------
             Datetime string.
         """
         return dt.strftime(cls.TZ_FMT)
@@ -722,7 +748,8 @@ class NodeTimestamps(Element):
     def int_to_str(cls, tz: int) -> str:
         """Convert a unix timestamp to a str.
 
-        Returns:
+        Returns
+        -------
             Datetime string.
         """
         return cls.dt_to_str(cls.int_to_dt(tz))
@@ -731,7 +758,8 @@ class NodeTimestamps(Element):
     def created(self) -> datetime.datetime:
         """Get the creation datetime.
 
-        Returns:
+        Returns
+        -------
             Datetime.
         """
         return self._created
@@ -745,7 +773,8 @@ class NodeTimestamps(Element):
     def deleted(self) -> datetime.datetime | None:
         """Get the deletion datetime.
 
-        Returns:
+        Returns
+        -------
             Datetime.
         """
         return self._deleted
@@ -759,7 +788,8 @@ class NodeTimestamps(Element):
     def trashed(self) -> datetime.datetime | None:
         """Get the move-to-trash datetime.
 
-        Returns:
+        Returns
+        -------
             Datetime.
         """
         return self._trashed
@@ -773,7 +803,8 @@ class NodeTimestamps(Element):
     def updated(self) -> datetime.datetime:
         """Get the updated datetime.
 
-        Returns:
+        Returns
+        -------
             Datetime.
         """
         return self._updated
@@ -787,7 +818,8 @@ class NodeTimestamps(Element):
     def edited(self) -> datetime.datetime:
         """Get the user edited datetime.
 
-        Returns:
+        Returns
+        -------
             Datetime.
         """
         return self._edited
@@ -801,7 +833,7 @@ class NodeTimestamps(Element):
 class NodeSettings(Element):
     """Represents the settings associated with a :class:`TopLevelNode`."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._new_listitem_placement = NewListItemPlacementValue.Bottom
         self._graveyard_state = GraveyardStateValue.Collapsed
@@ -828,7 +860,8 @@ class NodeSettings(Element):
     def new_listitem_placement(self) -> NewListItemPlacementValue:
         """Get the default location to insert new listitems.
 
-        Returns:
+        Returns
+        -------
             Placement.
         """
         return self._new_listitem_placement
@@ -842,7 +875,8 @@ class NodeSettings(Element):
     def graveyard_state(self) -> GraveyardStateValue:
         """Get the visibility state for the list graveyard.
 
-        Returns:
+        Returns
+        -------
             Visibility.
         """
         return self._graveyard_state
@@ -856,7 +890,8 @@ class NodeSettings(Element):
     def checked_listitems_policy(self) -> CheckedListItemsPolicyValue:
         """Get the policy for checked listitems.
 
-        Returns:
+        Returns
+        -------
             Policy.
         """
         return self._checked_listitems_policy
@@ -870,7 +905,7 @@ class NodeSettings(Element):
 class NodeCollaborators(Element):
     """Represents the collaborators on a :class:`TopLevelNode`."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._collaborators = {}
 
@@ -914,6 +949,7 @@ class NodeCollaborators(Element):
         """Add a collaborator.
 
         Args:
+        ----
             email: Collaborator email address.
         """
         if email not in self._collaborators:
@@ -924,6 +960,7 @@ class NodeCollaborators(Element):
         """Remove a Collaborator.
 
         Args:
+        ----
             email: Collaborator email address.
         """
         if email in self._collaborators:
@@ -936,7 +973,8 @@ class NodeCollaborators(Element):
     def all(self) -> list[str]:
         """Get all collaborators.
 
-        Returns:
+        Returns
+        -------
             Collaborators.
         """
         return [
@@ -949,13 +987,14 @@ class NodeCollaborators(Element):
 class TimestampsMixin:
     """A mixin to add methods for updating timestamps."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.timestamps: NodeTimestamps
 
     def touch(self, edited=False):
         """Mark the node as dirty.
 
         Args:
+        ----
             edited: Whether to set the edited time.
         """
         self._dirty = True
@@ -968,7 +1007,8 @@ class TimestampsMixin:
     def trashed(self):
         """Get the trashed state.
 
-        Returns:
+        Returns
+        -------
             bool: Whether this item is trashed.
         """
         return (
@@ -988,7 +1028,8 @@ class TimestampsMixin:
     def deleted(self):
         """Get the deleted state.
 
-        Returns:
+        Returns
+        -------
             bool: Whether this item is deleted.
         """
         return (
@@ -1008,7 +1049,7 @@ class TimestampsMixin:
 class Label(Element, TimestampsMixin):
     """Represents a label."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         create_time = time.time()
@@ -1053,7 +1094,8 @@ class Label(Element, TimestampsMixin):
     def name(self):
         """Get the label name.
 
-        Returns:
+        Returns
+        -------
             str: Label name.
         """
         return self._name
@@ -1067,7 +1109,8 @@ class Label(Element, TimestampsMixin):
     def merged(self):
         """Get last merge datetime.
 
-        Returns:
+        Returns
+        -------
             datetime: Datetime.
         """
         return self._merged
@@ -1081,14 +1124,14 @@ class Label(Element, TimestampsMixin):
     def dirty(self):
         return super().dirty or self.timestamps.dirty
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
 class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._labels = {}
 
@@ -1126,6 +1169,7 @@ class NodeLabels(Element):
         """Add a label.
 
         Args:
+        ----
             label: The Label object.
         """
         self._labels[label.id] = label
@@ -1135,6 +1179,7 @@ class NodeLabels(Element):
         """Remove a label.
 
         Args:
+        ----
             label: The Label object.
         """
         if label.id in self._labels:
@@ -1145,6 +1190,7 @@ class NodeLabels(Element):
         """Get a label by ID.
 
         Args:
+        ----
             label_id: The label ID.
         """
         return self._labels.get(label_id)
@@ -1152,7 +1198,8 @@ class NodeLabels(Element):
     def all(self):
         """Get all labels.
 
-        Returns:
+        Returns
+        -------
             list[gkeepapi.node.Label]: Labels.
         """
         return [label for _, label in self._labels.items() if label is not None]
@@ -1161,7 +1208,7 @@ class NodeLabels(Element):
 class Node(Element, TimestampsMixin):
     """Node base class."""
 
-    def __init__(self, id_=None, type_=None, parent_id=None):
+    def __init__(self, id_=None, type_=None, parent_id=None) -> None:
         super().__init__()
 
         create_time = time.time()
@@ -1230,7 +1277,8 @@ class Node(Element, TimestampsMixin):
     def sort(self):
         """Get the sort id.
 
-        Returns:
+        Returns
+        -------
             int: Sort id.
         """
         return int(self._sort)
@@ -1244,7 +1292,8 @@ class Node(Element, TimestampsMixin):
     def version(self):
         """Get the node version.
 
-        Returns:
+        Returns
+        -------
             int: Version.
         """
         return self._version
@@ -1253,7 +1302,8 @@ class Node(Element, TimestampsMixin):
     def text(self):
         """Get the text value.
 
-        Returns:
+        Returns
+        -------
             str: Text value.
         """
         return self._text
@@ -1263,6 +1313,7 @@ class Node(Element, TimestampsMixin):
         """Set the text value.
 
         Args:
+        ----
             value: Text value.
         """
         self._text = value
@@ -1273,7 +1324,8 @@ class Node(Element, TimestampsMixin):
     def children(self) -> list["Node"]:
         """Get all children.
 
-        Returns:
+        Returns
+        -------
             Children nodes.
         """
         return list(self._children.values())
@@ -1282,9 +1334,11 @@ class Node(Element, TimestampsMixin):
         """Get child node with the given ID.
 
         Args:
+        ----
             node_id: The node ID.
 
         Returns:
+        -------
             Child node.
         """
         return self._children.get(node_id)
@@ -1293,6 +1347,7 @@ class Node(Element, TimestampsMixin):
         """Add a new child node.
 
         Args:
+        ----
             node: Node to add.
             dirty: Whether this node should be marked dirty.
         """
@@ -1307,6 +1362,7 @@ class Node(Element, TimestampsMixin):
         """Remove the given child node.
 
         Args:
+        ----
             node: Node to remove.
             dirty: Whether this node should be marked dirty.
         """
@@ -1320,7 +1376,8 @@ class Node(Element, TimestampsMixin):
     def new(self):
         """Get whether this node has been persisted to the server.
 
-        Returns:
+        Returns
+        -------
             bool: True if node is new.
         """
         return self.server_id is None
@@ -1341,7 +1398,7 @@ class Root(Node):
 
     ID = "root"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(id_=self.ID)
 
     @property
@@ -1354,7 +1411,7 @@ class TopLevelNode(Node):
 
     _TYPE = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(parent_id=Root.ID, **kwargs)
         self._color = ColorValue.White
         self._archived = False
@@ -1397,7 +1454,8 @@ class TopLevelNode(Node):
     def color(self):
         """Get the node color.
 
-        Returns:
+        Returns
+        -------
             gkeepapi.node.Color: Color.
         """
         return self._color
@@ -1411,7 +1469,8 @@ class TopLevelNode(Node):
     def archived(self):
         """Get the archive state.
 
-        Returns:
+        Returns
+        -------
             bool: Whether this node is archived.
         """
         return self._archived
@@ -1425,7 +1484,8 @@ class TopLevelNode(Node):
     def pinned(self):
         """Get the pin state.
 
-        Returns:
+        Returns
+        -------
             bool: Whether this node is pinned.
         """
         return self._pinned
@@ -1439,7 +1499,8 @@ class TopLevelNode(Node):
     def title(self):
         """Get the title.
 
-        Returns:
+        Returns
+        -------
             str: Title.
         """
         return self._title
@@ -1453,7 +1514,8 @@ class TopLevelNode(Node):
     def url(self):
         """Get the url for this node.
 
-        Returns:
+        Returns
+        -------
             str: Google Keep url.
         """
         return "https://keep.google.com/u/0/#" + self._TYPE.value + "/" + self.id
@@ -1466,7 +1528,8 @@ class TopLevelNode(Node):
     def blobs(self):
         """Get all media blobs.
 
-        Returns:
+        Returns
+        -------
             list[gkeepapi.node.Blob]: Media blobs.
         """
         return [node for node in self.children if isinstance(node, Blob)]
@@ -1492,7 +1555,7 @@ class ListItem(Node):
 
     def __init__(
         self, parent_id=None, parent_server_id=None, super_list_item_id=None, **kwargs
-    ):
+    ) -> None:
         super().__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
         self.parent_item = None
         self.parent_server_id = parent_server_id
@@ -1523,6 +1586,7 @@ class ListItem(Node):
         """Add a new sub item to the list. This item must already be attached to a list.
 
         Args:
+        ----
             text: The text.
             checked: Whether this item is checked.
             sort: Item id for sorting.
@@ -1537,6 +1601,7 @@ class ListItem(Node):
         """Indent an item. Does nothing if the target has subitems.
 
         Args:
+        ----
             node: Item to indent.
             dirty: Whether this node should be marked dirty.
         """
@@ -1553,6 +1618,7 @@ class ListItem(Node):
         """Dedent an item. Does nothing if the target is not indented under this item.
 
         Args:
+        ----
             node: Item to dedent.
             dirty : Whether this node should be marked dirty.
         """
@@ -1569,7 +1635,8 @@ class ListItem(Node):
     def subitems(self):
         """Get subitems for this item.
 
-        Returns:
+        Returns
+        -------
             list[gkeepapi.node.ListItem]: Subitems.
         """
         return List.sorted_items(self._subitems.values())
@@ -1578,7 +1645,8 @@ class ListItem(Node):
     def indented(self):
         """Get indentation state.
 
-        Returns:
+        Returns
+        -------
             bool: Whether this item is indented.
         """
         return self.parent_item is not None
@@ -1587,7 +1655,8 @@ class ListItem(Node):
     def checked(self):
         """Get the checked state.
 
-        Returns:
+        Returns
+        -------
             bool: Whether this item is checked.
         """
         return self._checked
@@ -1597,7 +1666,7 @@ class ListItem(Node):
         self._checked = value
         self.touch(True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{}{} {}".format(
             "  " if self.indented else "",
             "☑" if self.checked else "☐",
@@ -1610,7 +1679,7 @@ class Note(TopLevelNode):
 
     _TYPE = NodeType.Note
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(type_=self._TYPE, **kwargs)
 
     def _get_text_node(self):
@@ -1639,7 +1708,7 @@ class Note(TopLevelNode):
         node.text = value
         self.touch(True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "\n".join([self.title, self.text])
 
 
@@ -1649,7 +1718,7 @@ class List(TopLevelNode):
     _TYPE = NodeType.List
     SORT_DELTA = 10000  # Arbitrary constant
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(type_=self._TYPE, **kwargs)
 
     def add(
@@ -1661,6 +1730,7 @@ class List(TopLevelNode):
         """Add a new item to the list.
 
         Args:
+        ----
             text: The text.
             checked: Whether this item is checked.
             sort: Item id for sorting or a placement policy.
@@ -1694,8 +1764,12 @@ class List(TopLevelNode):
         """Generate a list of sorted list items, taking into account parent items.
 
         Args:
+        ----
             items: Items to sort.
+
+
         Returns:
+        -------
             Sorted items.
         """
 
@@ -1751,6 +1825,7 @@ class List(TopLevelNode):
         but a custom function can be specified.
 
         Args:
+        ----
             key: A filter function.
             reverse: Whether to reverse the output.
         """
@@ -1768,7 +1843,8 @@ class List(TopLevelNode):
     def items(self) -> list[ListItem]:
         """Get all listitems.
 
-        Returns:
+        Returns
+        -------
             List items.
         """
         return self.sorted_items(self._items())
@@ -1777,7 +1853,8 @@ class List(TopLevelNode):
     def checked(self) -> list[ListItem]:
         """Get all checked listitems.
 
-        Returns:
+        Returns
+        -------
             List items.
         """
         return self.sorted_items(self._items(True))
@@ -1786,7 +1863,8 @@ class List(TopLevelNode):
     def unchecked(self) -> list[ListItem]:
         """Get all unchecked listitems.
 
-        Returns:
+        Returns
+        -------
             List items.
         """
         return self.sorted_items(self._items(False))
@@ -1797,7 +1875,7 @@ class NodeBlob(Element):
 
     _TYPE = None
 
-    def __init__(self, type_=None):
+    def __init__(self, type_=None) -> None:
         super().__init__()
         self.blob_id = None
         self.type = type_
@@ -1830,7 +1908,7 @@ class NodeAudio(NodeBlob):
 
     _TYPE = BlobType.Audio
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(type_=self._TYPE)
         self._length = None
 
@@ -1847,7 +1925,9 @@ class NodeAudio(NodeBlob):
     @property
     def length(self):
         """Get length of the audio clip.
-        Returns:
+
+        Returns
+        -------
             int: Audio length.
         """
         return self._length
@@ -1858,7 +1938,7 @@ class NodeImage(NodeBlob):
 
     _TYPE = BlobType.Image
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(type_=self._TYPE)
         self._is_uploaded = False
         self._width = 0
@@ -1888,7 +1968,9 @@ class NodeImage(NodeBlob):
     @property
     def width(self):
         """Get width of image.
-        Returns:
+
+        Returns
+        -------
             int: Image width.
         """
         return self._width
@@ -1896,7 +1978,9 @@ class NodeImage(NodeBlob):
     @property
     def height(self):
         """Get height of image.
-        Returns:
+
+        Returns
+        -------
             int: Image height.
         """
         return self._height
@@ -1904,7 +1988,9 @@ class NodeImage(NodeBlob):
     @property
     def byte_size(self):
         """Get size of image in bytes.
-        Returns:
+
+        Returns
+        -------
             int: Image byte size.
         """
         return self._byte_size
@@ -1920,10 +2006,12 @@ class NodeImage(NodeBlob):
     @property
     def url(self):
         """Get a url to the image.
-        Returns:
+
+        Returns
+        -------
             str: Image url.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class NodeDrawing(NodeBlob):
@@ -1931,7 +2019,7 @@ class NodeDrawing(NodeBlob):
 
     _TYPE = BlobType.Drawing
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(type_=self._TYPE)
         self._extracted_text = ""
         self._extraction_status = ""
@@ -1971,7 +2059,7 @@ class NodeDrawing(NodeBlob):
 class NodeDrawingInfo(Element):
     """Represents information about a drawing blob."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.drawing_id = ""
         self.snapshot = NodeImage()
@@ -2023,7 +2111,7 @@ class Blob(Node):
         BlobType.Drawing: NodeDrawing,
     }
 
-    def __init__(self, parent_id=None, **kwargs):
+    def __init__(self, parent_id=None, **kwargs) -> None:
         super().__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
         self.blob = None
 
@@ -2032,9 +2120,11 @@ class Blob(Node):
         """Helper to construct a blob from a dict.
 
         Args:
+        ----
             raw: Raw blob representation.
 
         Returns:
+        -------
             A NodeBlob object or None.
         """
         if raw is None:
@@ -2080,9 +2170,11 @@ def from_json(raw: dict) -> Node | None:
     """Helper to construct a node from a dict.
 
     Args:
+    ----
         raw: Raw node representation.
 
     Returns:
+    -------
         A Node object or None.
     """
     ncls = None
