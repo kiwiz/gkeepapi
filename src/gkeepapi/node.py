@@ -891,7 +891,7 @@ class NodeCollaborators(Element):
 
     def load(
         self, collaborators_raw: list, requests_raw: list
-    ) -> None:  # pylint: disable=arguments-differ
+    ) -> None:
         # Parent method not called.
         if requests_raw and isinstance(requests_raw[-1], bool):
             self._dirty = requests_raw.pop()

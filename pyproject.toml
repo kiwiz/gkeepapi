@@ -57,7 +57,6 @@ select = [
   "C4",  # flake8-comprehensions
   "DTZ",  # flake8-datetimez
   "T10",  # flake8-debugger
-  "DJ",  # flake8-django
   "EM",  # flake8-errmsg
   "EXE",  # flake8-executable
   "ISC",  # flake8-implicit-str-concat

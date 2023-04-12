@@ -31,17 +31,15 @@ class APIAuth:
         self._device_id = None
         self._scopes = scopes
 
-    def login(self, email: str, password: str, device_id: str):
+    def login(self, email: str, password: str, device_id: str) -> None:
         """Authenticate to Google with the provided credentials.
 
         Args:
-        ----
             email: The account to use.
             password: The account password.
             device_id: An identifier for this client.
 
         Raises:
-        ------
             LoginException: If there was a problem logging in.
         """
         self._email = email
@@ -67,13 +65,11 @@ class APIAuth:
         """Authenticate to Google with the provided master token.
 
         Args:
-        ----
             email: The account to use.
             master_token: The master token.
             device_id: An identifier for this client.
 
         Raises:
-        ------
             LoginException: If there was a problem logging in.
         """
         self._email = email
@@ -88,18 +84,14 @@ class APIAuth:
         """Gets the master token.
 
         Returns:
-        -------
             The account master token.
         """
         return self._master_token
 
-    def setMasterToken(self, master_token: str):
-        """Sets the master token. This is useful if you'd like to authenticate
-        with the API without providing your username & password.
-        Do note that the master token has full access to your account.
+    def setMasterToken(self, master_token: str) -> None:
+        """Sets the master token. This is useful if you'd like to authenticate with the API without providing your username & password. Do note that the master token has full access to your account.
 
         Args:
-        ----
             master_token: The account master token.
         """
         self._master_token = master_token
@@ -108,16 +100,14 @@ class APIAuth:
         """Gets the account email.
 
         Returns:
-        -------
             The account email.
         """
         return self._email
 
-    def setEmail(self, email: str):
+    def setEmail(self, email: str) -> None:
         """Sets the account email.
 
         Args:
-        ----
             email: The account email.
         """
         self._email = email
@@ -126,16 +116,14 @@ class APIAuth:
         """Gets the device id.
 
         Returns:
-        -------
             The device id.
         """
         return self._device_id
 
-    def setDeviceId(self, device_id: str):
+    def setDeviceId(self, device_id: str) -> None:
         """Sets the device id.
 
         Args:
-        ----
             device_id: The device id.
         """
         self._device_id = device_id
@@ -144,7 +132,6 @@ class APIAuth:
         """Gets the auth token.
 
         Returns:
-        -------
             The auth token.
         """
         return self._auth_token
@@ -153,11 +140,9 @@ class APIAuth:
         """Refresh the OAuth token.
 
         Returns:
-        -------
             The auth token.
 
         Raises:
-        ------
             LoginException: If there was a problem refreshing the OAuth token.
         """
         # Obtain an OAuth token with the necessary scopes by pretending to be
@@ -177,7 +162,7 @@ class APIAuth:
         self._auth_token = res["Auth"]
         return self._auth_token
 
-    def logout(self):
+    def logout(self) -> None:
         """Log out of the account."""
         self._master_token = None
         self._auth_token = None
@@ -206,34 +191,29 @@ class API:
         """Get authentication details for this API.
 
         Return:
-        ------
             auth: The auth object
         """
         return self._auth
 
-    def setAuth(self, auth: APIAuth):
+    def setAuth(self, auth: APIAuth) -> None:
         """Set authentication details for this API.
 
         Args:
-        ----
             auth: The auth object
         """
         self._auth = auth
 
-    def send(self, **req_kwargs) -> dict:
+    def send(self, **req_kwargs: dict) -> dict:
         """Send an authenticated request to a Google API.
         Automatically retries if the access token has expired.
 
         Args:
-        ----
             **req_kwargs: Arbitrary keyword arguments to pass to Requests.
 
         Return:
-        ------
             The parsed JSON response.
 
         Raises:
-        ------
             APIException: If the server returns an error.
             LoginException: If :py:meth:`login` has not been called.
         """
@@ -263,19 +243,16 @@ class API:
 
         return response
 
-    def _send(self, **req_kwargs) -> requests.Response:
+    def _send(self, **req_kwargs: dict) -> requests.Response:
         """Send an authenticated request to a Google API.
 
         Args:
-        ----
             **req_kwargs: Arbitrary keyword arguments to pass to Requests.
 
         Return:
-        ------
             The raw response.
 
         Raises:
-        ------
             LoginException: If :py:meth:`login` has not been called.
         """
         # Bail if we don't have an OAuth token.
@@ -317,17 +294,14 @@ class KeepAPI(API):
         """Sync up (and down) all changes.
 
         Args:
-        ----
             target_version: The local change version.
             nodes: A list of nodes to sync up to the server.
             labels: A list of labels to sync up to the server.
 
         Return:
-        ------
             Description of all changes.
 
         Raises:
-        ------
             APIException: If the server returns an error.
         """
         # Handle defaults.
@@ -401,11 +375,9 @@ class MediaAPI(API):
         """Get the canonical link to a media blob.
 
         Args:
-        ----
             blob: The blob.
 
         Returns:
-        -------
             A link to the media.
         """
         url = self._base_url + blob.parent.server_id + "/" + blob.server_id
@@ -449,7 +421,6 @@ class RemindersAPI(API):
         """Create a new reminder.
 
         Args:
-        ----
             node_id: The note ID.
             node_server_id: The note server ID.
             dtime: The due date of this reminder.
@@ -457,7 +428,6 @@ class RemindersAPI(API):
         Return: ???
 
         Raises:
-        ------
             APIException: If the server returns an error.
         """
         params = {}
@@ -499,7 +469,6 @@ class RemindersAPI(API):
         """Update an existing reminder.
 
         Args:
-        ----
             node_id: The note ID.
             node_server_id: The note server ID.
             dtime: The due date of this reminder.
@@ -507,7 +476,6 @@ class RemindersAPI(API):
         Return: ???
 
         Raises:
-        ------
             APIException: If the server returns an error.
         """
         params = {}
@@ -556,13 +524,11 @@ class RemindersAPI(API):
         """Delete an existing reminder.
 
         Args:
-        ----
             node_server_id: The note server ID.
 
         Return: ???
 
         Raises:
-        ------
             APIException: If the server returns an error.
         """
         params = {}
@@ -584,19 +550,16 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "batchmutate", method="POST", json=params)
 
-    def list(self, master=True) -> Any:
+    def list(self, master: bool = True) -> Any:
         """List current reminders.
 
         Args:
-        ----
             master: ???
 
         Return:
-        ------
             ???
 
         Raises:
-        ------
             APIException: If the server returns an error.
         """
         params = {}
@@ -638,15 +601,12 @@ class RemindersAPI(API):
         """Get reminder changes.
 
         Args:
-        ----
             storage_version: The local storage version.
 
         Returns:
-        -------
             ???
 
         Raises:
-        ------
             APIException: If the server returns an error.
         """
         params = {
@@ -703,7 +663,7 @@ class Keep:
 
         self._clear()
 
-    def _clear(self):
+    def _clear(self) -> None:
         self._keep_version = None
         self._reminder_version = None
         self._labels = {}
@@ -718,13 +678,12 @@ class Keep:
         email: str,
         password: str,
         state: dict | None = None,
-        sync=True,
+        sync: bool = True,
         device_id: str | None = None,
-    ):
+    ) -> None:
         """Authenticate to Google with the provided credentials & sync.
 
         Args:
-        ----
             email: The account to use.
             password: The account password.
             state: Serialized state to load.
@@ -732,7 +691,6 @@ class Keep:
             device_id: Device id.
 
         Raises:
-        ------
             LoginException: If there was a problem logging in.
         """
         auth = APIAuth(self.OAUTH_SCOPES)
@@ -747,13 +705,12 @@ class Keep:
         email: str,
         master_token: str,
         state: dict | None = None,
-        sync=True,
+        sync: bool = True,
         device_id: str | None = None,
-    ):
+    ) -> None:
         """Authenticate to Google with the provided master token & sync.
 
         Args:
-        ----
             email: The account to use.
             master_token: The master token.
             state: Serialized state to load.
@@ -761,7 +718,6 @@ class Keep:
             device_id: Device id.
 
         Raises:
-        ------
             LoginException: If there was a problem logging in.
         """
         auth = APIAuth(self.OAUTH_SCOPES)
@@ -775,22 +731,19 @@ class Keep:
         """Get master token for resuming.
 
         Returns:
-        -------
             The master token.
         """
         return self._keep_api.getAuth().getMasterToken()
 
-    def load(self, auth: APIAuth, state: dict | None = None, sync=True):
+    def load(self, auth: APIAuth, state: dict | None = None, sync: bool = True) -> None:
         """Authenticate to Google with a prepared authentication object & sync.
 
         Args:
-        ----
             auth: Authentication object.
             state: Serialized state to load.
             sync: Whether to sync data.
 
         Raises:
-        ------
             LoginException: If there was a problem logging in.
         """
         self._keep_api.setAuth(auth)
@@ -805,7 +758,6 @@ class Keep:
         """Serialize note data.
 
         Returns:
-        -------
             Serialized state.
         """
         # Find all nodes manually, as the Keep object isn't aware of new
@@ -821,11 +773,10 @@ class Keep:
             "nodes": [node.save(False) for node in nodes],
         }
 
-    def restore(self, state: dict):
+    def restore(self, state: dict) -> None:
         """Unserialize saved note data.
 
         Args:
-        ----
             state: Serialized state to load.
         """
         self._clear()
@@ -837,27 +788,23 @@ class Keep:
         """Get a note with the given ID.
 
         Args:
-        ----
             node_id: The note ID.
 
         Returns:
-        -------
             The Note or None if not found.
         """
         return self._nodes[_node.Root.ID].get(node_id) or self._nodes[
             _node.Root.ID
         ].get(self._sid_map.get(node_id))
 
-    def add(self, node: _node.Node):
+    def add(self, node: _node.Node) -> None:
         """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
         :py:meth:`createNote` or :py:meth:`createList` as they are automatically added.
 
         Args:
-        ----
             node: The node to sync.
 
         Raises:
-        ------
             InvalidException: If the parent node is not found.
         """
         if node.parent_id != _node.Root.ID:
@@ -875,11 +822,10 @@ class Keep:
         pinned: bool | None = None,
         archived: bool | None = None,
         trashed: bool = False,
-    ) -> Iterator[_node.TopLevelNode]:  # pylint: disable=too-many-arguments
+    ) -> Iterator[_node.TopLevelNode]:
         """Find Notes based on the specified criteria.
 
         Args:
-        ----
             query: A str or regular expression to match against the title and text.
             func: A filter function.
             labels: A list of label ids or objects to match. An empty list matches notes with no labels.
@@ -889,7 +835,6 @@ class Keep:
             trashed: Whether to match trashed notes.
 
         Return:
-        ------
             Search results.
         """
         if labels is not None:
@@ -935,12 +880,10 @@ class Keep:
         """Create a new managed note. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
-        ----
             title: The title of the note.
             text: The text of the note.
 
         Returns:
-        -------
             The new note.
         """
         node = _node.Note()
@@ -959,12 +902,10 @@ class Keep:
         """Create a new list and populate it. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
         Args:
-        ----
             title: The title of the list.
             items: A list of tuples. Each tuple represents the text and checked status of the listitem.
 
         Returns:
-        -------
             The new list.
         """
         if items is None:
@@ -985,34 +926,31 @@ class Keep:
         """Create a new label.
 
         Args:
-        ----
             name: Label name.
 
         Returns:
-        -------
             The new label.
 
         Raises:
-        ------
             LabelException: If the label exists.
         """
         if self.findLabel(name):
             raise exception.LabelException("Label exists")
         node = _node.Label()
         node.name = name
-        self._labels[node.id] = node  # pylint: disable=protected-access
+        self._labels[node.id] = node
         return node
 
-    def findLabel(self, query: re.Pattern | str, create=False) -> _node.Label | None:
+    def findLabel(
+        self, query: re.Pattern | str, create: bool = False
+    ) -> _node.Label | None:
         """Find a label with the given name.
 
         Args:
-        ----
             name: A str or regular expression to match against the name.
             create: Whether to create the label if it doesn't exist (only if name is a str).
 
         Returns:
-        -------
             The label.
         """
         is_str = isinstance(query, str)
@@ -1034,20 +972,17 @@ class Keep:
         """Get an existing label.
 
         Args:
-        ----
             label_id: Label id.
 
         Returns:
-        -------
             The label.
         """
         return self._labels.get(label_id)
 
-    def deleteLabel(self, label_id: str):
+    def deleteLabel(self, label_id: str) -> None:
         """Deletes a label.
 
         Args:
-        ----
             label_id: Label id.
         """
         if label_id not in self._labels:
@@ -1062,7 +997,6 @@ class Keep:
         """Get all labels.
 
         Returns:
-        -------
             Labels
         """
         return list(self._labels.values())
@@ -1071,11 +1005,9 @@ class Keep:
         """Get the canonical link to media.
 
         Args:
-        ----
             blob: The media resource.
 
         Returns:
-        -------
             A link to the media.
         """
         return self._media_api.get(blob)
@@ -1084,22 +1016,18 @@ class Keep:
         """Get all Notes.
 
         Returns:
-        -------
 
         Notes:
-        -----
         """
         return self._nodes[_node.Root.ID].children
 
-    def sync(self, resync=False):
+    def sync(self, resync: bool = False) -> None:
         """Sync the local Keep tree with the server. If resyncing, local changes will be destroyed. Otherwise, local changes to notes, labels and reminders will be detected and synced up.
 
         Args:
-        ----
             resync: Whether to resync data.
 
         Raises:
-        ------
             SyncException: If there is a consistency issue.
         """
         # Clear all state if we want to resync.
@@ -1112,7 +1040,7 @@ class Keep:
         if _node.DEBUG:
             self._clean()
 
-    def _sync_reminders(self):
+    def _sync_reminders(self) -> None:
         # Fetch updates until we reach the newest version.
         while True:
             logger.debug("Starting reminder sync: %s", self._reminder_version)
@@ -1130,7 +1058,7 @@ class Keep:
             if self._reminder_version == history["highestStorageVersion"]:
                 break
 
-    def _sync_notes(self):
+    def _sync_notes(self) -> None:
         # Fetch updates until we reach the newest version.
         while True:
             logger.debug("Starting keep sync: %s", self._keep_version)
@@ -1166,10 +1094,10 @@ class Keep:
             if not changes["truncated"]:
                 break
 
-    def _parseTasks(self, raw: dict):
+    def _parseTasks(self, raw: dict) -> None:
         pass
 
-    def _parseNodes(self, raw: dict):  # pylint: disable=too-many-branches
+    def _parseNodes(self, raw: dict) -> None:
         created_nodes = []
         deleted_nodes = []
         listitem_nodes = []
@@ -1241,12 +1169,10 @@ class Keep:
 
         # Hydrate label references in notes.
         for node in self.all():
-            for label_id in node.labels._labels:  # pylint: disable=protected-access
-                node.labels._labels[label_id] = self._labels.get(
-                    label_id
-                )  # pylint: disable=protected-access
+            for label_id in node.labels._labels:
+                node.labels._labels[label_id] = self._labels.get(label_id)
 
-    def _parseUserInfo(self, raw: dict):
+    def _parseUserInfo(self, raw: dict) -> None:
         labels = {}
         if "labels" in raw:
             for label in raw["labels"]:
@@ -1284,7 +1210,7 @@ class Keep:
 
         return nodes
 
-    def _clean(self):
+    def _clean(self) -> None:
         """Recursively check that all nodes are reachable."""
         found_ids = set()
         nodes = [self._nodes[_node.Root.ID]]
