@@ -182,7 +182,7 @@ class Element:
         """Construct an element object"""
         self._dirty = False
 
-    def _find_discrepancies(self, raw) -> None:  # pragma: no cover
+    def _find_discrepancies(self, raw: dict | list) -> None:  # pragma: no cover
         s_raw = self.save(False)
         if isinstance(raw, dict):
             for key, val in raw.items():
@@ -227,12 +227,10 @@ class Element:
         """Unserialize from raw representation. (Wrapper)
 
         Args:
-        ----
             raw: Raw.
 
 
         Raises:
-        ------
             ParseException: If there was an error parsing data.
         """
         try:
@@ -244,20 +242,17 @@ class Element:
         """Unserialize from raw representation. (Implementation logic)
 
         Args:
-        ----
             raw: Raw.
         """
         self._dirty = raw.get("_dirty", False)
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         """Serialize into raw representation. Clears the dirty bit by default.
 
         Args:
-        ----
             clean: Whether to clear the dirty bit.
 
         Returns:
-        -------
             Raw.
         """
         ret = {}
@@ -272,7 +267,6 @@ class Element:
         """Get dirty state.
 
         Returns:
-        -------
             Whether this element is dirty.
         """
         return self._dirty
@@ -289,7 +283,7 @@ class Annotation(Element):
         super()._load(raw)
         self.id = raw.get("id")
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = {}
         if self.id is not None:
             ret = super().save(clean)
@@ -300,21 +294,21 @@ class Annotation(Element):
     @classmethod
     def _generateAnnotationId(cls) -> str:
         return "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}".format(
-            random.randint(
+            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
                 0x00000000, 0xFFFFFFFF
-            ),  # noqa: suspicious-non-cryptographic-random-usage
-            random.randint(
+            ),
+            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
                 0x0000, 0xFFFF
-            ),  # noqa: suspicious-non-cryptographic-random-usage
-            random.randint(
+            ),
+            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
                 0x0000, 0xFFFF
-            ),  # noqa: suspicious-non-cryptographic-random-usage
-            random.randint(
+            ),
+            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
                 0x0000, 0xFFFF
-            ),  # noqa: suspicious-non-cryptographic-random-usage
-            random.randint(
+            ),
+            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
                 0x000000000000, 0xFFFFFFFFFFFF
-            ),  # noqa: suspicious-non-cryptographic-random-usage
+            ),
         )
 
 
@@ -341,7 +335,7 @@ class WebLink(Annotation):
         self._provenance_url = raw["webLink"]["provenanceUrl"]
         self._description = raw["webLink"]["description"]
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["webLink"] = {
             "title": self._title,
@@ -357,7 +351,6 @@ class WebLink(Annotation):
         """Get the link title.
 
         Returns:
-        -------
             The link title.
         """
         return self._title
@@ -372,7 +365,6 @@ class WebLink(Annotation):
         """Get the link url.
 
         Returns:
-        -------
             The link url.
         """
         return self._url
@@ -383,11 +375,10 @@ class WebLink(Annotation):
         self._dirty = True
 
     @property
-    def image_url(self) -> str:
+    def image_url(self) -> str | None:
         """Get the link image url.
 
         Returns:
-        -------
             The image url or None.
         """
         return self._image_url
@@ -402,13 +393,12 @@ class WebLink(Annotation):
         """Get the provenance url.
 
         Returns:
-        -------
             The provenance url.
         """
         return self._provenance_url
 
     @provenance_url.setter
-    def provenance_url(self, value) -> None:
+    def provenance_url(self, value: str) -> None:
         self._provenance_url = value
         self._dirty = True
 
@@ -417,7 +407,6 @@ class WebLink(Annotation):
         """Get the link description.
 
         Returns:
-        -------
             The link description.
         """
         return self._description
@@ -439,7 +428,7 @@ class Category(Annotation):
         super()._load(raw)
         self._category = CategoryValue(raw["topicCategory"]["category"])
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["topicCategory"] = {"category": self._category.value}
         return ret
@@ -449,7 +438,6 @@ class Category(Annotation):
         """Get the category.
 
         Returns:
-        -------
             The category.
         """
         return self._category
@@ -471,7 +459,7 @@ class TaskAssist(Annotation):
         super()._load(raw)
         self._suggest = raw["taskAssist"]["suggestType"]
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["taskAssist"] = {"suggestType": self._suggest}
         return ret
@@ -481,13 +469,12 @@ class TaskAssist(Annotation):
         """Get the suggestion.
 
         Returns:
-        -------
             The suggestion.
         """
         return self._suggest
 
     @suggest.setter
-    def suggest(self, value) -> None:
+    def suggest(self, value: str) -> None:
         self._suggest = value
         self._dirty = True
 
@@ -505,7 +492,7 @@ class Context(Annotation):
         for key, entry in raw.get("context", {}).items():
             self._entries[key] = NodeAnnotations.from_json({key: entry})
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         context = {}
         for entry in self._entries.values():
@@ -513,11 +500,10 @@ class Context(Annotation):
         ret["context"] = context
         return ret
 
-    def all(self) -> list[Annotation]:
+    def all(self) -> list[Annotation]:  # noqa: A003
         """Get all sub annotations.
 
         Returns:
-        -------
             Sub Annotations.
         """
         return list(self._entries.values())
@@ -544,11 +530,9 @@ class NodeAnnotations(Element):
         """Helper to construct an annotation from a dict.
 
         Args:
-        ----
             raw: Raw annotation representation.
 
         Returns:
-        -------
             An Annotation object or None.
         """
         bcls = None
@@ -573,7 +557,6 @@ class NodeAnnotations(Element):
         """Get all annotations.
 
         Returns:
-        -------
             Annotations.
         """
         return list(self._annotations.values())
@@ -588,7 +571,7 @@ class NodeAnnotations(Element):
             annotation = self.from_json(raw_annotation)
             self._annotations[annotation.id] = annotation
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["kind"] = "notes#annotationsGroup"
         if self._annotations:
@@ -608,7 +591,6 @@ class NodeAnnotations(Element):
         """Get the category.
 
         Returns:
-        -------
             The category.
         """
         node = self._get_category_node()
@@ -616,7 +598,7 @@ class NodeAnnotations(Element):
         return node.category if node is not None else None
 
     @category.setter
-    def category(self, value) -> None:
+    def category(self, value: CategoryValue) -> None:
         node = self._get_category_node()
         if value is None:
             if node is not None:
@@ -634,7 +616,6 @@ class NodeAnnotations(Element):
         """Get all links.
 
         Returns:
-        -------
             A list of links.
         """
         return [
@@ -647,11 +628,9 @@ class NodeAnnotations(Element):
         """Add an annotation.
 
         Args:
-        ----
             annotation: An Annotation object.
 
         Returns:
-        -------
             The Annotation.
         """
         self._annotations[annotation.id] = annotation
@@ -662,7 +641,6 @@ class NodeAnnotations(Element):
         """Removes an annotation.
 
         Args:
-        ----
             annotation: An Annotation object.
         """
         if annotation.id in self._annotations:
@@ -703,7 +681,7 @@ class NodeTimestamps(Element):
             self.str_to_dt(raw["userEdited"]) if "userEdited" in raw else None
         )
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["kind"] = "notes#timestamps"
         ret["created"] = self.dt_to_str(self._created)
@@ -724,7 +702,6 @@ class NodeTimestamps(Element):
             tsz: Datetime string.
 
         Returns:
-        -------
             Datetime.
         """
         return datetime.datetime.strptime(tzs, cls.TZ_FMT)
@@ -737,7 +714,6 @@ class NodeTimestamps(Element):
             ts: Unix timestamp.
 
         Returns:
-        -------
             Datetime.
         """
         return datetime.datetime.utcfromtimestamp(tz)
@@ -750,7 +726,6 @@ class NodeTimestamps(Element):
             dt: Datetime.
 
         Returns:
-        -------
             Datetime string.
         """
         return dt.strftime(cls.TZ_FMT)
@@ -760,7 +735,6 @@ class NodeTimestamps(Element):
         """Convert a unix timestamp to a str.
 
         Returns:
-        -------
             Datetime string.
         """
         return cls.dt_to_str(cls.int_to_dt(tz))
@@ -770,13 +744,12 @@ class NodeTimestamps(Element):
         """Get the creation datetime.
 
         Returns:
-        -------
             Datetime.
         """
         return self._created
 
     @created.setter
-    def created(self, value) -> None:
+    def created(self, value: datetime.datetime) -> None:
         self._created = value
         self._dirty = True
 
@@ -785,7 +758,6 @@ class NodeTimestamps(Element):
         """Get the deletion datetime.
 
         Returns:
-        -------
             Datetime.
         """
         return self._deleted
@@ -800,7 +772,6 @@ class NodeTimestamps(Element):
         """Get the move-to-trash datetime.
 
         Returns:
-        -------
             Datetime.
         """
         return self._trashed
@@ -815,7 +786,6 @@ class NodeTimestamps(Element):
         """Get the updated datetime.
 
         Returns:
-        -------
             Datetime.
         """
         return self._updated
@@ -830,7 +800,6 @@ class NodeTimestamps(Element):
         """Get the user edited datetime.
 
         Returns:
-        -------
             Datetime.
         """
         return self._edited
@@ -860,7 +829,7 @@ class NodeSettings(Element):
             raw["checkedListItemsPolicy"]
         )
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["newListItemPlacement"] = self._new_listitem_placement.value
         ret["graveyardState"] = self._graveyard_state.value
@@ -872,7 +841,6 @@ class NodeSettings(Element):
         """Get the default location to insert new listitems.
 
         Returns:
-        -------
             Placement.
         """
         return self._new_listitem_placement
@@ -887,7 +855,6 @@ class NodeSettings(Element):
         """Get the visibility state for the list graveyard.
 
         Returns:
-        -------
             Visibility.
         """
         return self._graveyard_state
@@ -902,7 +869,6 @@ class NodeSettings(Element):
         """Get the policy for checked listitems.
 
         Returns:
-        -------
             Policy.
         """
         return self._checked_listitems_policy
@@ -939,7 +905,7 @@ class NodeCollaborators(Element):
                 collaborator["type"]
             )
 
-    def save(self, clean=True) -> tuple[list, list]:
+    def save(self, clean: bool = True) -> tuple[list, list]:
         # Parent method not called.
         collaborators = []
         requests = []
@@ -960,7 +926,6 @@ class NodeCollaborators(Element):
         """Add a collaborator.
 
         Args:
-        ----
             email: Collaborator email address.
         """
         if email not in self._collaborators:
@@ -971,7 +936,6 @@ class NodeCollaborators(Element):
         """Remove a Collaborator.
 
         Args:
-        ----
             email: Collaborator email address.
         """
         if email in self._collaborators:
@@ -985,7 +949,6 @@ class NodeCollaborators(Element):
         """Get all collaborators.
 
         Returns:
-        -------
             Collaborators.
         """
         return [
@@ -1001,11 +964,10 @@ class TimestampsMixin:
     def __init__(self) -> None:
         self.timestamps: NodeTimestamps
 
-    def touch(self, edited=False) -> None:
+    def touch(self, edited: bool = False) -> None:
         """Mark the node as dirty.
 
         Args:
-        ----
             edited: Whether to set the edited time.
         """
         self._dirty = True
@@ -1019,7 +981,6 @@ class TimestampsMixin:
         """Get the trashed state.
 
         Returns:
-        -------
             Whether this item is trashed.
         """
         return (
@@ -1040,7 +1001,6 @@ class TimestampsMixin:
         """Get the deleted state.
 
         Returns:
-        -------
             Whether this item is deleted.
         """
         return (
@@ -1071,20 +1031,20 @@ class Label(Element, TimestampsMixin):
         self._merged = NodeTimestamps.int_to_dt(0)
 
     @classmethod
-    def _generateId(cls, tz) -> str:
+    def _generateId(cls, tz: float) -> str:
         return "tag.{}.{:x}".format(
             "".join(
                 [
-                    random.choice(
+                    random.choice(  # noqa: suspicious-non-cryptographic-random-usage
                         "abcdefghijklmnopqrstuvwxyz0123456789"
-                    )  # noqa: suspicious-non-cryptographic-random-usage
+                    )
                     for _ in range(12)
                 ]
             ),
             int(tz * 1000),
         )
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self.id = raw["mainId"]
         self._name = raw["name"]
@@ -1095,7 +1055,7 @@ class Label(Element, TimestampsMixin):
             else NodeTimestamps.int_to_dt(0)
         )
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["mainId"] = self.id
         ret["name"] = self._name
@@ -1108,13 +1068,12 @@ class Label(Element, TimestampsMixin):
         """Get the label name.
 
         Returns:
-        -------
             Label name.
         """
         return self._name
 
     @name.setter
-    def name(self, value) -> None:
+    def name(self, value: str) -> None:
         self._name = value
         self.touch(True)
 
@@ -1123,13 +1082,12 @@ class Label(Element, TimestampsMixin):
         """Get last merge datetime.
 
         Returns:
-        -------
             Datetime.
         """
         return self._merged
 
     @merged.setter
-    def merged(self, value) -> None:
+    def merged(self, value: datetime.datetime) -> None:
         self._merged = value
         self.touch()
 
@@ -1161,7 +1119,7 @@ class NodeLabels(Element):
         for raw_label in raw:
             self._labels[raw_label["labelId"]] = None
 
-    def save(self, clean=True) -> tuple[dict] | tuple[dict, bool]:
+    def save(self, clean: bool = True) -> tuple[dict] | tuple[dict, bool]:
         # Parent method not called.
         ret = [
             {
@@ -1182,7 +1140,6 @@ class NodeLabels(Element):
         """Add a label.
 
         Args:
-        ----
             label: The Label object.
         """
         self._labels[label.id] = label
@@ -1192,7 +1149,6 @@ class NodeLabels(Element):
         """Remove a label.
 
         Args:
-        ----
             label: The Label object.
         """
         if label.id in self._labels:
@@ -1203,7 +1159,6 @@ class NodeLabels(Element):
         """Get a label by ID.
 
         Args:
-        ----
             label_id: The label ID.
         """
         return self._labels.get(label_id)
@@ -1212,7 +1167,6 @@ class NodeLabels(Element):
         """Get all labels.
 
         Returns:
-        -------
             Labels.
         """
         return [label for _, label in self._labels.items() if label is not None]
@@ -1221,7 +1175,12 @@ class NodeLabels(Element):
 class Node(Element, TimestampsMixin):
     """Node base class."""
 
-    def __init__(self, id_=None, type_=None, parent_id=None) -> None:
+    def __init__(
+        self,
+        id_: str | None = None,
+        type_: str | None = None,
+        parent_id: str | None = None,
+    ) -> None:
         super().__init__()
 
         create_time = time.time()
@@ -1231,9 +1190,9 @@ class Node(Element, TimestampsMixin):
         self.server_id = None
         self.parent_id = parent_id
         self.type = type_
-        self._sort = random.randint(
+        self._sort = random.randint(  # noqa: suspicious-non-cryptographic-random-usage
             1000000000, 9999999999
-        )  # noqa: suspicious-non-cryptographic-random-usage
+        )
         self._version = None
         self._text = ""
         self._children = {}
@@ -1245,15 +1204,15 @@ class Node(Element, TimestampsMixin):
         self._moved = False
 
     @classmethod
-    def _generateId(cls, tz) -> str:
+    def _generateId(cls, tz: float) -> str:
         return "{:x}.{:016x}".format(
             int(tz * 1000),
-            random.randint(
+            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
                 0x0000000000000000, 0xFFFFFFFFFFFFFFFF
-            ),  # noqa: suspicious-non-cryptographic-random-usage
+            ),
         )
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         # Verify this is a valid type
         NodeType(raw["type"])
@@ -1273,7 +1232,7 @@ class Node(Element, TimestampsMixin):
         self.settings.load(raw["nodeSettings"])
         self.annotations.load(raw["annotationsGroup"])
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["id"] = self.id
         ret["kind"] = "notes#node"
@@ -1295,13 +1254,12 @@ class Node(Element, TimestampsMixin):
         """Get the sort id.
 
         Returns:
-        -------
             Sort id.
         """
         return int(self._sort)
 
     @sort.setter
-    def sort(self, value) -> None:
+    def sort(self, value: int) -> None:
         self._sort = value
         self.touch()
 
@@ -1310,7 +1268,6 @@ class Node(Element, TimestampsMixin):
         """Get the node version.
 
         Returns:
-        -------
             Version.
         """
         return self._version
@@ -1320,7 +1277,6 @@ class Node(Element, TimestampsMixin):
         """Get the text value.
 
         Returns:
-        -------
             Text value.
         """
         return self._text
@@ -1330,7 +1286,6 @@ class Node(Element, TimestampsMixin):
         """Set the text value.
 
         Args:
-        ----
             value: Text value.
         """
         self._text = value
@@ -1342,7 +1297,6 @@ class Node(Element, TimestampsMixin):
         """Get all children.
 
         Returns:
-        -------
             Children nodes.
         """
         return list(self._children.values())
@@ -1351,20 +1305,17 @@ class Node(Element, TimestampsMixin):
         """Get child node with the given ID.
 
         Args:
-        ----
             node_id: The node ID.
 
         Returns:
-        -------
             Child node.
         """
         return self._children.get(node_id)
 
-    def append(self, node: "Node", dirty=True) -> "Node":
+    def append(self, node: "Node", dirty: bool = True) -> "Node":
         """Add a new child node.
 
         Args:
-        ----
             node: Node to add.
             dirty: Whether this node should be marked dirty.
         """
@@ -1375,11 +1326,10 @@ class Node(Element, TimestampsMixin):
 
         return node
 
-    def remove(self, node: "Node", dirty=True) -> None:
+    def remove(self, node: "Node", dirty: bool = True) -> None:
         """Remove the given child node.
 
         Args:
-        ----
             node: Node to remove.
             dirty: Whether this node should be marked dirty.
         """
@@ -1394,7 +1344,6 @@ class Node(Element, TimestampsMixin):
         """Get whether this node has been persisted to the server.
 
         Returns:
-        -------
             True if node is new.
         """
         return self.server_id is None
@@ -1428,7 +1377,7 @@ class TopLevelNode(Node):
 
     _TYPE = None
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: dict) -> None:
         super().__init__(parent_id=Root.ID, **kwargs)
         self._color = ColorValue.White
         self._archived = False
@@ -1437,7 +1386,7 @@ class TopLevelNode(Node):
         self.labels = NodeLabels()
         self.collaborators = NodeCollaborators()
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self._color = ColorValue(raw["color"]) if "color" in raw else ColorValue.White
         self._archived = raw["isArchived"] if "isArchived" in raw else False
@@ -1451,7 +1400,7 @@ class TopLevelNode(Node):
         )
         self._moved = "moved" in raw
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["color"] = self._color.value
         ret["isArchived"] = self._archived
@@ -1472,13 +1421,12 @@ class TopLevelNode(Node):
         """Get the node color.
 
         Returns:
-        -------
             Color.
         """
         return self._color
 
     @color.setter
-    def color(self, value) -> None:
+    def color(self, value: ColorValue) -> None:
         self._color = value
         self.touch(True)
 
@@ -1487,13 +1435,12 @@ class TopLevelNode(Node):
         """Get the archive state.
 
         Returns:
-        -------
             Whether this node is archived.
         """
         return self._archived
 
     @archived.setter
-    def archived(self, value) -> None:
+    def archived(self, value: bool) -> None:
         self._archived = value
         self.touch(True)
 
@@ -1502,13 +1449,12 @@ class TopLevelNode(Node):
         """Get the pin state.
 
         Returns:
-        -------
             Whether this node is pinned.
         """
         return self._pinned
 
     @pinned.setter
-    def pinned(self, value) -> None:
+    def pinned(self, value: bool) -> None:
         self._pinned = value
         self.touch(True)
 
@@ -1517,13 +1463,12 @@ class TopLevelNode(Node):
         """Get the title.
 
         Returns:
-        -------
             Title.
         """
         return self._title
 
     @title.setter
-    def title(self, value) -> None:
+    def title(self, value: str) -> None:
         self._title = value
         self.touch(True)
 
@@ -1532,7 +1477,6 @@ class TopLevelNode(Node):
         """Get the url for this node.
 
         Returns:
-        -------
             Google Keep url.
         """
         return "https://keep.google.com/u/0/#" + self._TYPE.value + "/" + self.id
@@ -1542,25 +1486,24 @@ class TopLevelNode(Node):
         return super().dirty or self.labels.dirty or self.collaborators.dirty
 
     @property
-    def blobs(self) -> list[Blob]:
+    def blobs(self) -> list["Blob"]:
         """Get all media blobs.
 
         Returns:
-        -------
             Media blobs.
         """
         return [node for node in self.children if isinstance(node, Blob)]
 
     @property
-    def images(self) -> list[NodeImage]:
+    def images(self) -> list["NodeImage"]:
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeImage)]
 
     @property
-    def drawings(self) -> list[NodeDrawing]:
+    def drawings(self) -> list["NodeDrawing"]:
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeDrawing)]
 
     @property
-    def audio(self) -> list[NodeAudio]:
+    def audio(self) -> list["NodeAudio"]:
         return [blob for blob in self.blobs if isinstance(blob.blob, NodeAudio)]
 
 
@@ -1571,7 +1514,11 @@ class ListItem(Node):
     """
 
     def __init__(
-        self, parent_id=None, parent_server_id=None, super_list_item_id=None, **kwargs
+        self,
+        parent_id: str | None = None,
+        parent_server_id: str | None = None,
+        super_list_item_id: str | None = None,
+        **kwargs: dict,
     ) -> None:
         super().__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
         self.parent_item = None
@@ -1581,13 +1528,13 @@ class ListItem(Node):
         self._subitems = {}
         self._checked = False
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self.prev_super_list_item_id = self.super_list_item_id
         self.super_list_item_id = raw.get("superListItemId") or None
         self._checked = raw.get("checked", False)
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["parentServerId"] = self.parent_server_id
         ret["superListItemId"] = self.super_list_item_id
@@ -1597,13 +1544,12 @@ class ListItem(Node):
     def add(
         self,
         text: str,
-        checked=False,
+        checked: bool = False,
         sort: NewListItemPlacementValue | int | None = None,
     ) -> "ListItem":
         """Add a new sub item to the list. This item must already be attached to a list.
 
         Args:
-        ----
             text: The text.
             checked: Whether this item is checked.
             sort: Item id for sorting.
@@ -1614,11 +1560,10 @@ class ListItem(Node):
         self.indent(node)
         return node
 
-    def indent(self, node: "ListItem", dirty=True) -> None:
+    def indent(self, node: "ListItem", dirty: bool = True) -> None:
         """Indent an item. Does nothing if the target has subitems.
 
         Args:
-        ----
             node: Item to indent.
             dirty: Whether this node should be marked dirty.
         """
@@ -1631,11 +1576,10 @@ class ListItem(Node):
         if dirty:
             node.touch(True)
 
-    def dedent(self, node: "ListItem", dirty=True) -> None:
+    def dedent(self, node: "ListItem", dirty: bool = True) -> None:
         """Dedent an item. Does nothing if the target is not indented under this item.
 
         Args:
-        ----
             node: Item to dedent.
             dirty : Whether this node should be marked dirty.
         """
@@ -1649,11 +1593,10 @@ class ListItem(Node):
             node.touch(True)
 
     @property
-    def subitems(self) -> list[ListItem]:
+    def subitems(self) -> list["ListItem"]:
         """Get subitems for this item.
 
         Returns:
-        -------
             Subitems.
         """
         return List.sorted_items(self._subitems.values())
@@ -1663,7 +1606,6 @@ class ListItem(Node):
         """Get indentation state.
 
         Returns:
-        -------
             Whether this item is indented.
         """
         return self.parent_item is not None
@@ -1673,13 +1615,12 @@ class ListItem(Node):
         """Get the checked state.
 
         Returns:
-        -------
             Whether this item is checked.
         """
         return self._checked
 
     @checked.setter
-    def checked(self, value) -> None:
+    def checked(self, value: bool) -> None:
         self._checked = value
         self.touch(True)
 
@@ -1696,7 +1637,7 @@ class Note(TopLevelNode):
 
     _TYPE = NodeType.Note
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: dict) -> None:
         super().__init__(type_=self._TYPE, **kwargs)
 
     def _get_text_node(self) -> ListItem | None:
@@ -1717,7 +1658,7 @@ class Note(TopLevelNode):
         return node.text
 
     @text.setter
-    def text(self, value) -> None:
+    def text(self, value: str) -> None:
         node = self._get_text_node()
         if node is None:
             node = ListItem(parent_id=self.id)
@@ -1735,19 +1676,18 @@ class List(TopLevelNode):
     _TYPE = NodeType.List
     SORT_DELTA = 10000  # Arbitrary constant
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: dict) -> None:
         super().__init__(type_=self._TYPE, **kwargs)
 
     def add(
         self,
         text: str,
-        checked=False,
+        checked: bool = False,
         sort: NewListItemPlacementValue | int | None = None,
     ) -> ListItem:
         """Add a new item to the list.
 
         Args:
-        ----
             text: The text.
             checked: Whether this item is checked.
             sort: Item id for sorting or a placement policy.
@@ -1781,19 +1721,17 @@ class List(TopLevelNode):
         """Generate a list of sorted list items, taking into account parent items.
 
         Args:
-        ----
             items: Items to sort.
 
 
         Returns:
-        -------
             Sorted items.
         """
 
         class t(tuple):
             """Tuple with element-based sorting"""
 
-            def __cmp__(self, other) -> int:
+            def __cmp__(self, other: "t") -> int:
                 for a, b in itertools.zip_longest(self, other):
                     if a != b:
                         if a is None:
@@ -1803,25 +1741,25 @@ class List(TopLevelNode):
                         return a - b
                 return 0
 
-            def __lt__(self, other) -> bool:  # pragma: no cover
+            def __lt__(self, other: "t") -> bool:  # pragma: no cover
                 return self.__cmp__(other) < 0
 
-            def __gt_(self, other) -> bool:  # pragma: no cover
+            def __gt_(self, other: "t") -> bool:  # pragma: no cover
                 return self.__cmp__(other) > 0
 
-            def __le__(self, other) -> bool:  # pragma: no cover
+            def __le__(self, other: "t") -> bool:  # pragma: no cover
                 return self.__cmp__(other) <= 0
 
-            def __ge_(self, other) -> bool:  # pragma: no cover
+            def __ge_(self, other: "t") -> bool:  # pragma: no cover
                 return self.__cmp__(other) >= 0
 
-            def __eq__(self, other) -> bool:  # pragma: no cover
+            def __eq__(self, other: "t") -> bool:  # pragma: no cover
                 return self.__cmp__(other) == 0
 
-            def __ne__(self, other) -> bool:  # pragma: no cover
+            def __ne__(self, other: "t") -> bool:  # pragma: no cover
                 return self.__cmp__(other) != 0
 
-        def key_func(x) -> t:
+        def key_func(x: ListItem) -> t:
             if x.indented:
                 return t((int(x.parent_item.sort), int(x.sort)))
             return t((int(x.sort),))
@@ -1837,12 +1775,12 @@ class List(TopLevelNode):
             and (checked is None or node.checked == checked)
         ]
 
-    def sort_items(self, key: Callable = attrgetter("text"), reverse=False) -> None:
-        """Sort list items in place. By default, the items are alphabetized,
-        but a custom function can be specified.
+    def sort_items(
+        self, key: Callable = attrgetter("text"), reverse: bool = False
+    ) -> None:
+        """Sort list items in place. By default, the items are alphabetized, but a custom function can be specified.
 
         Args:
-        ----
             key: A filter function.
             reverse: Whether to reverse the output.
         """
@@ -1863,7 +1801,6 @@ class List(TopLevelNode):
         """Get all listitems.
 
         Returns:
-        -------
             List items.
         """
         return self.sorted_items(self._items())
@@ -1873,7 +1810,6 @@ class List(TopLevelNode):
         """Get all checked listitems.
 
         Returns:
-        -------
             List items.
         """
         return self.sorted_items(self._items(True))
@@ -1883,7 +1819,6 @@ class List(TopLevelNode):
         """Get all unchecked listitems.
 
         Returns:
-        -------
             List items.
         """
         return self.sorted_items(self._items(False))
@@ -1894,7 +1829,7 @@ class NodeBlob(Element):
 
     _TYPE = None
 
-    def __init__(self, type_=None) -> None:
+    def __init__(self, type_: str | None = None) -> None:
         super().__init__()
         self.blob_id = None
         self.type = type_
@@ -1902,7 +1837,7 @@ class NodeBlob(Element):
         self._mimetype = ""
         self._is_uploaded = False
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         # Verify this is a valid type
         BlobType(raw["type"])
@@ -1910,7 +1845,7 @@ class NodeBlob(Element):
         self._media_id = raw.get("media_id")
         self._mimetype = raw.get("mimetype")
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["kind"] = "notes#blob"
         ret["type"] = self.type.value
@@ -1931,11 +1866,11 @@ class NodeAudio(NodeBlob):
         super().__init__(type_=self._TYPE)
         self._length = None
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self._length = raw.get("length")
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         if self._length is not None:
             ret["length"] = self._length
@@ -1946,7 +1881,6 @@ class NodeAudio(NodeBlob):
         """Get length of the audio clip.
 
         Returns:
-        -------
             Audio length.
         """
         return self._length
@@ -1966,7 +1900,7 @@ class NodeImage(NodeBlob):
         self._extracted_text = ""
         self._extraction_status = ""
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self._is_uploaded = raw.get("is_uploaded") or False
         self._width = raw.get("width")
@@ -1975,7 +1909,7 @@ class NodeImage(NodeBlob):
         self._extracted_text = raw.get("extracted_text")
         self._extraction_status = raw.get("extraction_status")
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["width"] = self._width
         ret["height"] = self._height
@@ -1989,7 +1923,6 @@ class NodeImage(NodeBlob):
         """Get width of image.
 
         Returns:
-        -------
             Image width.
         """
         return self._width
@@ -1999,7 +1932,6 @@ class NodeImage(NodeBlob):
         """Get height of image.
 
         Returns:
-        -------
             Image height.
         """
         return self._height
@@ -2009,7 +1941,6 @@ class NodeImage(NodeBlob):
         """Get size of image in bytes.
 
         Returns:
-        -------
             Image byte size.
         """
         return self._byte_size
@@ -2017,6 +1948,7 @@ class NodeImage(NodeBlob):
     @property
     def extracted_text(self) -> str:
         """Get text extracted from image
+
         Returns:
             Extracted text.
         """
@@ -2027,7 +1959,6 @@ class NodeImage(NodeBlob):
         """Get a url to the image.
 
         Returns:
-        -------
             Image url.
         """
         raise NotImplementedError
@@ -2044,7 +1975,7 @@ class NodeDrawing(NodeBlob):
         self._extraction_status = ""
         self._drawing_info = None
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self._extracted_text = raw.get("extracted_text")
         self._extraction_status = raw.get("extraction_status")
@@ -2054,7 +1985,7 @@ class NodeDrawing(NodeBlob):
             drawing_info.load(raw["drawingInfo"])
         self._drawing_info = drawing_info
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["extracted_text"] = self._extracted_text
         ret["extraction_status"] = self._extraction_status
@@ -2065,6 +1996,7 @@ class NodeDrawing(NodeBlob):
     @property
     def extracted_text(self) -> str:
         """Get text extracted from image
+
         Returns:
             Extracted text.
         """
@@ -2087,7 +2019,7 @@ class NodeDrawingInfo(Element):
         self._ink_hash = ""
         self._snapshot_proto_fprint = ""
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self.drawing_id = raw["drawingId"]
         self.snapshot.load(raw["snapshotData"])
@@ -2108,7 +2040,7 @@ class NodeDrawingInfo(Element):
             else self._snapshot_proto_fprint
         )
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         ret["drawingId"] = self.drawing_id
         ret["snapshotData"] = self.snapshot.save(clean)
@@ -2130,7 +2062,7 @@ class Blob(Node):
         BlobType.Drawing: NodeDrawing,
     }
 
-    def __init__(self, parent_id=None, **kwargs) -> None:
+    def __init__(self, parent_id: str | None = None, **kwargs: dict) -> None:
         super().__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
         self.blob = None
 
@@ -2139,11 +2071,9 @@ class Blob(Node):
         """Helper to construct a blob from a dict.
 
         Args:
-        ----
             raw: Raw blob representation.
 
         Returns:
-        -------
             A NodeBlob object or None.
         """
         if raw is None:
@@ -2166,11 +2096,11 @@ class Blob(Node):
 
         return blob
 
-    def _load(self, raw) -> None:
+    def _load(self, raw: dict) -> None:
         super()._load(raw)
         self.blob = self.from_json(raw.get("blob"))
 
-    def save(self, clean=True) -> dict:
+    def save(self, clean: bool = True) -> dict:
         ret = super().save(clean)
         if self.blob is not None:
             ret["blob"] = self.blob.save(clean)
@@ -2189,11 +2119,9 @@ def from_json(raw: dict) -> Node | None:
     """Helper to construct a node from a dict.
 
     Args:
-    ----
         raw: Raw node representation.
 
     Returns:
-    -------
         A Node object or None.
     """
     ncls = None
