@@ -96,6 +96,8 @@ ignore = [
   "EM102",
   "ANN101",
   "ANN102",
+
+  "D105",
 ]
 
 [tool.ruff.pydocstyle]

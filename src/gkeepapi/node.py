@@ -276,6 +276,7 @@ class Annotation(Element):
     """Note annotations base class."""
 
     def __init__(self) -> None:
+        """Construct a note annotation"""
         super().__init__()
         self.id = self._generateAnnotationId()
 
@@ -284,6 +285,9 @@ class Annotation(Element):
         self.id = raw.get("id")
 
     def save(self, clean: bool = True) -> dict:
+        """
+        Save the annotation
+        """
         ret = {}
         if self.id is not None:
             ret = super().save(clean)
@@ -316,6 +320,7 @@ class WebLink(Annotation):
     """Represents a link annotation on a :class:`TopLevelNode`."""
 
     def __init__(self) -> None:
+        """Construct a weblink"""
         super().__init__()
         self._title = ""
         self._url = ""
@@ -336,6 +341,7 @@ class WebLink(Annotation):
         self._description = raw["webLink"]["description"]
 
     def save(self, clean: bool = True) -> dict:
+        """Save the weblink"""
         ret = super().save(clean)
         ret["webLink"] = {
             "title": self._title,
@@ -421,6 +427,7 @@ class Category(Annotation):
     """Represents a category annotation on a :class:`TopLevelNode`."""
 
     def __init__(self) -> None:
+        """Construct a category annotation"""
         super().__init__()
         self._category = None
 
@@ -429,6 +436,7 @@ class Category(Annotation):
         self._category = CategoryValue(raw["topicCategory"]["category"])
 
     def save(self, clean: bool = True) -> dict:
+        """Save the category annotation"""
         ret = super().save(clean)
         ret["topicCategory"] = {"category": self._category.value}
         return ret
@@ -452,6 +460,7 @@ class TaskAssist(Annotation):
     """Unknown."""
 
     def __init__(self) -> None:
+        """Construct a taskassist annotation"""
         super().__init__()
         self._suggest = None
 
@@ -460,6 +469,7 @@ class TaskAssist(Annotation):
         self._suggest = raw["taskAssist"]["suggestType"]
 
     def save(self, clean: bool = True) -> dict:
+        """Save the taskassist annotation"""
         ret = super().save(clean)
         ret["taskAssist"] = {"suggestType": self._suggest}
         return ret
@@ -483,6 +493,7 @@ class Context(Annotation):
     """Represents a context annotation, which may contain other annotations."""
 
     def __init__(self) -> None:
+        """Construct a context annotation"""
         super().__init__()
         self._entries = {}
 
@@ -493,6 +504,7 @@ class Context(Annotation):
             self._entries[key] = NodeAnnotations.from_json({key: entry})
 
     def save(self, clean: bool = True) -> dict:
+        """Save the context annotation"""
         ret = super().save(clean)
         context = {}
         for entry in self._entries.values():
@@ -519,6 +531,7 @@ class NodeAnnotations(Element):
     """Represents the annotation container on a :class:`TopLevelNode`."""
 
     def __init__(self) -> None:
+        """Construct an annotations container"""
         super().__init__()
         self._annotations = {}
 
@@ -572,6 +585,7 @@ class NodeAnnotations(Element):
             self._annotations[annotation.id] = annotation
 
     def save(self, clean: bool = True) -> dict:
+        """Save the annotations container"""
         ret = super().save(clean)
         ret["kind"] = "notes#annotationsGroup"
         if self._annotations:
@@ -660,6 +674,7 @@ class NodeTimestamps(Element):
     TZ_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
     def __init__(self, create_time: float | None = None) -> None:
+        """Construct a timestamps container"""
         super().__init__()
         if create_time is None:
             create_time = time.time()
@@ -682,6 +697,7 @@ class NodeTimestamps(Element):
         )
 
     def save(self, clean: bool = True) -> dict:
+        """Save the timestamps container"""
         ret = super().save(clean)
         ret["kind"] = "notes#timestamps"
         ret["created"] = self.dt_to_str(self._created)
@@ -814,6 +830,7 @@ class NodeSettings(Element):
     """Represents the settings associated with a :class:`TopLevelNode`."""
 
     def __init__(self) -> None:
+        """Construct a settings container"""
         super().__init__()
         self._new_listitem_placement = NewListItemPlacementValue.Bottom
         self._graveyard_state = GraveyardStateValue.Collapsed
@@ -830,6 +847,7 @@ class NodeSettings(Element):
         )
 
     def save(self, clean: bool = True) -> dict:
+        """Save the settings container"""
         ret = super().save(clean)
         ret["newListItemPlacement"] = self._new_listitem_placement.value
         ret["graveyardState"] = self._graveyard_state.value
@@ -883,6 +901,7 @@ class NodeCollaborators(Element):
     """Represents the collaborators on a :class:`TopLevelNode`."""
 
     def __init__(self) -> None:
+        """Construct a collaborators container"""
         super().__init__()
         self._collaborators = {}
 
@@ -906,6 +925,7 @@ class NodeCollaborators(Element):
             )
 
     def save(self, clean: bool = True) -> tuple[list, list]:
+        """Save the collaborators container"""
         # Parent method not called.
         collaborators = []
         requests = []
@@ -962,6 +982,7 @@ class TimestampsMixin:
     """A mixin to add methods for updating timestamps."""
 
     def __init__(self) -> None:
+        """Instantiate mixin"""
         self.timestamps: NodeTimestamps
 
     def touch(self, edited: bool = False) -> None:
@@ -1021,6 +1042,7 @@ class Label(Element, TimestampsMixin):
     """Represents a label."""
 
     def __init__(self) -> None:
+        """Construct a label"""
         super().__init__()
 
         create_time = time.time()
@@ -1056,6 +1078,7 @@ class Label(Element, TimestampsMixin):
         )
 
     def save(self, clean: bool = True) -> dict:
+        """Save the label"""
         ret = super().save(clean)
         ret["mainId"] = self.id
         ret["name"] = self._name
@@ -1103,6 +1126,7 @@ class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
 
     def __init__(self) -> None:
+        """Construct a labels container"""
         super().__init__()
         self._labels = {}
 
@@ -1181,6 +1205,7 @@ class Node(Element, TimestampsMixin):
         type_: str | None = None,
         parent_id: str | None = None,
     ) -> None:
+        """Construct a node"""
         super().__init__()
 
         create_time = time.time()
@@ -1365,6 +1390,7 @@ class Root(Node):
     ID = "root"
 
     def __init__(self) -> None:
+        """Construct a root node"""
         super().__init__(id_=self.ID)
 
     @property
@@ -1378,6 +1404,7 @@ class TopLevelNode(Node):
     _TYPE = None
 
     def __init__(self, **kwargs: dict) -> None:
+        """Construct a top level node"""
         super().__init__(parent_id=Root.ID, **kwargs)
         self._color = ColorValue.White
         self._archived = False
@@ -1520,6 +1547,7 @@ class ListItem(Node):
         super_list_item_id: str | None = None,
         **kwargs: dict,
     ) -> None:
+        """Construct a list item node"""
         super().__init__(type_=NodeType.ListItem, parent_id=parent_id, **kwargs)
         self.parent_item = None
         self.parent_server_id = parent_server_id
@@ -1638,6 +1666,7 @@ class Note(TopLevelNode):
     _TYPE = NodeType.Note
 
     def __init__(self, **kwargs: dict) -> None:
+        """Construct a note node"""
         super().__init__(type_=self._TYPE, **kwargs)
 
     def _get_text_node(self) -> ListItem | None:
@@ -1677,6 +1706,7 @@ class List(TopLevelNode):
     SORT_DELTA = 10000  # Arbitrary constant
 
     def __init__(self, **kwargs: dict) -> None:
+        """Construct a list node"""
         super().__init__(type_=self._TYPE, **kwargs)
 
     def add(
@@ -1830,6 +1860,7 @@ class NodeBlob(Element):
     _TYPE = None
 
     def __init__(self, type_: str | None = None) -> None:
+        """Construct a node blob"""
         super().__init__()
         self.blob_id = None
         self.type = type_
@@ -1863,6 +1894,7 @@ class NodeAudio(NodeBlob):
     _TYPE = BlobType.Audio
 
     def __init__(self) -> None:
+        """Construct a node audio blob"""
         super().__init__(type_=self._TYPE)
         self._length = None
 
@@ -1892,6 +1924,7 @@ class NodeImage(NodeBlob):
     _TYPE = BlobType.Image
 
     def __init__(self) -> None:
+        """Construct a node image blob"""
         super().__init__(type_=self._TYPE)
         self._is_uploaded = False
         self._width = 0
@@ -1970,6 +2003,7 @@ class NodeDrawing(NodeBlob):
     _TYPE = BlobType.Drawing
 
     def __init__(self) -> None:
+        """Construct a node drawing blob"""
         super().__init__(type_=self._TYPE)
         self._extracted_text = ""
         self._extraction_status = ""
@@ -2063,6 +2097,7 @@ class Blob(Node):
     }
 
     def __init__(self, parent_id: str | None = None, **kwargs: dict) -> None:
+        """Construct a blob"""
         super().__init__(type_=NodeType.Blob, parent_id=parent_id, **kwargs)
         self.blob = None
 
