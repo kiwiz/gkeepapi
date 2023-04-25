@@ -22,7 +22,7 @@ dependencies = [
 ]
 optional-dependencies = [
   "black>=23.3.0",
-  "ruff>=0.0.261",
+  "ruff>=0.0.263",
 ]
 
 
@@ -39,8 +39,8 @@ target-version = "py310"
 select = [
   # https://beta.ruff.rs/docs/rules/
   "F",  # pyflakes
-  "E",  # pycodestyle
-  "W",  # pycodestyle
+  "E",  # pycodestyle error
+  "W",  # pycodestyle warning
   "C90",  # mccabe
   "I",  # isort
   "N",  # pep8-naming
@@ -57,6 +57,7 @@ select = [
   "C4",  # flake8-comprehensions
   "DTZ",  # flake8-datetimez
   "T10",  # flake8-debugger
+  "DJ",  # flake8-django
   "EM",  # flake8-errmsg
   "EXE",  # flake8-executable
   "ISC",  # flake8-implicit-str-concat
@@ -77,13 +78,15 @@ select = [
   "INT",  # flake8-gettext
   "ARG",  # flake8-unused-arguments
   "PTH",  # flake8-use-pathlib
+  # "ERA",  # eradicate
   "PGH",  # pygrep-hooks
-  "PLC",  # pylint
-  "PLE",  # pylint
-  "PLR",  # pylint
-  "PLW",  # pylint
+  "PLC",  # pylint convention
+  "PLE",  # pylint error
+  "PLR",  # pylint refactor
+  "PLW",  # pylint warning
   # "TRY",  # tryceratops
-  "RUF",  # ruff-specific rules
+  "NPY",  # numpy-specific
+  "RUF",  # ruff-specific
 ]
 ignore = [
   "E501",  # line-too-long -- disabled as black takes care of this
@@ -93,7 +96,9 @@ ignore = [
   "D415",
   "D203",
   "D213",
+  "EM101",
   "EM102",
+  "N818",
   "ANN101",
   "ANN102",
 
