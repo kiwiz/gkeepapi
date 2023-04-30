@@ -3,6 +3,7 @@
 __version__ = "1.0.0"
 
 import datetime
+import http
 import logging
 import random
 import re
@@ -204,8 +205,7 @@ class API:
         self._auth = auth
 
     def send(self, **req_kwargs: dict) -> dict:
-        """Send an authenticated request to a Google API.
-        Automatically retries if the access token has expired.
+        """Send an authenticated request to a Google API. Automatically retries if the access token has expired.
 
         Args:
             **req_kwargs: Arbitrary keyword arguments to pass to Requests.
@@ -229,7 +229,7 @@ class API:
             # Otherwise, check if it was a non-401 response code. These aren't
             # handled, so bail.
             error = response["error"]
-            if error["code"] != 401:
+            if error["code"] != http.HTTPStatus.UNAUTHORIZED:
                 raise exception.APIException(error["code"], error)
 
             # If we've exceeded the retry limit, also bail.
@@ -283,7 +283,10 @@ class KeepAPI(API):
 
     @classmethod
     def _generateId(cls, tz: int) -> str:
-        return "s--%d--%d" % (int(tz * 1000), random.randint(1000000000, 9999999999))
+        return "s--%d--%d" % (
+            int(tz * 1000),
+            random.randint(1000000000, 9999999999),  # noqa: S311
+        )
 
     def changes(
         self,
@@ -382,7 +385,7 @@ class MediaAPI(API):
         """
         url = self._base_url + blob.parent.server_id + "/" + blob.server_id
         if blob.blob.type == _node.BlobType.Drawing:
-            url += "/" + blob.blob._drawing_info.drawing_id
+            url += "/" + blob.blob._drawing_info.drawing_id # noqa: SLF001
         return self._send(url=url, method="GET", allow_redirects=False).headers[
             "location"
         ]
@@ -417,7 +420,7 @@ class RemindersAPI(API):
 
     def create(
         self, node_id: str, node_server_id: str, dtime: datetime.datetime
-    ) -> Any:
+    ) -> Any:  # noqa: ANN401
         """Create a new reminder.
 
         Args:
@@ -463,9 +466,9 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "create", method="POST", json=params)
 
-    def update(
+    def update_internal(
         self, node_id: str, node_server_id: str, dtime: datetime.datetime
-    ) -> Any:
+    ) -> Any:  # noqa: ANN401
         """Update an existing reminder.
 
         Args:
@@ -520,7 +523,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "update", method="POST", json=params)
 
-    def delete(self, node_server_id: str) -> Any:
+    def delete(self, node_server_id: str) -> Any:  # noqa: ANN401
         """Delete an existing reminder.
 
         Args:
@@ -550,7 +553,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "batchmutate", method="POST", json=params)
 
-    def list(self, master: bool = True) -> Any:
+    def list(self, master: bool = True) -> Any:  # noqa: ANN401, A003
         """List current reminders.
 
         Args:
@@ -597,7 +600,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "list", method="POST", json=params)
 
-    def history(self, storage_version: str) -> Any:
+    def history(self, storage_version: str) -> Any:  # noqa: ANN401
         """Get reminder changes.
 
         Args:
@@ -617,7 +620,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "history", method="POST", json=params)
 
-    def update(self) -> Any:
+    def update(self) -> Any:  # noqa: ANN401
         """Sync up changes to reminders."""
         params = {}
         return self.send(url=self._base_url + "update", method="POST", json=params)
@@ -798,8 +801,7 @@ class Keep:
         ].get(self._sid_map.get(node_id))
 
     def add(self, node: _node.Node) -> None:
-        """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by
-        :py:meth:`createNote` or :py:meth:`createList` as they are automatically added.
+        """Register a top level node (and its children) for syncing up to the server. There's no need to call this for nodes created by :py:meth:`createNote` or :py:meth:`createList` as they are automatically added.
 
         Args:
             node: The node to sync.
@@ -915,7 +917,7 @@ class Keep:
         if title is not None:
             node.title = title
 
-        sort = random.randint(1000000000, 9999999999)
+        sort = random.randint(1000000000, 9999999999)  # noqa: S311
         for text, checked in items:
             node.add(text, checked, sort)
             sort -= _node.List.SORT_DELTA
@@ -947,7 +949,7 @@ class Keep:
         """Find a label with the given name.
 
         Args:
-            name: A str or regular expression to match against the name.
+            query: A str or regular expression to match against the name.
             create: Whether to create the label if it doesn't exist (only if name is a str).
 
         Returns:
@@ -1012,12 +1014,11 @@ class Keep:
         """
         return self._media_api.get(blob)
 
-    def all(self) -> list[_node.TopLevelNode]:
+    def all(self) -> list[_node.TopLevelNode]:  # noqa: A003
         """Get all Notes.
 
         Returns:
-
-        Notes:
+            All notes.
         """
         return self._nodes[_node.Root.ID].children
 
@@ -1097,7 +1098,7 @@ class Keep:
     def _parseTasks(self, raw: dict) -> None:
         pass
 
-    def _parseNodes(self, raw: dict) -> None:
+    def _parseNodes(self, raw: dict) -> None: # noqa: C901, PLR0912
         created_nodes = []
         deleted_nodes = []
         listitem_nodes = []
@@ -1169,8 +1170,8 @@ class Keep:
 
         # Hydrate label references in notes.
         for node in self.all():
-            for label_id in node.labels._labels:
-                node.labels._labels[label_id] = self._labels.get(label_id)
+            for label_id in node.labels._labels: # noqa: SLF001
+                node.labels._labels[label_id] = self._labels.get(label_id) # noqa: SLF001
 
     def _parseUserInfo(self, raw: dict) -> None:
         labels = {}

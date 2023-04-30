@@ -520,7 +520,7 @@ class Context(Annotation):
         return list(self._entries.values())
 
     @property
-    def dirty(self) -> bool: # noqa: D102
+    def dirty(self) -> bool:  # noqa: D102
         return super().dirty or any(
             annotation.dirty for annotation in self._entries.values()
         )
@@ -565,7 +565,7 @@ class NodeAnnotations(Element):
 
         return annotation
 
-    def all(self) -> list[Annotation]: # noqa: A003
+    def all(self) -> list[Annotation]:  # noqa: A003
         """Get all annotations.
 
         Returns:
@@ -661,7 +661,7 @@ class NodeAnnotations(Element):
         self._dirty = True
 
     @property
-    def dirty(self) -> bool: # noqa: D102
+    def dirty(self) -> bool:  # noqa: D102
         return super().dirty or any(
             annotation.dirty for annotation in self._annotations.values()
         )
@@ -907,9 +907,7 @@ class NodeCollaborators(Element):
     def __len__(self) -> int:
         return len(self._collaborators)
 
-    def load( # noqa: D102
-        self, collaborators_raw: list, requests_raw: list
-    ) -> None:
+    def load(self, collaborators_raw: list, requests_raw: list) -> None:  # noqa: D102
         # Parent method not called.
         if requests_raw and isinstance(requests_raw[-1], bool):
             self._dirty = requests_raw.pop()
@@ -964,7 +962,7 @@ class NodeCollaborators(Element):
                 self._collaborators[email] = ShareRequestValue.Remove
         self._dirty = True
 
-    def all(self) -> list[str]: # noqa: A003
+    def all(self) -> list[str]:  # noqa: A003
         """Get all collaborators.
 
         Returns:
@@ -1114,7 +1112,7 @@ class Label(Element, TimestampsMixin):
         self.touch()
 
     @property
-    def dirty(self) -> bool: # noqa: D102
+    def dirty(self) -> bool:  # noqa: D102
         return super().dirty or self.timestamps.dirty
 
     def __str__(self) -> str:
@@ -1142,7 +1140,7 @@ class NodeLabels(Element):
         for raw_label in raw:
             self._labels[raw_label["labelId"]] = None
 
-    def save(self, clean: bool = True) -> tuple[dict] | tuple[dict, bool]: # noqa: D102
+    def save(self, clean: bool = True) -> tuple[dict] | tuple[dict, bool]:  # noqa: D102
         # Parent method not called.
         ret = [
             {
@@ -1186,7 +1184,7 @@ class NodeLabels(Element):
         """
         return self._labels.get(label_id)
 
-    def all(self) -> list[Label]: # noqa: A003
+    def all(self) -> list[Label]:  # noqa: A003
         """Get all labels.
 
         Returns:
@@ -1256,7 +1254,7 @@ class Node(Element, TimestampsMixin):
         self.settings.load(raw["nodeSettings"])
         self.annotations.load(raw["annotationsGroup"])
 
-    def save(self, clean: bool = True) -> dict: # noqa: D102
+    def save(self, clean: bool = True) -> dict:  # noqa: D102
         ret = super().save(clean)
         ret["id"] = self.id
         ret["kind"] = "notes#node"
@@ -1373,7 +1371,7 @@ class Node(Element, TimestampsMixin):
         return self.server_id is None
 
     @property
-    def dirty(self) -> bool: # noqa: D102
+    def dirty(self) -> bool:  # noqa: D102
         return (
             super().dirty
             or self.timestamps.dirty
@@ -1393,7 +1391,7 @@ class Root(Node):
         super().__init__(id_=self.ID)
 
     @property
-    def dirty(self) -> bool: # noqa: D102
+    def dirty(self) -> bool:  # noqa: D102
         return False
 
 
@@ -1426,7 +1424,7 @@ class TopLevelNode(Node):
         )
         self._moved = "moved" in raw
 
-    def save(self, clean: bool = True) -> dict: # noqa: D102
+    def save(self, clean: bool = True) -> dict:  # noqa: D102
         ret = super().save(clean)
         ret["color"] = self._color.value
         ret["isArchived"] = self._archived
@@ -1508,7 +1506,7 @@ class TopLevelNode(Node):
         return "https://keep.google.com/u/0/#" + self._TYPE.value + "/" + self.id
 
     @property
-    def dirty(self) -> bool: # noqa: D102
+    def dirty(self) -> bool:  # noqa: D102
         return super().dirty or self.labels.dirty or self.collaborators.dirty
 
     @property
@@ -1565,7 +1563,7 @@ class ListItem(Node):
         self.super_list_item_id = raw.get("superListItemId") or None
         self._checked = raw.get("checked", False)
 
-    def save(self, clean: bool = True) -> dict: # noqa: D102
+    def save(self, clean: bool = True) -> dict:  # noqa: D102
         ret = super().save(clean)
         ret["parentServerId"] = self.parent_server_id
         ret["superListItemId"] = self.super_list_item_id
@@ -1682,7 +1680,7 @@ class Note(TopLevelNode):
         return node
 
     @property
-    def text(self) -> str: # noqa: D102
+    def text(self) -> str:  # noqa: D102
         node = self._get_text_node()
 
         if node is None:
@@ -1746,11 +1744,11 @@ class List(TopLevelNode):
         return node
 
     @property
-    def text(self) -> str: # noqa: D102
+    def text(self) -> str:  # noqa: D102
         return "\n".join(str(node) for node in self.items)
 
     @classmethod
-    def sorted_items(cls, items: list[ListItem]) -> list[ListItem]: # noqa: C901
+    def sorted_items(cls, items: list[ListItem]) -> list[ListItem]:  # noqa: C901
         """Generate a list of sorted list items, taking into account parent items.
 
         Args:
@@ -2052,6 +2050,7 @@ class NodeDrawingInfo(Element):
     """Represents information about a drawing blob."""
 
     def __init__(self) -> None:
+        """Construct a drawing info container"""
         super().__init__()
         self.drawing_id = ""
         self.snapshot = NodeImage()
@@ -2081,7 +2080,7 @@ class NodeDrawingInfo(Element):
             else self._snapshot_proto_fprint
         )
 
-    def save(self, clean: bool = True) -> dict: # noqa: D102
+    def save(self, clean: bool = True) -> dict:  # noqa: D102
         ret = super().save(clean)
         ret["drawingId"] = self.drawing_id
         ret["snapshotData"] = self.snapshot.save(clean)

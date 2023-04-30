@@ -90,19 +90,16 @@ select = [
 ]
 ignore = [
   "E501",  # line-too-long -- disabled as black takes care of this
-  "N802",
-  "COM812",
-  "D400",
-  "D415",
-  "D203",
-  "D213",
-  "EM101",
-  "EM102",
-  "N818",
-  "ANN101",
-  "ANN102",
-
-  "D105",
+  "N802",  # invalid-function-name -- too late!
+  "COM812",  # missing-trailing-comma -- conflicts with black?
+  "D415",  # ends-in-punctuation -- too aggressive
+  "EM101",  # raw-string-in-exception -- no thanks
+  "EM102",  # f-string-in-exception -- no thanks
+  "N818",  # error-suffix-on-exception-name -- too late!
+  "ANN101",  # missing-type-self -- unnecessary
+  "ANN102",  # missing-type-cls -- unnecessary
+  "PLR0913",  # too-many-arguments -- no thanks
+  "D105",  # undocumented-magic-method -- no thanks
 ]
 
 [tool.ruff.pydocstyle]
