@@ -23,7 +23,7 @@ jobs:
         ruff src
     - name: Check format with black
       run: |
-        black --test src
+        black --check src
     - name: Run tests
       run: |
         python -m unittest discover
