@@ -1,3 +1,6 @@
+[build-system]
+requires = ["setuptools ~= 58.0", "cython ~= 0.29.0"]
+
 [project]
 name = "gkeepapi"
 version = "1.0.0"
@@ -20,11 +23,12 @@ dependencies = [
   "gpsoauth >= 1.0.2",
   "future >= 0.16.0",
 ]
-optional-dependencies = [
+
+[project.optional-dependencies]
+dev = [
   "black>=23.3.0",
   "ruff>=0.0.269",
 ]
-
 
 [project.urls]
 "Homepage" = "https://github.com/kiwiz/gkeepapi"

@@ -4,7 +4,7 @@ on:
     - main
 jobs:
   build:
-    name: Lint & test
+    name: Lint & Test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,7 +17,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install tools
       run: |
-        python -m pip install ruff black
+        python -m pip install .
     - name: Lint with ruff
       run: |
         ruff src
