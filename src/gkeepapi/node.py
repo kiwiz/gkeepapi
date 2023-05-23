@@ -719,7 +719,7 @@ class NodeTimestamps(Element):
         Returns:
             Datetime.
         """
-        return datetime.datetime.strptime(tzs, cls.TZ_FMT)
+        return datetime.datetime.strptime(tzs, cls.TZ_FMT).replace(tzinfo=datetime.timezone.utc)
 
     @classmethod
     def int_to_dt(cls, tz: int | float) -> datetime.datetime:
@@ -731,7 +731,7 @@ class NodeTimestamps(Element):
         Returns:
             Datetime.
         """
-        return datetime.datetime.utcfromtimestamp(tz)
+        return datetime.datetime.fromtimestamp(tz, tz=datetime.timezone.utc)
 
     @classmethod
     def dt_to_str(cls, dt: datetime.datetime) -> str:
@@ -989,7 +989,7 @@ class TimestampsMixin:
             edited: Whether to set the edited time.
         """
         self._dirty = True
-        dt = datetime.datetime.utcnow()
+        dt = datetime.datetime.now(tz=datetime.timezone.utc)
         self.timestamps.updated = dt
         if edited:
             self.timestamps.edited = dt
@@ -1008,7 +1008,7 @@ class TimestampsMixin:
 
     def trash(self) -> None:
         """Mark the item as trashed."""
-        self.timestamps.trashed = datetime.datetime.utcnow()
+        self.timestamps.trashed = datetime.datetime.now(tz=datetime.timezone.utc)
 
     def untrash(self) -> None:
         """Mark the item as untrashed."""
@@ -1028,7 +1028,7 @@ class TimestampsMixin:
 
     def delete(self) -> None:
         """Mark the item as deleted."""
-        self.timestamps.deleted = datetime.datetime.utcnow()
+        self.timestamps.deleted = datetime.datetime.now(tz=datetime.timezone.utc)
 
     def undelete(self) -> None:
         """Mark the item as undeleted."""
@@ -1145,7 +1145,7 @@ class NodeLabels(Element):
         ret = [
             {
                 "labelId": label_id,
-                "deleted": NodeTimestamps.dt_to_str(datetime.datetime.utcnow())
+                "deleted": NodeTimestamps.dt_to_str(datetime.datetime.now(tz=datetime.timezone.utc))
                 if label is None
                 else NodeTimestamps.int_to_str(0),
             }
@@ -1311,7 +1311,7 @@ class Node(Element, TimestampsMixin):
             value: Text value.
         """
         self._text = value
-        self.timestamps.edited = datetime.datetime.utcnow()
+        self.timestamps.edited = datetime.datetime.now(tz=datetime.timezone.utc)
         self.touch(True)
 
     @property
