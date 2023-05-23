@@ -719,7 +719,9 @@ class NodeTimestamps(Element):
         Returns:
             Datetime.
         """
-        return datetime.datetime.strptime(tzs, cls.TZ_FMT).replace(tzinfo=datetime.timezone.utc)
+        return datetime.datetime.strptime(tzs, cls.TZ_FMT).replace(
+            tzinfo=datetime.timezone.utc
+        )
 
     @classmethod
     def int_to_dt(cls, tz: int | float) -> datetime.datetime:
@@ -1145,7 +1147,9 @@ class NodeLabels(Element):
         ret = [
             {
                 "labelId": label_id,
-                "deleted": NodeTimestamps.dt_to_str(datetime.datetime.now(tz=datetime.timezone.utc))
+                "deleted": NodeTimestamps.dt_to_str(
+                    datetime.datetime.now(tz=datetime.timezone.utc)
+                )
                 if label is None
                 else NodeTimestamps.int_to_str(0),
             }

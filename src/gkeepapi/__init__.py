@@ -385,7 +385,7 @@ class MediaAPI(API):
         """
         url = self._base_url + blob.parent.server_id + "/" + blob.server_id
         if blob.blob.type == _node.BlobType.Drawing:
-            url += "/" + blob.blob._drawing_info.drawing_id # noqa: SLF001
+            url += "/" + blob.blob._drawing_info.drawing_id  # noqa: SLF001
         return self._send(url=url, method="GET", allow_redirects=False).headers[
             "location"
         ]
@@ -1098,7 +1098,7 @@ class Keep:
     def _parseTasks(self, raw: dict) -> None:
         pass
 
-    def _parseNodes(self, raw: dict) -> None: # noqa: C901, PLR0912
+    def _parseNodes(self, raw: dict) -> None:  # noqa: C901, PLR0912
         created_nodes = []
         deleted_nodes = []
         listitem_nodes = []
@@ -1170,8 +1170,10 @@ class Keep:
 
         # Hydrate label references in notes.
         for node in self.all():
-            for label_id in node.labels._labels: # noqa: SLF001
-                node.labels._labels[label_id] = self._labels.get(label_id) # noqa: SLF001
+            for label_id in node.labels._labels:  # noqa: SLF001
+                node.labels._labels[label_id] = self._labels.get(  # noqa: SLF001
+                    label_id
+                )
 
     def _parseUserInfo(self, raw: dict) -> None:
         labels = {}
