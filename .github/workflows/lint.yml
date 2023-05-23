@@ -1,0 +1,29 @@
+on:
+  pull_request:
+    branches-ignore:
+    - main
+jobs:
+  build:
+    name: Lint & test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install tools
+      run: |
+        python -m pip install ruff black
+    - name: Lint with ruff
+      run: |
+        ruff src
+    - name: Check format with black
+      run: |
+        black --test src
+    - name: Run tests
+      run: |
+        python -m unittest discover
