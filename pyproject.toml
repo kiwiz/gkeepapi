@@ -1,5 +1,8 @@
 [build-system]
-requires = ["setuptools ~= 58.0", "cython ~= 0.29.0"]
+requires = [
+    "flit_core >=3.2,<4",
+]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "gkeepapi"
@@ -27,7 +30,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "black>=23.3.0",
-  "ruff>=0.0.269",
+  "ruff>=0.0.275",
   "coverage>=7.2.5",
 ]
 
