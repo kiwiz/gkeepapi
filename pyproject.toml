@@ -28,6 +28,7 @@ dependencies = [
 dev = [
   "black>=23.3.0",
   "ruff>=0.0.269",
+  "coverage>=7.2.5",
 ]
 
 [project.urls]
