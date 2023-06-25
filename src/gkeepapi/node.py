@@ -2100,7 +2100,7 @@ class NodeDrawingInfo(Element):
 class Blob(Node):
     """Represents a Google Keep blob."""
 
-    _blob_type_map = {
+    _blob_type_map = {  # noqa: RUF012
         BlobType.Audio: NodeAudio,
         BlobType.Image: NodeImage,
         BlobType.Drawing: NodeDrawing,
