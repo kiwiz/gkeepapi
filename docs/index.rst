@@ -10,18 +10,19 @@ Welcome to gkeepapi's documentation!
 .. contents::
 
 **gkeepapi** is an unofficial client for programmatically interacting with Google Keep::
+    import gkeepapi
 
     keep = gkeepapi.Keep()
     keep.login('user@gmail.com', 'password')
 
-    note = gkeepapi.createNote('Todo', 'Eat breakfast')
+    note = keep.createNote('Todo', 'Eat breakfast')
     note.pinned = True
     note.color = gkeepapi.node.ColorValue.Red
 
     keep.sync()
 
-    print note.title
-    print note.text
+    print(note.title)
+    print(note.text)
 
 The client is mostly complete and ready for use, but there are some hairy spots. In particular, the interface for manipulating labels and blobs is subject to change.
 
