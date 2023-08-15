@@ -768,8 +768,7 @@ class Keep:
         nodes = []
         for node in self.all():
             nodes.append(node)
-            for child in node.children:
-                nodes.append(child)
+            nodes.extend(node.children)
         return {
             "keep_version": self._keep_version,
             "labels": [label.save(False) for label in self.labels()],
@@ -1205,13 +1204,8 @@ class Keep:
                 if child.id not in self._nodes:
                     self._nodes[child.id] = child
 
-        nodes = []
         # Collect all dirty nodes (any nodes from above will be caught too).
-        for node in self._nodes.values():
-            if node.dirty:
-                nodes.append(node)
-
-        return nodes
+        return [node for node in self._nodes.values() if node.dirty]
 
     def _clean(self) -> None:
         """Recursively check that all nodes are reachable."""

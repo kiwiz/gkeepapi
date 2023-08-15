@@ -297,21 +297,11 @@ class Annotation(Element):
     @classmethod
     def _generateAnnotationId(cls) -> str:
         return "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}".format(
-            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-                0x00000000, 0xFFFFFFFF
-            ),
-            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-                0x0000, 0xFFFF
-            ),
-            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-                0x0000, 0xFFFF
-            ),
-            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-                0x0000, 0xFFFF
-            ),
-            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-                0x000000000000, 0xFFFFFFFFFFFF
-            ),
+            random.randint(0x00000000, 0xFFFFFFFF),  # noqa: S311
+            random.randint(0x0000, 0xFFFF),  # noqa: S311
+            random.randint(0x0000, 0xFFFF),  # noqa: S311
+            random.randint(0x0000, 0xFFFF),  # noqa: S311
+            random.randint(0x000000000000, 0xFFFFFFFFFFFF),  # noqa: S311
         )
 
 
@@ -724,7 +714,7 @@ class NodeTimestamps(Element):
         )
 
     @classmethod
-    def int_to_dt(cls, tz: int | float) -> datetime.datetime:
+    def int_to_dt(cls, tz: float) -> datetime.datetime:
         """Convert a unix timestamp into an object.
 
         Params:
@@ -1056,9 +1046,7 @@ class Label(Element, TimestampsMixin):
         return "tag.{}.{:x}".format(
             "".join(
                 [
-                    random.choice(  # noqa: suspicious-non-cryptographic-random-usage
-                        "abcdefghijklmnopqrstuvwxyz0123456789"
-                    )
+                    random.choice("abcdefghijklmnopqrstuvwxyz0123456789")  # noqa: S311
                     for _ in range(12)
                 ]
             ),
@@ -1216,9 +1204,7 @@ class Node(Element, TimestampsMixin):
         self.server_id = None
         self.parent_id = parent_id
         self.type = type_
-        self._sort = random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-            1000000000, 9999999999
-        )
+        self._sort = random.randint(1000000000, 9999999999)  # noqa: S311
         self._version = None
         self._text = ""
         self._children = {}
@@ -1233,9 +1219,7 @@ class Node(Element, TimestampsMixin):
     def _generateId(cls, tz: float) -> str:
         return "{:x}.{:016x}".format(
             int(tz * 1000),
-            random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-                0x0000000000000000, 0xFFFFFFFFFFFFFFFF
-            ),
+            random.randint(0x0000000000000000, 0xFFFFFFFFFFFFFFFF),  # noqa: S311
         )
 
     def _load(self, raw: dict) -> None:
@@ -1701,7 +1685,7 @@ class Note(TopLevelNode):
         self.touch(True)
 
     def __str__(self) -> str:
-        return "\n".join([self.title, self.text])
+        return f"{self.title}\n{self.text}"
 
 
 class List(TopLevelNode):
@@ -1766,6 +1750,8 @@ class List(TopLevelNode):
         class T(tuple):
             """Tuple with element-based sorting"""
 
+            __slots__ = ()
+
             def __cmp__(self, other: "T") -> int:
                 for a, b in itertools.zip_longest(self, other):
                     if a != b:
@@ -1820,9 +1806,7 @@ class List(TopLevelNode):
             reverse: Whether to reverse the output.
         """
         sorted_children = sorted(self._items(), key=key, reverse=reverse)
-        sort_value = random.randint(  # noqa: suspicious-non-cryptographic-random-usage
-            1000000000, 9999999999
-        )
+        sort_value = random.randint(1000000000, 9999999999)  # noqa: S311
 
         for node in sorted_children:
             node.sort = sort_value
@@ -2186,10 +2170,10 @@ def from_json(raw: dict) -> Node | None:
 
 
 if DEBUG:  # pragma: no cover
-    Node.__load = Node._load  # noqa: private-member-access
+    Node.__load = Node._load  # noqa: SLF001
 
-    def _load(self, raw):  # noqa: missing-type-function-argument
-        self.__load(raw)  # : private-member-access
-        self._find_discrepancies(raw)  # : private-member-access
+    def _load(self, raw):  # noqa: ANN001, ANN202
+        self.__load(raw)
+        self._find_discrepancies(raw)
 
-    Node._load = _load  # noqa: private-member-access
+    Node._load = _load  # noqa: SLF001
