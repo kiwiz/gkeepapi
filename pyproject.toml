@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "gkeepapi"
-version = "1.0.0"
+version = "0.15.0"
 authors = [
   { name="Kai", email="z@kwi.li" },
 ]

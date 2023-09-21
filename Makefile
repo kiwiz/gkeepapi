@@ -16,7 +16,7 @@ build: src/gkeepapi/*.py
 	python3 -m build
 
 clean:
-	rm -f build dist
+	rm -rf build dist
 
 upload:
 	twine upload dist/*.whl
