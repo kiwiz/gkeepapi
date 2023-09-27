@@ -439,7 +439,7 @@ This is due to the enforcement of Android device policies on your G-Suite accoun
 
 3. My notes take a long time to sync
 
-Follow the instructions in the caching notes section and see if that helps. If you only need to update notes, you can try creating a new Google account and sharing & managing your notes through that.
+Follow the instructions in the caching notes section and see if that helps. If you only need to update notes, you can try creating a new Google account. Share the notes to the new account and manage through there.
 
 Known Issues
 ============
