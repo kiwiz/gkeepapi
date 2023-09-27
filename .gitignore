@@ -6,3 +6,4 @@ dist/
 *.pyc
 *.egg-info/
 .coverage
+.ruff_cache/

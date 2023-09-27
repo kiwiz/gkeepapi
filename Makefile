@@ -1,23 +1,24 @@
 .PHONY: lint test coverage build clean upload all
 
 lint:
-	pylint gkeepapi
+	-ruff --fix src
+	black src
 
 test:
 	python3 -m unittest discover
 
 coverage:
-	coverage run --source gkeepapi -m unittest discover
+	coverage run --source src -m unittest discover
 	coverage report
 	coverage html
 
-build: gkeepapi/*.py
-	python3 setup.py bdist_wheel --universal
+build: src/gkeepapi/*.py
+	python3 -m build
 
 clean:
-	rm -f dist/*.whl
+	rm -rf build dist
 
 upload:
 	twine upload dist/*.whl
 
-all: build upload
+all: lint test build upload
