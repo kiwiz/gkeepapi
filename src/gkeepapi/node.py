@@ -311,15 +311,19 @@ class WebLink(Annotation):
     def __init__(self) -> None:
         """Construct a weblink"""
         super().__init__()
-        self._title = ""
+        self._title = None
         self._url = ""
         self._image_url = None
         self._provenance_url = ""
-        self._description = ""
+        self._description = None
 
     def _load(self, raw: dict) -> None:
         super()._load(raw)
-        self._title = raw["webLink"]["title"]
+        self._title = (
+            raw["webLink"]["title"]
+            if "title" in raw["webLink"]
+            else self.title
+        )
         self._url = raw["webLink"]["url"]
         self._image_url = (
             raw["webLink"]["imageUrl"]
@@ -327,7 +331,11 @@ class WebLink(Annotation):
             else self.image_url
         )
         self._provenance_url = raw["webLink"]["provenanceUrl"]
-        self._description = raw["webLink"]["description"]
+        self._description = (
+            raw["webLink"]["description"]
+            if "description" in raw["webLink"]
+            else self.description
+        )
 
     def save(self, clean: bool = True) -> dict:
         """Save the weblink"""
@@ -342,11 +350,11 @@ class WebLink(Annotation):
         return ret
 
     @property
-    def title(self) -> str:
+    def title(self) -> str | None:
         """Get the link title.
 
         Returns:
-            The link title.
+            The link title or None.
         """
         return self._title
 
@@ -398,11 +406,11 @@ class WebLink(Annotation):
         self._dirty = True
 
     @property
-    def description(self) -> str:
+    def description(self) -> str | None:
         """Get the link description.
 
         Returns:
-            The link description.
+            The link description or None.
         """
         return self._description
 

@@ -53,6 +53,13 @@ class AnnotationTests(unittest.TestCase):
         DESCRIPTION = 'Description'
 
         clean_node(n)
+        self.assertEqual(None, n.title)
+        self.assertEqual('', n.url)
+        self.assertEqual(None, n.image_url)
+        self.assertEqual('', n.provenance_url)
+        self.assertEqual(None, n.description)
+
+        clean_node(n)
         n.title = TITLE
         self.assertTrue(n.dirty)
         self.assertEqual(TITLE, n.title)
