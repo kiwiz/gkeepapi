@@ -755,7 +755,7 @@ class Keep:
         if state is not None:
             self.restore(state)
         if sync:
-            self.sync(True)
+            self.sync()
 
     def dump(self) -> dict:
         """Serialize note data.
