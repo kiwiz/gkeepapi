@@ -32,6 +32,7 @@ dev = [
   "black>=23.3.0",
   "ruff>=0.0.284",
   "coverage>=7.2.5",
+  "Sphinx>=7.2.6"
 ]
 
 [project.urls]
