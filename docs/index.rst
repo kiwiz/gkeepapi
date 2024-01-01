@@ -10,6 +10,7 @@ Welcome to gkeepapi's documentation!
 .. contents::
 
 **gkeepapi** is an unofficial client for programmatically interacting with Google Keep::
+
     import gkeepapi
 
     keep = gkeepapi.Keep()
@@ -242,6 +243,7 @@ Sorting a List
 ^^^^^^^^^^^^^^
 
 Lists can be sorted via :py:meth:`node.List.sort_items`::
+
    # Sorts items alphabetically by default
    glist.sort_items()
 
