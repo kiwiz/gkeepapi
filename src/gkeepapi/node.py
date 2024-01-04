@@ -319,23 +319,11 @@ class WebLink(Annotation):
 
     def _load(self, raw: dict) -> None:
         super()._load(raw)
-        self._title = (
-            raw["webLink"]["title"]
-            if "title" in raw["webLink"]
-            else self.title
-        )
+        self._title = raw['webLink'].get('title', self.title)
         self._url = raw["webLink"]["url"]
-        self._image_url = (
-            raw["webLink"]["imageUrl"]
-            if "imageUrl" in raw["webLink"]
-            else self.image_url
-        )
+        self._image_url = raw["webLink"].get("imageUrl", self.image_url)
         self._provenance_url = raw["webLink"]["provenanceUrl"]
-        self._description = (
-            raw["webLink"]["description"]
-            if "description" in raw["webLink"]
-            else self.description
-        )
+        self._description = raw["webLink"].get("description", self.description)
 
     def save(self, clean: bool = True) -> dict:
         """Save the weblink"""
@@ -708,7 +696,7 @@ class NodeTimestamps(Element):
         return ret
 
     @classmethod
-    def str_to_dt(cls, tzs: str) -> datetime.datetime:
+    def str_to_dt(cls, tzs: str | None) -> datetime.datetime:
         """Convert a datetime string into an object.
 
         Params:
@@ -717,6 +705,9 @@ class NodeTimestamps(Element):
         Returns:
             Datetime.
         """
+        if tzs is None:
+            return cls.int_to_dt(0)
+
         return datetime.datetime.strptime(tzs, cls.TZ_FMT).replace(
             tzinfo=datetime.timezone.utc
         )
@@ -1066,11 +1057,7 @@ class Label(Element, TimestampsMixin):
         self.id = raw["mainId"]
         self._name = raw["name"]
         self.timestamps.load(raw["timestamps"])
-        self._merged = (
-            NodeTimestamps.str_to_dt(raw["lastMerged"])
-            if "lastMerged" in raw
-            else NodeTimestamps.int_to_dt(0)
-        )
+        self._merged = NodeTimestamps.str_to_dt(raw.get("lastMerged"))
 
     def save(self, clean: bool = True) -> dict:
         """Save the label"""
@@ -1409,14 +1396,14 @@ class TopLevelNode(Node):
     def _load(self, raw: dict) -> None:
         super()._load(raw)
         self._color = ColorValue(raw["color"]) if "color" in raw else ColorValue.White
-        self._archived = raw["isArchived"] if "isArchived" in raw else False
-        self._pinned = raw["isPinned"] if "isPinned" in raw else False
-        self._title = raw["title"] if "title" in raw else ""
-        self.labels.load(raw["labelIds"] if "labelIds" in raw else [])
+        self._archived = raw.get("isArchived", False)
+        self._pinned = raw.get("isPinned", False)
+        self._title = raw.get("title", "")
+        self.labels.load(raw.get("labelIds", []))
 
         self.collaborators.load(
-            raw["roleInfo"] if "roleInfo" in raw else [],
-            raw["shareRequests"] if "shareRequests" in raw else [],
+            raw.get("roleInfo", []),
+            raw.get("shareRequests", []),
         )
         self._moved = "moved" in raw
 
@@ -2059,22 +2046,10 @@ class NodeDrawingInfo(Element):
         super()._load(raw)
         self.drawing_id = raw["drawingId"]
         self.snapshot.load(raw["snapshotData"])
-        self._snapshot_fingerprint = (
-            raw["snapshotFingerprint"]
-            if "snapshotFingerprint" in raw
-            else self._snapshot_fingerprint
-        )
-        self._thumbnail_generated_time = (
-            NodeTimestamps.str_to_dt(raw["thumbnailGeneratedTime"])
-            if "thumbnailGeneratedTime" in raw
-            else NodeTimestamps.int_to_dt(0)
-        )
-        self._ink_hash = raw["inkHash"] if "inkHash" in raw else ""
-        self._snapshot_proto_fprint = (
-            raw["snapshotProtoFprint"]
-            if "snapshotProtoFprint" in raw
-            else self._snapshot_proto_fprint
-        )
+        self._snapshot_fingerprint = raw.get("snapshotFingerprint", self._snapshot_fingerprint)
+        self._thumbnail_generated_time = NodeTimestamps.str_to_dt(raw.get("thumbnailGeneratedTime"))
+        self._ink_hash = raw.get("inkHash", "")
+        self._snapshot_proto_fprint = raw.get("snapshotProtoFprint", self._snapshot_proto_fprint)
 
     def save(self, clean: bool = True) -> dict:  # noqa: D102
         ret = super().save(clean)
