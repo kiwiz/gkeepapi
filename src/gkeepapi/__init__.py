@@ -553,7 +553,7 @@ class RemindersAPI(API):
 
         return self.send(url=self._base_url + "batchmutate", method="POST", json=params)
 
-    def list(self, master: bool = True) -> Any:  # noqa: ANN401, A003
+    def list(self, master: bool = True) -> Any:  # noqa: ANN401
         """List current reminders.
 
         Args:
@@ -1013,7 +1013,7 @@ class Keep:
         """
         return self._media_api.get(blob)
 
-    def all(self) -> list[_node.TopLevelNode]:  # noqa: A003
+    def all(self) -> list[_node.TopLevelNode]:
         """Get all Notes.
 
         Returns:

@@ -179,6 +179,8 @@ class RoleValue(enum.Enum):
 class Element:
     """Interface for elements that can be serialized and deserialized."""
 
+    __slots__ = ("_dirty",)
+
     def __init__(self) -> None:
         """Construct an element object"""
         self._dirty = False
@@ -276,6 +278,8 @@ class Element:
 class Annotation(Element):
     """Note annotations base class."""
 
+    __slots__ = ("id",)
+
     def __init__(self) -> None:
         """Construct a note annotation"""
         super().__init__()
@@ -308,6 +312,8 @@ class Annotation(Element):
 class WebLink(Annotation):
     """Represents a link annotation on a :class:`TopLevelNode`."""
 
+    __slots__ = ("_title", "_url", "_image_url", "_provenance_url", "_description")
+
     def __init__(self) -> None:
         """Construct a weblink"""
         super().__init__()
@@ -319,7 +325,7 @@ class WebLink(Annotation):
 
     def _load(self, raw: dict) -> None:
         super()._load(raw)
-        self._title = raw['webLink'].get('title', self.title)
+        self._title = raw["webLink"].get("title", self.title)
         self._url = raw["webLink"]["url"]
         self._image_url = raw["webLink"].get("imageUrl", self.image_url)
         self._provenance_url = raw["webLink"]["provenanceUrl"]
@@ -411,6 +417,8 @@ class WebLink(Annotation):
 class Category(Annotation):
     """Represents a category annotation on a :class:`TopLevelNode`."""
 
+    __slots__ = ("_category",)
+
     def __init__(self) -> None:
         """Construct a category annotation"""
         super().__init__()
@@ -443,6 +451,8 @@ class Category(Annotation):
 
 class TaskAssist(Annotation):
     """Unknown."""
+
+    __slots__ = ("_suggest",)
 
     def __init__(self) -> None:
         """Construct a taskassist annotation"""
@@ -477,6 +487,8 @@ class TaskAssist(Annotation):
 class Context(Annotation):
     """Represents a context annotation, which may contain other annotations."""
 
+    __slots__ = ("_entries",)
+
     def __init__(self) -> None:
         """Construct a context annotation"""
         super().__init__()
@@ -497,7 +509,7 @@ class Context(Annotation):
         ret["context"] = context
         return ret
 
-    def all(self) -> list[Annotation]:  # noqa: A003
+    def all(self) -> list[Annotation]:
         """Get all sub annotations.
 
         Returns:
@@ -514,6 +526,8 @@ class Context(Annotation):
 
 class NodeAnnotations(Element):
     """Represents the annotation container on a :class:`TopLevelNode`."""
+
+    __slots__ = ("_annotations",)
 
     def __init__(self) -> None:
         """Construct an annotations container"""
@@ -551,7 +565,7 @@ class NodeAnnotations(Element):
 
         return annotation
 
-    def all(self) -> list[Annotation]:  # noqa: A003
+    def all(self) -> list[Annotation]:
         """Get all annotations.
 
         Returns:
@@ -655,6 +669,8 @@ class NodeAnnotations(Element):
 
 class NodeTimestamps(Element):
     """Represents the timestamps associated with a :class:`TopLevelNode`."""
+
+    __slots__ = ("_created", "_deleted", "_trashed", "_updated", "_edited")
 
     TZ_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -819,6 +835,12 @@ class NodeTimestamps(Element):
 class NodeSettings(Element):
     """Represents the settings associated with a :class:`TopLevelNode`."""
 
+    __slots__ = (
+        "_new_listitem_placement",
+        "_graveyard_state",
+        "_checked_listitems_policy",
+    )
+
     def __init__(self) -> None:
         """Construct a settings container"""
         super().__init__()
@@ -890,6 +912,8 @@ class NodeSettings(Element):
 class NodeCollaborators(Element):
     """Represents the collaborators on a :class:`TopLevelNode`."""
 
+    __slots__ = ("_collaborators",)
+
     def __init__(self) -> None:
         """Construct a collaborators container"""
         super().__init__()
@@ -953,7 +977,7 @@ class NodeCollaborators(Element):
                 self._collaborators[email] = ShareRequestValue.Remove
         self._dirty = True
 
-    def all(self) -> list[str]:  # noqa: A003
+    def all(self) -> list[str]:
         """Get all collaborators.
 
         Returns:
@@ -968,6 +992,8 @@ class NodeCollaborators(Element):
 
 class TimestampsMixin:
     """A mixin to add methods for updating timestamps."""
+
+    __slots__ = () # empty to resolve multiple inheritance
 
     def __init__(self) -> None:
         """Instantiate mixin"""
@@ -1028,6 +1054,8 @@ class TimestampsMixin:
 
 class Label(Element, TimestampsMixin):
     """Represents a label."""
+
+    __slots__ = ("id", "_name", "timestamps", "_merged")
 
     def __init__(self) -> None:
         """Construct a label"""
@@ -1107,6 +1135,8 @@ class Label(Element, TimestampsMixin):
 class NodeLabels(Element):
     """Represents the labels on a :class:`TopLevelNode`."""
 
+    __slots__ = ("_labels",)
+
     def __init__(self) -> None:
         """Construct a labels container"""
         super().__init__()
@@ -1171,7 +1201,7 @@ class NodeLabels(Element):
         """
         return self._labels.get(label_id)
 
-    def all(self) -> list[Label]:  # noqa: A003
+    def all(self) -> list[Label]:
         """Get all labels.
 
         Returns:
@@ -1182,6 +1212,22 @@ class NodeLabels(Element):
 
 class Node(Element, TimestampsMixin):
     """Node base class."""
+
+    __slots__ = (
+        "parent",
+        "id",
+        "server_id",
+        "parent_id",
+        "type",
+        "_sort",
+        "_version",
+        "_text",
+        "_children",
+        "timestamps",
+        "settings",
+        "annotations",
+        "_moved",
+    )
 
     def __init__(
         self,
@@ -1221,7 +1267,7 @@ class Node(Element, TimestampsMixin):
         super()._load(raw)
         # Verify this is a valid type
         NodeType(raw["type"])
-        if raw["kind"] not in ["notes#node"]:
+        if raw["kind"] != "notes#node":
             logger.warning("Unknown node kind: %s", raw["kind"])
 
         if "mergeConflict" in raw:
@@ -1367,6 +1413,8 @@ class Node(Element, TimestampsMixin):
 class Root(Node):
     """Internal root node."""
 
+    __slots__ = ()
+
     ID = "root"
 
     def __init__(self) -> None:
@@ -1380,6 +1428,8 @@ class Root(Node):
 
 class TopLevelNode(Node):
     """Top level node base class."""
+
+    __slots__ = ("_color", "_archived", "_pinned", "_title", "labels", "collaborators")
 
     _TYPE = None
 
@@ -1524,6 +1574,15 @@ class ListItem(Node):
     child :class:`ListItem`.
     """
 
+    __slots__ = (
+        "parent_item",
+        "parent_server_id",
+        "super_list_item_id",
+        "prev_super_list_item_id",
+        "_subitems",
+        "_checked",
+    )
+
     def __init__(
         self,
         parent_id: str | None = None,
@@ -1647,6 +1706,8 @@ class ListItem(Node):
 class Note(TopLevelNode):
     """Represents a Google Keep note."""
 
+    __slots__ = ()
+
     _TYPE = NodeType.Note
 
     def __init__(self, **kwargs: dict) -> None:
@@ -1760,13 +1821,13 @@ class List(TopLevelNode):
             def __lt__(self, other: "T") -> bool:  # pragma: no cover
                 return self.__cmp__(other) < 0
 
-            def __gt_(self, other: "T") -> bool:  # pragma: no cover
+            def __gt__(self, other: "T") -> bool:  # pragma: no cover
                 return self.__cmp__(other) > 0
 
             def __le__(self, other: "T") -> bool:  # pragma: no cover
                 return self.__cmp__(other) <= 0
 
-            def __ge_(self, other: "T") -> bool:  # pragma: no cover
+            def __ge__(self, other: "T") -> bool:  # pragma: no cover
                 return self.__cmp__(other) >= 0
 
             def __eq__(self, other: "T") -> bool:  # pragma: no cover
@@ -1841,6 +1902,8 @@ class List(TopLevelNode):
 class NodeBlob(Element):
     """Represents a blob descriptor."""
 
+    __slots__ = ("blob_id", "type", "_media_id", "_mimetype")
+
     _TYPE = None
 
     def __init__(self, type_: str | None = None) -> None:
@@ -1850,7 +1913,6 @@ class NodeBlob(Element):
         self.type = type_
         self._media_id = None
         self._mimetype = ""
-        self._is_uploaded = False
 
     def _load(self, raw: dict) -> None:
         super()._load(raw)
@@ -1875,6 +1937,8 @@ class NodeBlob(Element):
 
 class NodeAudio(NodeBlob):
     """Represents an audio blob."""
+
+    __slots__ = ("_length",)
 
     _TYPE = BlobType.Audio
 
@@ -1906,6 +1970,15 @@ class NodeAudio(NodeBlob):
 
 class NodeImage(NodeBlob):
     """Represents an image blob."""
+
+    __slots__ = (
+        "_is_uploaded",
+        "_width",
+        "_height",
+        "_byte_size",
+        "_extracted_text",
+        "_extraction_status",
+    )
 
     _TYPE = BlobType.Image
 
@@ -1987,6 +2060,8 @@ class NodeImage(NodeBlob):
 class NodeDrawing(NodeBlob):
     """Represents a drawing blob."""
 
+    __slots__ = ("_extracted_text", "_extraction_status", "_drawing_info")
+
     _TYPE = BlobType.Drawing
 
     def __init__(self) -> None:
@@ -2032,6 +2107,15 @@ class NodeDrawing(NodeBlob):
 class NodeDrawingInfo(Element):
     """Represents information about a drawing blob."""
 
+    __slots__ = (
+        "drawing_id",
+        "snapshot",
+        "_snapshot_fingerprint",
+        "_thumbnail_generated_time",
+        "_ink_hash",
+        "_snapshot_proto_fprint",
+    )
+
     def __init__(self) -> None:
         """Construct a drawing info container"""
         super().__init__()
@@ -2046,10 +2130,16 @@ class NodeDrawingInfo(Element):
         super()._load(raw)
         self.drawing_id = raw["drawingId"]
         self.snapshot.load(raw["snapshotData"])
-        self._snapshot_fingerprint = raw.get("snapshotFingerprint", self._snapshot_fingerprint)
-        self._thumbnail_generated_time = NodeTimestamps.str_to_dt(raw.get("thumbnailGeneratedTime"))
+        self._snapshot_fingerprint = raw.get(
+            "snapshotFingerprint", self._snapshot_fingerprint
+        )
+        self._thumbnail_generated_time = NodeTimestamps.str_to_dt(
+            raw.get("thumbnailGeneratedTime")
+        )
         self._ink_hash = raw.get("inkHash", "")
-        self._snapshot_proto_fprint = raw.get("snapshotProtoFprint", self._snapshot_proto_fprint)
+        self._snapshot_proto_fprint = raw.get(
+            "snapshotProtoFprint", self._snapshot_proto_fprint
+        )
 
     def save(self, clean: bool = True) -> dict:  # noqa: D102
         ret = super().save(clean)
@@ -2066,6 +2156,8 @@ class NodeDrawingInfo(Element):
 
 class Blob(Node):
     """Represents a Google Keep blob."""
+
+    __slots__ = ("blob",)
 
     _blob_type_map = {  # noqa: RUF012
         BlobType.Audio: NodeAudio,

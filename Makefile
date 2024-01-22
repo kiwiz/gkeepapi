@@ -2,7 +2,6 @@
 
 lint:
 	-ruff --fix src
-	black src
 
 test:
 	python3 -m unittest discover

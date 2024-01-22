@@ -9,9 +9,11 @@ from gkeepapi import Keep, node
 
 logging.getLogger(node.__name__).addHandler(logging.NullHandler())
 
+
 def resp(name):
-    with open('test/data/%s' % name, 'r') as fh:
+    with open("test/data/%s" % name, "r") as fh:
         return json.load(fh)
+
 
 def mock_keep(keep):
     k_api = mock.MagicMock()
@@ -23,26 +25,27 @@ def mock_keep(keep):
 
     return k_api, r_api, m_api
 
+
 class KeepTests(unittest.TestCase):
-    @mock.patch('gpsoauth.perform_oauth')
-    @mock.patch('gpsoauth.perform_master_login')
+    @mock.patch("gpsoauth.perform_oauth")
+    @mock.patch("gpsoauth.perform_master_login")
     def test_sync(self, perform_master_login, perform_oauth):
         keep = Keep()
         k_api, r_api, m_api = mock_keep(keep)
 
         perform_master_login.return_value = {
-            'Token': 'FAKETOKEN',
+            "Token": "FAKETOKEN",
         }
         perform_oauth.return_value = {
-            'Auth': 'FAKEAUTH',
+            "Auth": "FAKEAUTH",
         }
         k_api.request().json.side_effect = [
-            resp('keep-00'),
+            resp("keep-00"),
         ]
         r_api.request().json.side_effect = [
-            resp('reminder-00'),
-            resp('reminder-01'),
+            resp("reminder-00"),
+            resp("reminder-01"),
         ]
-        keep.login('user', 'pass')
+        keep.login("user", "pass")
 
         self.assertEqual(39, len(keep.all()))

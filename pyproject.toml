@@ -29,8 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "black>=23.3.0",
-  "ruff>=0.0.284",
+  "ruff>=0.1.14",
   "coverage>=7.2.5",
   "Sphinx>=7.2.6"
 ]
@@ -38,10 +37,6 @@ dev = [
 [project.urls]
 "Homepage" = "https://github.com/kiwiz/gkeepapi"
 "Bug Tracker" = "https://github.com/kiwiz/gkeepapi/issues"
-
-
-[tool.black]
-target-version = ["py310"]
 
 [tool.ruff]
 target-version = "py310"
@@ -105,6 +100,7 @@ select = [
   "NPY",  # numpy-specific
   "AIR",  # airflow-specific
   "PERF",  # performance
+  "FURB",  # refurb
   "RUF",  # ruff-specific
 ]
 ignore = [
