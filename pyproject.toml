@@ -23,7 +23,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-  "gpsoauth >= 1.0.3",
+  "gpsoauth >= 1.1.0",
   "future >= 0.16.0",
 ]
 
