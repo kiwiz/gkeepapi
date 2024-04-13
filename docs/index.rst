@@ -13,8 +13,11 @@ Welcome to gkeepapi's documentation!
 
     import gkeepapi
 
+    # Obtain a master token for your account
+    master_token = '...'
+
     keep = gkeepapi.Keep()
-    keep.login('user@gmail.com', 'password')
+    keep.authenticate('user@gmail.com', master_token)
 
     note = keep.createNote('Todo', 'Eat breakfast')
     note.pinned = True
@@ -32,34 +35,40 @@ Client Usage
 
 All interaction with Google Keep is done through a :py:class:`Keep` object, which is responsible for authenticating, syncing changes and tracking modifications.
 
-Logging in
-----------
+Authenticating
+--------------
 
-gkeepapi leverages the mobile Google Keep API. To do so, it makes use of :py:mod:`gpsoauth`, which requires passing in the username and password. This was necessary as the API we're using is restricted to Google applications (put differently, there is no way to enable it on the Developer Console)::
+The client uses the (private) mobile Google Keep API. A valid OAuth token is generated via :py:mod:`gpsoauth`, which requires a master token for the account. These tokens are so called because they have full access to your account. Protect them like you would a password::
 
     keep = gkeepapi.Keep()
-    keep.login('...', '...')
+    keep.authenticate('user@gmail.com', master_token)
 
-To reduce the number of logins you make to the server, you can store the master token after logging in. Protect this like a password, as it grants full access to your account::
-
-    import keyring
-    # <snip>
-    token = keep.getMasterToken()
-    keyring.set_password('google-keep-token', username, token)
-
-You can load this token at a later point::
+Rather than storing the token in the script, consider using your platform secrets store::
 
     import keyring
-    # <snip>
-    token = keyring.get_password('google-keep-token', username)
-    keep.resume(email, master_token)
 
-Note: Enabling TwoFactor and logging in via an app password is recommended.
+    # To save the token
+    # ...
+    # keyring.set_password('google-keep-token', 'user@gmail.com', master_token)
+
+    master_token = keyring.get_password("google-keep-token", "user@gmail.com")
+
+There is also a deprecated :py:meth:`Keep.login` method which accepts a username and password. This is discouraged (and unlikely to work), due to increased security requirements on logins::
+
+    keep.login('user@gmail.com', 'password')
+
+Obtaining a Master Token
+------------------------
+
+Instructions can be found in the gpsoauth `documentation <https://github.com/simon-weber/gpsoauth#alternative-flow>`__. If you have Docker installed, the following one-liner prompts for the necessary information and outputs the token::
+
+    docker run --rm -it --entrypoint /bin/sh python:3 -c 'pip install gpsoauth; python3 -c '\''print(__import__("gpsoauth").exchange_token(input("Email: "), input("OAuth Token: "), input("Android ID: ")))'\'
+
 
 Syncing
 -------
 
-gkeepapi automatically pulls down all notes after login. It takes care of refreshing API tokens, so there's no need to call :py:meth:`Keep.login` again. After making any local modifications to notes, make sure to call :py:meth:`Keep.sync` to update them on the server!::
+gkeepapi automatically pulls down all notes after authenticating. It takes care of refreshing API tokens, so there's no need to call :py:meth:`Keep.authenticate` again. After making any local modifications to notes, make sure to call :py:meth:`Keep.sync` to update them on the server!::
 
     keep.sync()
 
@@ -78,10 +87,10 @@ The initial sync can take a while, especially if you have a lot of notes. To mit
     state = json.load(fh)
     keep.restore(state)
 
-You can also pass the state directly to the :py:meth:`Keep.login` and :py:meth:`Keep.resume` methods::
+You can also pass the state directly to the :py:meth:`Keep.authenticate` and the (deprecated) :py:meth:`Keep.login` methods::
 
+    keep.authenticate(username, master_token, state=state)
     keep.login(username, password, state=state)
-    keep.resume(username, master_token, state=state)
 
 Notes and Lists
 ===============
@@ -425,7 +434,7 @@ These timestamps are all read-only.
 FAQ
 ===
 
-1. I get a "NeedsBrowser", "CaptchaRequired" or "BadAuthentication" :py:class:`exception.LoginException` when I try to log in.
+1. I get a "NeedsBrowser", "CaptchaRequired" or "BadAuthentication" :py:class:`exception.LoginException` when I try to log in. (Not an issue when using :py:meth:`Keep.authenticate`)
 
 This usually occurs when Google thinks the login request looks suspicious. Here are some steps you can take to resolve this:
 
@@ -435,7 +444,7 @@ This usually occurs when Google thinks the login request looks suspicious. Here 
 4. Upgrading to a newer version of Python (3.7+) has worked for some people. See this `issue <https://gitlab.com/AuroraOSS/AuroraStore/issues/217#note_249390026>`__ for more information.
 5. If all else fails, try testing gkeepapi on a separate IP address and/or user to see if you can isolate the problem.
 
-2. I get a "DeviceManagementRequiredOrSyncDisabled" :py:class:`exception.LoginException` when I try to log in.
+2. I get a "DeviceManagementRequiredOrSyncDisabled" :py:class:`exception.LoginException` when I try to log in. (Not an issue when using :py:meth:`Keep.authenticate`)
 
 This is due to the enforcement of Android device policies on your G-Suite account. To resolve this, you can try disabling that setting `here <https://admin.google.com/AdminHome?hl=no#MobileSettings:section=advanced&flyout=security>`__.
 

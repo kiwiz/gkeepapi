@@ -20,35 +20,23 @@ logger.addHandler(ch)
 keep = gkeepapi.Keep()
 
 token = keyring.get_password("google-keep-token", USERNAME)
-logged_in = False
+store_token = False
 
-# Use an existing master token if one exists
-if token:
-    logger.info("Authenticating with token")
-    try:
-        keep.resume(USERNAME, token, sync=False)
-        logged_in = True
-        logger.info("Success")
-    except gkeepapi.exception.LoginException:
-        logger.info("Invalid token")
+if not token:
+    token = getpass.getpass("Master token: ")
+    store_token = True
 
-# Otherwise, prompt for credentials and login
-if not logged_in:
-    password = getpass.getpass()
-    try:
-        keep.login(USERNAME, password, sync=False)
-        logged_in = True
-        del password
-        token = keep.getMasterToken()
-        keyring.set_password("google-keep-token", USERNAME, token)
-        logger.info("Success")
-    except gkeepapi.exception.LoginException as e:
-        logger.info(e)
-
-# Abort if authentication failed
-if not logged_in:
+# Authenticate using a master token
+logger.info("Authenticating")
+try:
+    keep.authenticate(USERNAME, token, sync=False)
+    logger.info("Success")
+except gkeepapi.exception.LoginException:
     logger.error("Failed to authenticate")
     sys.exit(1)
+
+if store_token:
+    keyring.set_password("google-keep-token", USERNAME, token)
 
 # Sync state down
 keep.sync()

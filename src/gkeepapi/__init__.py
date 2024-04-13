@@ -1,6 +1,6 @@
 """.. moduleauthor:: Kai <z@kwi.li>"""
 
-__version__ = "0.15.1"
+__version__ = "0.16.0"
 
 import datetime
 import http
@@ -215,7 +215,7 @@ class API:
 
         Raises:
             APIException: If the server returns an error.
-            LoginException: If :py:meth:`login` has not been called.
+            LoginException: If session is not authenticated.
         """
         # Send a request to the API servers, with retry handling. OAuth tokens
         # are valid for several hours (as of this comment).
@@ -253,7 +253,7 @@ class API:
             The raw response.
 
         Raises:
-            LoginException: If :py:meth:`login` has not been called.
+            LoginException: If session is not authenticated.
         """
         # Bail if we don't have an OAuth token.
         auth_token = self._auth.getAuthToken()
@@ -629,9 +629,11 @@ class RemindersAPI(API):
 class Keep:
     """High level Google Keep client.
 
-    Stores a local copy of the Keep node tree. To start, first login::
+    Manipulates a local copy of the Keep node tree. First, obtain a master token for your account.
 
-        keep.login('...', '...')
+    To start, first authenticate::
+
+        keep.authenticate('...', '...')
 
     Individual Notes can be retrieved by id::
 
@@ -686,6 +688,8 @@ class Keep:
     ) -> None:
         """Authenticate to Google with the provided credentials & sync.
 
+        This flow is discouraged.
+
         Args:
             email: The account to use.
             password: The account password.
@@ -696,6 +700,7 @@ class Keep:
         Raises:
             LoginException: If there was a problem logging in.
         """
+        logger.warning("'Keep.login' is deprecated. Please use 'Keep.authenticate' instead")
         auth = APIAuth(self.OAUTH_SCOPES)
         if device_id is None:
             device_id = f"{get_mac():x}"
@@ -704,6 +709,17 @@ class Keep:
         self.load(auth, state, sync)
 
     def resume(
+        self,
+        email: str,
+        master_token: str,
+        state: dict | None = None,
+        sync: bool = True,
+        device_id: str | None = None,
+    ) -> None:
+        logger.warning("'Keep.resume' has been renamed to 'Keep.authenticate'. Please update your code")
+        self.authenticate(email, master_token, state, sync, device_id)
+
+    def authenticate(
         self,
         email: str,
         master_token: str,

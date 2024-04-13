@@ -12,8 +12,11 @@ An unofficial client for the [Google Keep](https://keep.google.com) API.
 ```python
 import gkeepapi
 
+# Obtain a master token for your account (see docs)
+master_token = '...'
+
 keep = gkeepapi.Keep()
-success = keep.login('user@gmail.com', 'password')
+success = keep.authenticate('user@gmail.com', 'master_token')
 
 note = keep.createNote('Todo', 'Eat breakfast')
 note.pinned = True
@@ -27,7 +30,9 @@ The code is pretty stable at this point, but you should always make backups. The
 
 ## Installation
 
-`pip install gkeepapi`
+```
+pip install gkeepapi
+```
 
 ## Documentation
 
