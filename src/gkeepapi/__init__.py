@@ -700,7 +700,9 @@ class Keep:
         Raises:
             LoginException: If there was a problem logging in.
         """
-        logger.warning("'Keep.login' is deprecated. Please use 'Keep.authenticate' instead")
+        logger.warning(
+            "'Keep.login' is deprecated. Please use 'Keep.authenticate' instead"
+        )
         auth = APIAuth(self.OAUTH_SCOPES)
         if device_id is None:
             device_id = f"{get_mac():x}"
@@ -716,7 +718,9 @@ class Keep:
         sync: bool = True,
         device_id: str | None = None,
     ) -> None:
-        logger.warning("'Keep.resume' has been renamed to 'Keep.authenticate'. Please update your code")
+        logger.warning(
+            "'Keep.resume' has been renamed to 'Keep.authenticate'. Please update your code"
+        )
         self.authenticate(email, master_token, state, sync, device_id)
 
     def authenticate(
@@ -787,8 +791,8 @@ class Keep:
             nodes.extend(node.children)
         return {
             "keep_version": self._keep_version,
-            "labels": [label.save(False) for label in self.labels()],
-            "nodes": [node.save(False) for node in nodes],
+            "labels": [label.save(False, True) for label in self.labels()],
+            "nodes": [node.save(False, True) for node in nodes],
         }
 
     def restore(self, state: dict) -> None:
@@ -1018,7 +1022,7 @@ class Keep:
         """
         return list(self._labels.values())
 
-    def __UNSTABLE_API_uploadMedia(self, fh: IO)-> None:
+    def __UNSTABLE_API_uploadMedia(self, fh: IO) -> None:
         pass
 
     def getMediaLink(self, blob: _node.Blob) -> str:
@@ -1083,12 +1087,13 @@ class Keep:
             logger.debug("Starting keep sync: %s", self._keep_version)
 
             # Collect any changes and send them up to the server.
-            labels_updated = any(i.dirty for i in self._labels.values())
+            updated_nodes = self._findDirtyNodes()
+            updated_labels = [label for label in self._labels.values() if label.dirty]
             changes = self._keep_api.changes(
                 target_version=self._keep_version,
-                nodes=[i.save() for i in self._findDirtyNodes()],
-                labels=[i.save() for i in self._labels.values()]
-                if labels_updated
+                nodes=[i.save(False) for i in updated_nodes],
+                labels=[i.save(False) for i in self._labels.values()]
+                if updated_labels
                 else None,
             )
 
