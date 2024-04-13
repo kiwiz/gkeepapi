@@ -16,7 +16,7 @@ import gkeepapi
 master_token = '...'
 
 keep = gkeepapi.Keep()
-success = keep.authenticate('user@gmail.com', 'master_token')
+success = keep.authenticate('user@gmail.com', master_token)
 
 note = keep.createNote('Todo', 'Eat breakfast')
 note.pinned = True
