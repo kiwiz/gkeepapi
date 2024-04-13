@@ -9,7 +9,7 @@ import random
 import re
 import time
 from collections.abc import Callable, Iterator
-from typing import Any
+from typing import IO, Any
 from uuid import getnode as get_mac
 
 import gpsoauth
@@ -1001,6 +1001,9 @@ class Keep:
             Labels
         """
         return list(self._labels.values())
+
+    def __UNSTABLE_API_uploadMedia(self, fh: IO)-> None:
+        pass
 
     def getMediaLink(self, blob: _node.Blob) -> str:
         """Get the canonical link to media.

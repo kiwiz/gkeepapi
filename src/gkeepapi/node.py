@@ -300,7 +300,7 @@ class Annotation(Element):
 
     @classmethod
     def _generateAnnotationId(cls) -> str:
-        return "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}".format(
+        return "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}".format(  # noqa: UP032
             random.randint(0x00000000, 0xFFFFFFFF),  # noqa: S311
             random.randint(0x0000, 0xFFFF),  # noqa: S311
             random.randint(0x0000, 0xFFFF),  # noqa: S311
@@ -993,7 +993,7 @@ class NodeCollaborators(Element):
 class TimestampsMixin:
     """A mixin to add methods for updating timestamps."""
 
-    __slots__ = () # empty to resolve multiple inheritance
+    __slots__ = ()  # empty to resolve multiple inheritance
 
     def __init__(self) -> None:
         """Instantiate mixin"""
@@ -1258,7 +1258,7 @@ class Node(Element, TimestampsMixin):
 
     @classmethod
     def _generateId(cls, tz: float) -> str:
-        return "{:x}.{:016x}".format(
+        return "{:x}.{:016x}".format(  # noqa: UP032
             int(tz * 1000),
             random.randint(0x0000000000000000, 0xFFFFFFFFFFFFFFFF),  # noqa: S311
         )
@@ -1274,11 +1274,11 @@ class Node(Element, TimestampsMixin):
             raise exception.MergeException(raw)
 
         self.id = raw["id"]
-        self.server_id = raw["serverId"] if "serverId" in raw else self.server_id
+        self.server_id = raw.get("serverId", self.server_id)
         self.parent_id = raw["parentId"]
-        self._sort = raw["sortValue"] if "sortValue" in raw else self.sort
-        self._version = raw["baseVersion"] if "baseVersion" in raw else self._version
-        self._text = raw["text"] if "text" in raw else self._text
+        self._sort = raw.get("sortValue", self.sort)
+        self._version = raw.get("baseVersion", self._version)
+        self._text = raw.get("text", self._text)
         self.timestamps.load(raw["timestamps"])
         self.settings.load(raw["nodeSettings"])
         self.annotations.load(raw["annotationsGroup"])
