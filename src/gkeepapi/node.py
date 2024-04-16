@@ -186,7 +186,7 @@ class Element:
         self._dirty = False
 
     def _find_discrepancies(self, raw: dict | list) -> None:  # pragma: no cover
-        s_raw = self.save(False)
+        s_raw = self.save(False, True)
         if isinstance(raw, dict):
             for key, val in raw.items():
                 if key in ["parentServerId", "lastSavedSessionId"]:
@@ -249,21 +249,26 @@ class Element:
         """
         self._dirty = raw.get("_dirty", False)
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Serialize into raw representation. Clears the dirty bit by default.
 
         Args:
             clean: Whether to clear the dirty bit.
+            local: Whether to include local metadata.
 
         Returns:
             Raw.
         """
         ret = {}
         if clean:
-            self._dirty = False
-        else:
+            self.clean()
+        if local:
             ret["_dirty"] = self._dirty
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        self._dirty = False
 
     @property
     def dirty(self) -> bool:
@@ -289,18 +294,19 @@ class Annotation(Element):
         super()._load(raw)
         self.id = raw.get("id")
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the annotation"""
         ret = {}
         if self.id is not None:
-            ret = super().save(clean)
+            ret = super().save(clean, local)
+        # FIXME: Why does this check self.id again?
         if self.id is not None:
             ret["id"] = self.id
         return ret
 
     @classmethod
     def _generateAnnotationId(cls) -> str:
-        return "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}".format(  # noqa: UP032
+        return "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}".format(
             random.randint(0x00000000, 0xFFFFFFFF),  # noqa: S311
             random.randint(0x0000, 0xFFFF),  # noqa: S311
             random.randint(0x0000, 0xFFFF),  # noqa: S311
@@ -331,9 +337,9 @@ class WebLink(Annotation):
         self._provenance_url = raw["webLink"]["provenanceUrl"]
         self._description = raw["webLink"].get("description", self.description)
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the weblink"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["webLink"] = {
             "title": self._title,
             "url": self._url,
@@ -428,9 +434,9 @@ class Category(Annotation):
         super()._load(raw)
         self._category = CategoryValue(raw["topicCategory"]["category"])
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the category annotation"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["topicCategory"] = {"category": self._category.value}
         return ret
 
@@ -463,9 +469,9 @@ class TaskAssist(Annotation):
         super()._load(raw)
         self._suggest = raw["taskAssist"]["suggestType"]
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the taskassist annotation"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["taskAssist"] = {"suggestType": self._suggest}
         return ret
 
@@ -500,14 +506,21 @@ class Context(Annotation):
         for key, entry in raw.get("context", {}).items():
             self._entries[key] = NodeAnnotations.from_json({key: entry})
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the context annotation"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         context = {}
         for entry in self._entries.values():
-            context.update(entry.save(clean))
+            context.update(entry.save(clean, local))
         ret["context"] = context
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+
+        for entry in self._entries.values():
+            entry.clean()
 
     def all(self) -> list[Annotation]:
         """Get all sub annotations.
@@ -583,15 +596,23 @@ class NodeAnnotations(Element):
             annotation = self.from_json(raw_annotation)
             self._annotations[annotation.id] = annotation
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the annotations container"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["kind"] = "notes#annotationsGroup"
         if self._annotations:
             ret["annotations"] = [
-                annotation.save(clean) for annotation in self._annotations.values()
+                annotation.save(clean, local)
+                for annotation in self._annotations.values()
             ]
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+
+        for annotation in self._annotations.values():
+            annotation.clean()
 
     def _get_category_node(self) -> Category | None:
         for annotation in self._annotations.values():
@@ -697,9 +718,9 @@ class NodeTimestamps(Element):
             self.str_to_dt(raw["userEdited"]) if "userEdited" in raw else None
         )
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the timestamps container"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["kind"] = "notes#timestamps"
         ret["created"] = self.dt_to_str(self._created)
         if self._deleted is not None:
@@ -858,9 +879,9 @@ class NodeSettings(Element):
             raw["checkedListItemsPolicy"]
         )
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the settings container"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["newListItemPlacement"] = self._new_listitem_placement.value
         ret["graveyardState"] = self._graveyard_state.value
         ret["checkedListItemsPolicy"] = self._checked_listitems_policy.value
@@ -927,7 +948,7 @@ class NodeCollaborators(Element):
         if requests_raw and isinstance(requests_raw[-1], bool):
             self._dirty = requests_raw.pop()
         else:
-            self._dirty = False
+            self.clean()
         self._collaborators = {}
         for collaborator in collaborators_raw:
             self._collaborators[collaborator["email"]] = RoleValue(collaborator["role"])
@@ -936,7 +957,7 @@ class NodeCollaborators(Element):
                 collaborator["type"]
             )
 
-    def save(self, clean: bool = True) -> tuple[list, list]:
+    def save(self, clean: bool = True, local: bool = False) -> tuple[list, list]:
         """Save the collaborators container"""
         # Parent method not called.
         collaborators = []
@@ -948,10 +969,10 @@ class NodeCollaborators(Element):
                 collaborators.append(
                     {"email": email, "role": action.value, "auxiliary_type": "None"}
                 )
-        if not clean:
+        if clean:
+            self.clean()
+        if local:
             requests.append(self._dirty)
-        else:
-            self._dirty = False
         return (collaborators, requests)
 
     def add(self, email: str) -> None:
@@ -1087,14 +1108,19 @@ class Label(Element, TimestampsMixin):
         self.timestamps.load(raw["timestamps"])
         self._merged = NodeTimestamps.str_to_dt(raw.get("lastMerged"))
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the label"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["mainId"] = self.id
         ret["name"] = self._name
-        ret["timestamps"] = self.timestamps.save(clean)
+        ret["timestamps"] = self.timestamps.save(clean, local)
         ret["lastMerged"] = NodeTimestamps.dt_to_str(self._merged)
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+        self.timestamps.clean()
 
     @property
     def name(self) -> str:
@@ -1150,12 +1176,15 @@ class NodeLabels(Element):
         if raw and isinstance(raw[-1], bool):
             self._dirty = raw.pop()
         else:
-            self._dirty = False
+            self.clean()
         self._labels = {}
         for raw_label in raw:
             self._labels[raw_label["labelId"]] = None
 
-    def save(self, clean: bool = True) -> tuple[dict] | tuple[dict, bool]:  # noqa: D102
+    def save(
+        self, clean: bool = True, local: bool = False
+    ) -> tuple[dict] | tuple[dict, bool]:
+        """Mark as clean."""
         # Parent method not called.
         ret = [
             {
@@ -1168,10 +1197,10 @@ class NodeLabels(Element):
             }
             for label_id, label in self._labels.items()
         ]
-        if not clean:
+        if clean:
+            self.clean()
+        if local:
             ret.append(self._dirty)
-        else:
-            self._dirty = False
         return ret
 
     def add(self, label: Label) -> None:
@@ -1258,7 +1287,7 @@ class Node(Element, TimestampsMixin):
 
     @classmethod
     def _generateId(cls, tz: float) -> str:
-        return "{:x}.{:016x}".format(  # noqa: UP032
+        return "{:x}.{:016x}".format(
             int(tz * 1000),
             random.randint(0x0000000000000000, 0xFFFFFFFFFFFFFFFF),  # noqa: S311
         )
@@ -1283,8 +1312,8 @@ class Node(Element, TimestampsMixin):
         self.settings.load(raw["nodeSettings"])
         self.annotations.load(raw["annotationsGroup"])
 
-    def save(self, clean: bool = True) -> dict:  # noqa: D102
-        ret = super().save(clean)
+    def save(self, clean: bool = True, local: bool = False) -> dict:  # noqa: D102
+        ret = super().save(clean, local)
         ret["id"] = self.id
         ret["kind"] = "notes#node"
         ret["type"] = self.type.value
@@ -1295,10 +1324,17 @@ class Node(Element, TimestampsMixin):
         ret["text"] = self._text
         if self.server_id is not None:
             ret["serverId"] = self.server_id
-        ret["timestamps"] = self.timestamps.save(clean)
-        ret["nodeSettings"] = self.settings.save(clean)
-        ret["annotationsGroup"] = self.annotations.save(clean)
+        ret["timestamps"] = self.timestamps.save(clean, local)
+        ret["nodeSettings"] = self.settings.save(clean, local)
+        ret["annotationsGroup"] = self.annotations.save(clean, local)
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+        self.timestamps.clean()
+        self.settings.clean()
+        self.annotations.clean()
 
     @property
     def sort(self) -> int:
@@ -1457,21 +1493,27 @@ class TopLevelNode(Node):
         )
         self._moved = "moved" in raw
 
-    def save(self, clean: bool = True) -> dict:  # noqa: D102
-        ret = super().save(clean)
+    def save(self, clean: bool = True, local: bool = False) -> dict:  # noqa: D102
+        ret = super().save(clean, local)
         ret["color"] = self._color.value
         ret["isArchived"] = self._archived
         ret["isPinned"] = self._pinned
         ret["title"] = self._title
-        labels = self.labels.save(clean)
+        labels = self.labels.save(clean, local)
 
-        collaborators, requests = self.collaborators.save(clean)
+        collaborators, requests = self.collaborators.save(clean, local)
         if labels:
             ret["labelIds"] = labels
         ret["collaborators"] = collaborators
         if requests:
             ret["shareRequests"] = requests
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+        self.labels.clean()
+        self.collaborators.clean()
 
     @property
     def color(self) -> ColorValue:
@@ -1605,8 +1647,8 @@ class ListItem(Node):
         self.super_list_item_id = raw.get("superListItemId") or None
         self._checked = raw.get("checked", False)
 
-    def save(self, clean: bool = True) -> dict:  # noqa: D102
-        ret = super().save(clean)
+    def save(self, clean: bool = True, local: bool = False) -> dict:  # noqa: D102
+        ret = super().save(clean, local)
         ret["parentServerId"] = self.parent_server_id
         ret["superListItemId"] = self.super_list_item_id
         ret["checked"] = self._checked
@@ -1922,9 +1964,9 @@ class NodeBlob(Element):
         self._media_id = raw.get("media_id")
         self._mimetype = raw.get("mimetype")
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the node blob"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["kind"] = "notes#blob"
         ret["type"] = self.type.value
         if self.blob_id is not None:
@@ -1951,9 +1993,9 @@ class NodeAudio(NodeBlob):
         super()._load(raw)
         self._length = raw.get("length")
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the node audio blob"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         if self._length is not None:
             ret["length"] = self._length
         return ret
@@ -2001,9 +2043,9 @@ class NodeImage(NodeBlob):
         self._extracted_text = raw.get("extracted_text")
         self._extraction_status = raw.get("extraction_status")
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the node image blob"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["width"] = self._width
         ret["height"] = self._height
         ret["byte_size"] = self._byte_size
@@ -2081,14 +2123,20 @@ class NodeDrawing(NodeBlob):
             drawing_info.load(raw["drawingInfo"])
         self._drawing_info = drawing_info
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the node drawing blob"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         ret["extracted_text"] = self._extracted_text
         ret["extraction_status"] = self._extraction_status
         if self._drawing_info is not None:
-            ret["drawingInfo"] = self._drawing_info.save(clean)
+            ret["drawingInfo"] = self._drawing_info.save(clean, local)
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+        if self._drawing_info is not None:
+            self._drawing_info.clean()
 
     @property
     def extracted_text(self) -> str:
@@ -2141,10 +2189,10 @@ class NodeDrawingInfo(Element):
             "snapshotProtoFprint", self._snapshot_proto_fprint
         )
 
-    def save(self, clean: bool = True) -> dict:  # noqa: D102
-        ret = super().save(clean)
+    def save(self, clean: bool = True, local: bool = False) -> dict:  # noqa: D102
+        ret = super().save(clean, local)
         ret["drawingId"] = self.drawing_id
-        ret["snapshotData"] = self.snapshot.save(clean)
+        ret["snapshotData"] = self.snapshot.save(clean, local)
         ret["snapshotFingerprint"] = self._snapshot_fingerprint
         ret["thumbnailGeneratedTime"] = NodeTimestamps.dt_to_str(
             self._thumbnail_generated_time
@@ -2152,6 +2200,11 @@ class NodeDrawingInfo(Element):
         ret["inkHash"] = self._ink_hash
         ret["snapshotProtoFprint"] = self._snapshot_proto_fprint
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+        self.snapshot.clean()
 
 
 class Blob(Node):
@@ -2204,12 +2257,19 @@ class Blob(Node):
         super()._load(raw)
         self.blob = self.from_json(raw.get("blob"))
 
-    def save(self, clean: bool = True) -> dict:
+    def save(self, clean: bool = True, local: bool = False) -> dict:
         """Save the blob"""
-        ret = super().save(clean)
+        ret = super().save(clean, local)
         if self.blob is not None:
-            ret["blob"] = self.blob.save(clean)
+            ret["blob"] = self.blob.save(clean, local)
         return ret
+
+    def clean(self) -> None:
+        """Mark as clean."""
+        super().clean()
+
+        if self.blob is not None:
+            self.blob.clean()
 
 
 _type_map = {
