@@ -1722,6 +1722,22 @@ class Note(TopLevelNode):
                 break
 
         return node
+    
+    def to_list(self) -> "List":
+        """Converts note to a list.
+
+        Returns:
+            List node.
+        """
+        node = List()
+        if self.title is not None:
+            node.title = self.title
+        
+        sort = random.randint(1000000000, 9999999999)  # noqa: S311
+        for text in self.text.split("\n"):
+            node.add(text, False, sort)
+            sort -= List.SORT_DELTA
+        return node
 
     @property
     def text(self) -> str:  # noqa: D102
@@ -1842,6 +1858,25 @@ class List(TopLevelNode):
             return T((int(x.sort),))
 
         return sorted(items, key=key_func, reverse=True)
+    
+    def to_note(self) -> Note:
+        """Converts list to a note.
+
+        Returns:
+            Note node.
+        """
+        node = Note()
+        if self.title is not None:
+            node.title = self.title
+        
+        if self.text is not None:
+            node.text = "\n".join([n.text for n in self.items])
+        else:
+            node.text = ""
+        return node
+        
+
+
 
     def _items(self, checked: bool | None = None) -> list[ListItem]:
         return [

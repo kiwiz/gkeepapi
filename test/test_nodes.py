@@ -506,7 +506,25 @@ class NoteTests(unittest.TestCase):
         n.text = TEXT
         self.assertEqual("%s\n%s" % (TITLE, TEXT), str(n))
         self.assertEqual(TEXT, n.text)
+    
+    def test_to_list(self):
+        n_note = node.Note()
 
+        TEXT = "a\nb\nc\nd\ne\nf"
+        n_note.text = TEXT
+        
+        n_list = node.List()
+
+        n_list.add("a", sort=5)
+        n_list.add("b", sort=4)
+        n_list.add("c", sort=3)
+        n_list.add("d", sort=2)
+        n_list.add("e", sort=1)
+        n_list.add("f", sort=0)
+
+        n = n_note.to_list()
+
+        self.assertEqual(n_list.text, n.text)
 
 class ListTests(unittest.TestCase):
     def test_fields(self):
@@ -623,6 +641,24 @@ class ListTests(unittest.TestCase):
         self.assertEqual(n_str, str(n))
         self.assertEqual(n_text, n.text)
 
+    def test_to_note(self):
+        n_list = node.List()
+
+        n_list.add("a", sort=5)
+        n_list.add("b", sort=4)
+        n_list.add("c", sort=3)
+        n_list.add("d", sort=2)
+        n_list.add("e", sort=1)
+        n_list.add("f", sort=0)
+
+        n_note = node.Note()
+
+        TEXT = "a\nb\nc\nd\ne\nf"
+        n_note.text = TEXT
+
+        n = n_list.to_note()
+
+        self.assertEqual(n_note.text, n.text)
 
 class ListItemTests(unittest.TestCase):
     def test_fields(self):
