@@ -1081,6 +1081,7 @@ class Keep:
         # Fetch updates until we reach the newest version.
         while True:
             logger.debug("Starting keep sync: %s", self._keep_version)
+            iteration_start = time.time()
 
             # Collect any changes and send them up to the server.
             labels_updated = any(i.dirty for i in self._labels.values())
@@ -1112,6 +1113,11 @@ class Keep:
             # Check if there are more changes to retrieve.
             if not changes["truncated"]:
                 break
+
+            # Make sure we're not issuing requests too fast, to avoid hitting rate limits.
+            # Notably, there's a 150 requests per user per minute rate limit.
+            # Make sure we send 2 requests per second maximum.
+            time.sleep(max(0.5 - (time.time() - iteration_start), 0))
 
     def _parseTasks(self, raw: dict) -> None:
         pass
