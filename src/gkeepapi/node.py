@@ -1791,6 +1791,38 @@ class List(TopLevelNode):
     def text(self) -> str:  # noqa: D102
         return "\n".join(str(node) for node in self.items)
 
+    @text.setter
+    def text(self, value: str) -> None:
+        """Set the text value by parsing it into list items.
+        
+        Args:
+            value: Text value with one item per line.
+        """
+        # Clear existing items
+        for item in list(self.items):
+            item.delete()
+        
+        # Parse new text into items
+        if value:
+            lines = value.strip().split('\n')
+            sort = random.randint(1000000000, 9999999999)  # noqa: S311
+            for line in lines:
+                line = line.strip()
+                if line:
+                    # Check if line starts with checkbox indicators
+                    checked = False
+                    if line.startswith('☑') or line.startswith('[x]') or line.startswith('[X]'):
+                        checked = True
+                        line = line[1:].strip() if line.startswith('☑') else line[3:].strip()
+                    elif line.startswith('☐') or line.startswith('[ ]'):
+                        checked = False
+                        line = line[1:].strip() if line.startswith('☐') else line[3:].strip()
+                    
+                    self.add(line, checked, sort)
+                    sort -= self.SORT_DELTA
+        
+        self.touch(True)
+
     @classmethod
     def sorted_items(cls, items: list[ListItem]) -> list[ListItem]:  # noqa: C901
         """Generate a list of sorted list items, taking into account parent items.
