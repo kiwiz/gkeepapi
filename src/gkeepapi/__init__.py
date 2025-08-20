@@ -231,7 +231,7 @@ class API:
             # handled, so bail.
             error = response["error"]
             if error["code"] == http.HTTPStatus.TOO_MANY_REQUESTS:
-                logger.debug("Rate limited...", delay)
+                logger.debug("Rate limited...")
                 time.sleep(delay)
                 delay = min(delay * 2, 60)
                 continue
