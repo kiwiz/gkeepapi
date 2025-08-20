@@ -438,11 +438,10 @@ FAQ
 
 This usually occurs when Google thinks the login request looks suspicious. Here are some steps you can take to resolve this:
 
-1. Make sure you have the newest version of gkeepapi installed.
-2. Instead of logging in every time, cache the authentication token and reuse it on subsequent runs. See `here <https://github.com/kiwiz/keep-cli/blob/master/src/keep_cli/__main__.py#L106-L128>`__ for an example implementation.
-3. If you have 2-Step Verification turned on, generating an App Password for gkeepapi is highly recommended.
-4. Upgrading to a newer version of Python (3.7+) has worked for some people. See this `issue <https://gitlab.com/AuroraOSS/AuroraStore/issues/217#note_249390026>`__ for more information.
-5. If all else fails, try testing gkeepapi on a separate IP address and/or user to see if you can isolate the problem.
+- Make sure you have the newest version of gkeepapi installed.
+- Instead of logging in every time, cache the authentication token and reuse it on subsequent runs. See `here <https://github.com/kiwiz/keep-cli/blob/master/src/keep_cli/__main__.py#L106-L128>`__ for an example implementation.
+- Upgrading to a newer version of Python (3.7+) has worked for some people. See this `issue <https://gitlab.com/AuroraOSS/AuroraStore/issues/217#note_249390026>`__ for more information.
+- If all else fails, try testing gkeepapi on a separate IP address and/or user to see if you can isolate the problem.
 
 2. I get a "DeviceManagementRequiredOrSyncDisabled" :py:class:`exception.LoginException` when I try to log in. (Not an issue when using :py:meth:`Keep.authenticate`)
 
