@@ -220,6 +220,7 @@ class API:
         # Send a request to the API servers, with retry handling. OAuth tokens
         # are valid for several hours (as of this comment).
         i = 0
+        delay = 2
         while True:
             # Send off the request. If there was no error, we're good.
             response = self._send(**req_kwargs).json()
@@ -229,6 +230,12 @@ class API:
             # Otherwise, check if it was a non-401 response code. These aren't
             # handled, so bail.
             error = response["error"]
+            if error["code"] == http.HTTPStatus.TOO_MANY_REQUESTS:
+                logger.debug("Rate limited...", delay)
+                time.sleep(delay)
+                delay = min(delay * 2, 60)
+                continue
+
             if error["code"] != http.HTTPStatus.UNAUTHORIZED:
                 raise exception.APIException(error["code"], error)
 
