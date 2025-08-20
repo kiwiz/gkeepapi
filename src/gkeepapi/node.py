@@ -1499,7 +1499,7 @@ class TopLevelNode(Node):
     @archived.setter
     def archived(self, value: bool) -> None:
         self._archived = value
-        self.touch(False)
+        self.touch()
 
     @property
     def pinned(self) -> bool:
@@ -1513,7 +1513,7 @@ class TopLevelNode(Node):
     @pinned.setter
     def pinned(self, value: bool) -> None:
         self._pinned = value
-        self.touch(False)
+        self.touch()
 
     @property
     def title(self) -> str:
