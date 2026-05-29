@@ -725,7 +725,7 @@ class NodeTimestamps(Element):
             return cls.int_to_dt(0)
 
         return datetime.datetime.strptime(tzs, cls.TZ_FMT).replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.timezone.utc,
         )
 
     @classmethod
@@ -851,11 +851,11 @@ class NodeSettings(Element):
     def _load(self, raw: dict) -> None:
         super()._load(raw)
         self._new_listitem_placement = NewListItemPlacementValue(
-            raw["newListItemPlacement"]
+            raw["newListItemPlacement"],
         )
         self._graveyard_state = GraveyardStateValue(raw["graveyardState"])
         self._checked_listitems_policy = CheckedListItemsPolicyValue(
-            raw["checkedListItemsPolicy"]
+            raw["checkedListItemsPolicy"],
         )
 
     def save(self, clean: bool = True) -> dict:
@@ -930,11 +930,15 @@ class NodeCollaborators(Element):
             self._dirty = False
         self._collaborators = {}
         for collaborator in collaborators_raw:
-            self._collaborators[collaborator["email"]] = RoleValue(collaborator["role"])
+            email = collaborator.get("email")
+            if email is None:
+                continue
+            self._collaborators[email] = RoleValue(collaborator["role"])
         for collaborator in requests_raw:
-            self._collaborators[collaborator["email"]] = ShareRequestValue(
-                collaborator["type"]
-            )
+            email = collaborator.get("email")
+            if email is None:
+                continue
+            self._collaborators[email] = ShareRequestValue(collaborator["type"])
 
     def save(self, clean: bool = True) -> tuple[list, list]:
         """Save the collaborators container"""
@@ -946,7 +950,7 @@ class NodeCollaborators(Element):
                 requests.append({"email": email, "type": action.value})
             else:
                 collaborators.append(
-                    {"email": email, "role": action.value, "auxiliary_type": "None"}
+                    {"email": email, "role": action.value, "auxiliary_type": "None"},
                 )
         if not clean:
             requests.append(self._dirty)
@@ -1075,7 +1079,7 @@ class Label(Element, TimestampsMixin):
                 [
                     random.choice("abcdefghijklmnopqrstuvwxyz0123456789")  # noqa: S311
                     for _ in range(12)
-                ]
+                ],
             ),
             int(tz * 1000),
         )
@@ -1161,7 +1165,7 @@ class NodeLabels(Element):
             {
                 "labelId": label_id,
                 "deleted": NodeTimestamps.dt_to_str(
-                    datetime.datetime.now(tz=datetime.timezone.utc)
+                    datetime.datetime.now(tz=datetime.timezone.utc),
                 )
                 if label is None
                 else NodeTimestamps.int_to_str(0),
@@ -1853,7 +1857,9 @@ class List(TopLevelNode):
         ]
 
     def sort_items(
-        self, key: Callable = attrgetter("text"), reverse: bool = False
+        self,
+        key: Callable = attrgetter("text"),
+        reverse: bool = False,
     ) -> None:
         """Sort list items in place. By default, the items are alphabetized, but a custom function can be specified.
 
@@ -2131,14 +2137,16 @@ class NodeDrawingInfo(Element):
         self.drawing_id = raw["drawingId"]
         self.snapshot.load(raw["snapshotData"])
         self._snapshot_fingerprint = raw.get(
-            "snapshotFingerprint", self._snapshot_fingerprint
+            "snapshotFingerprint",
+            self._snapshot_fingerprint,
         )
         self._thumbnail_generated_time = NodeTimestamps.str_to_dt(
-            raw.get("thumbnailGeneratedTime")
+            raw.get("thumbnailGeneratedTime"),
         )
         self._ink_hash = raw.get("inkHash", "")
         self._snapshot_proto_fprint = raw.get(
-            "snapshotProtoFprint", self._snapshot_proto_fprint
+            "snapshotProtoFprint",
+            self._snapshot_proto_fprint,
         )
 
     def save(self, clean: bool = True) -> dict:  # noqa: D102
@@ -2147,7 +2155,7 @@ class NodeDrawingInfo(Element):
         ret["snapshotData"] = self.snapshot.save(clean)
         ret["snapshotFingerprint"] = self._snapshot_fingerprint
         ret["thumbnailGeneratedTime"] = NodeTimestamps.dt_to_str(
-            self._thumbnail_generated_time
+            self._thumbnail_generated_time,
         )
         ret["inkHash"] = self._ink_hash
         ret["snapshotProtoFprint"] = self._snapshot_proto_fprint

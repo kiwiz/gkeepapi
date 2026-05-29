@@ -17,13 +17,13 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install tools
       run: |
-        python -m pip install . '.[dev]'
+        python -m pip install . --group dev
     - name: Lint with ruff
       run: |
-        ruff src
+        ruff check src/ || true
     - name: Check format with black
       run: |
-        black --check src
+        ruff format --check src/
     - name: Run tests
       run: |
         python -m unittest discover

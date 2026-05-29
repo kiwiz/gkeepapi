@@ -1,6 +1,6 @@
 """.. moduleauthor:: Kai <z@kwi.li>"""
 
-__version__ = "0.17.0"
+__version__ = "0.17.1"
 
 import datetime
 import http
@@ -184,8 +184,8 @@ class API:
         self._session.headers.update(
             {
                 "User-Agent": "x-gkeepapi/%s (https://github.com/kiwiz/gkeepapi)"
-                % __version__
-            }
+                % __version__,
+            },
         )
 
     def getAuth(self) -> APIAuth:
@@ -426,7 +426,10 @@ class RemindersAPI(API):
         }
 
     def create(
-        self, node_id: str, node_server_id: str, dtime: datetime.datetime
+        self,
+        node_id: str,
+        node_server_id: str,
+        dtime: datetime.datetime,
     ) -> Any:  # noqa: ANN401
         """Create a new reminder.
 
@@ -468,13 +471,16 @@ class RemindersAPI(API):
                 "taskId": {
                     "clientAssignedId": "KEEP/v2/" + node_server_id,
                 },
-            }
+            },
         )
 
         return self.send(url=self._base_url + "create", method="POST", json=params)
 
     def update_internal(
-        self, node_id: str, node_server_id: str, dtime: datetime.datetime
+        self,
+        node_id: str,
+        node_server_id: str,
+        dtime: datetime.datetime,
     ) -> Any:  # noqa: ANN401
         """Update an existing reminder.
 
@@ -523,9 +529,9 @@ class RemindersAPI(API):
                         "EXTENSIONS",
                         "LOCATION",
                         "TITLE",
-                    ]
+                    ],
                 },
-            }
+            },
         )
 
         return self.send(url=self._base_url + "update", method="POST", json=params)
@@ -550,12 +556,12 @@ class RemindersAPI(API):
                     {
                         "deleteTask": {
                             "taskId": [
-                                {"clientAssignedId": "KEEP/v2/" + node_server_id}
-                            ]
-                        }
-                    }
-                ]
-            }
+                                {"clientAssignedId": "KEEP/v2/" + node_server_id},
+                            ],
+                        },
+                    },
+                ],
+            },
         )
 
         return self.send(url=self._base_url + "batchmutate", method="POST", json=params)
@@ -583,7 +589,7 @@ class RemindersAPI(API):
                     },
                     "includeArchived": True,
                     "includeDeleted": False,
-                }
+                },
             )
         else:
             current_time = time.time()
@@ -602,7 +608,7 @@ class RemindersAPI(API):
                     "dueAfterMs": start_time,
                     "dueBeforeMs": end_time,
                     "recurrenceId": [],
-                }
+                },
             )
 
         return self.send(url=self._base_url + "list", method="POST", json=params)
@@ -707,7 +713,9 @@ class Keep:
         Raises:
             LoginException: If there was a problem logging in.
         """
-        logger.warning("'Keep.login' is deprecated. Please use 'Keep.authenticate' instead")
+        logger.warning(
+            "'Keep.login' is deprecated. Please use 'Keep.authenticate' instead",
+        )
         auth = APIAuth(self.OAUTH_SCOPES)
         if device_id is None:
             device_id = f"{get_mac():x}"
@@ -723,7 +731,9 @@ class Keep:
         sync: bool = True,
         device_id: str | None = None,
     ) -> None:
-        logger.warning("'Keep.resume' has been renamed to 'Keep.authenticate'. Please update your code")
+        logger.warning(
+            "'Keep.resume' has been renamed to 'Keep.authenticate'. Please update your code",
+        )
         self.authenticate(email, master_token, state, sync, device_id)
 
     def authenticate(
@@ -899,7 +909,9 @@ class Keep:
         )
 
     def createNote(
-        self, title: str | None = None, text: str | None = None
+        self,
+        title: str | None = None,
+        text: str | None = None,
     ) -> _node.Note:
         """Create a new managed note. Any changes to the note will be uploaded when :py:meth:`sync` is called.
 
@@ -966,7 +978,9 @@ class Keep:
         return node
 
     def findLabel(
-        self, query: re.Pattern | str, create: bool = False
+        self,
+        query: re.Pattern | str,
+        create: bool = False,
     ) -> _node.Label | None:
         """Find a label with the given name.
 
@@ -1025,7 +1039,7 @@ class Keep:
         """
         return list(self._labels.values())
 
-    def __UNSTABLE_API_uploadMedia(self, fh: IO)-> None:
+    def __UNSTABLE_API_uploadMedia(self, fh: IO) -> None:
         pass
 
     def getMediaLink(self, blob: _node.Blob) -> str:
@@ -1197,7 +1211,7 @@ class Keep:
         for node in self.all():
             for label_id in node.labels._labels:  # noqa: SLF001
                 node.labels._labels[label_id] = self._labels.get(  # noqa: SLF001
-                    label_id
+                    label_id,
                 )
 
     def _parseUserInfo(self, raw: dict) -> None:

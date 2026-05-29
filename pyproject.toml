@@ -6,7 +6,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "gkeepapi"
-version = "0.17.0"
+version = "0.17.1"
 authors = [
   { name="Kai", email="z@kwi.li" },
 ]
@@ -33,6 +33,8 @@ dependencies = [
 
 [tool.ruff]
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
   # https://beta.ruff.rs/docs/rules/
   "F",  # pyflakes
@@ -97,8 +99,6 @@ select = [
   "RUF",  # ruff-specific
 ]
 ignore = [
-  "E501",  # line-too-long -- disabled as black takes care of this
-  "COM812",  # missing-trailing-comma -- conflicts with black?
   "N802",  # invalid-function-name -- too late!
   "N818",  # error-suffix-on-exception-name -- too late!
   "D415",  # ends-in-punctuation -- too aggressive
@@ -106,16 +106,16 @@ ignore = [
   "EM102",  # f-string-in-exception -- no thanks
   "PLR0913",  # too-many-arguments -- no thanks
   "D105",  # undocumented-magic-method -- no thanks
-  "ANN101",  # missing-type-self -- unnecessary
-  "ANN102",  # missing-type-cls -- unnecessary
+  "UP031",  # use-format-specifiers -- no thanks
+  "COM812",  # -- conflict
 ]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [dependency-groups]
 dev = [
-  "Sphinx >= 7.2.6"
+  "Sphinx >= 7.2.6",
   "ruff >= 0.1.14",
   "coverage >= 7.2.5",
   "build >= 1.3.0",
