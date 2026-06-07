@@ -1726,6 +1726,29 @@ class Note(TopLevelNode):
                 break
 
         return node
+    
+    def to_list(self) -> "List":
+        """Converts note to a list.
+
+        Returns:
+            List node.
+        """
+        node = List()
+        node.title = self.title
+        node.color = self._color
+        node.archived = self._archived
+        node.pinned = self._pinned
+        node.sort = self._sort
+        for label in self.labels.all():
+            node.labels.add(label)
+        for email in self.collaborators.all():
+            node.collaborators.add(email)
+
+        sort = random.randint(1000000000, 9999999999)  # noqa: S311
+        for text in self.text.split("\n"):
+            node.add(text, False, sort)
+            sort -= List.SORT_DELTA
+        return node
 
     @property
     def text(self) -> str:  # noqa: D102
@@ -1846,6 +1869,29 @@ class List(TopLevelNode):
             return T((int(x.sort),))
 
         return sorted(items, key=key_func, reverse=True)
+    
+    def to_note(self) -> "Note":
+        """Converts list to a note.
+
+        Returns:
+            Note node.
+        """
+        node = Note()
+        node.title = self.title
+        node.color = self._color
+        node.archived = self._archived
+        node.pinned = self._pinned
+        node.sort = self._sort
+        for label in self.labels.all():
+            node.labels.add(label)
+        for email in self.collaborators.all():
+            node.collaborators.add(email)
+
+        node.text = "\n".join(item.text for item in self.items)
+        return node
+        
+
+
 
     def _items(self, checked: bool | None = None) -> list[ListItem]:
         return [

@@ -958,6 +958,34 @@ class Keep:
         self.add(node)
         return node
 
+    def convertToList(self, note: _node.Note) -> _node.List:
+        """Convert a Note to a List. The note is trashed and the new list is registered for syncing.
+
+        Args:
+            note: The note to convert.
+
+        Returns:
+            The new list.
+        """
+        node = note.to_list()
+        self.add(node)
+        note.trash()
+        return node
+
+    def convertToNote(self, lst: _node.List) -> _node.Note:
+        """Convert a List to a Note. The list is trashed and the new note is registered for syncing.
+
+        Args:
+            lst: The list to convert.
+
+        Returns:
+            The new note.
+        """
+        node = lst.to_note()
+        self.add(node)
+        lst.trash()
+        return node
+
     def createLabel(self, name: str) -> _node.Label:
         """Create a new label.
 
