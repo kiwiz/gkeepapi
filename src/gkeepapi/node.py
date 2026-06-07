@@ -1734,9 +1734,16 @@ class Note(TopLevelNode):
             List node.
         """
         node = List()
-        if self.title is not None:
-            node.title = self.title
-        
+        node.title = self.title
+        node.color = self._color
+        node.archived = self._archived
+        node.pinned = self._pinned
+        node.sort = self._sort
+        for label in self.labels.all():
+            node.labels.add(label)
+        for email in self.collaborators.all():
+            node.collaborators.add(email)
+
         sort = random.randint(1000000000, 9999999999)  # noqa: S311
         for text in self.text.split("\n"):
             node.add(text, False, sort)
@@ -1863,20 +1870,24 @@ class List(TopLevelNode):
 
         return sorted(items, key=key_func, reverse=True)
     
-    def to_note(self) -> Note:
+    def to_note(self) -> "Note":
         """Converts list to a note.
 
         Returns:
             Note node.
         """
         node = Note()
-        if self.title is not None:
-            node.title = self.title
-        
-        if self.text is not None:
-            node.text = "\n".join([n.text for n in self.items])
-        else:
-            node.text = ""
+        node.title = self.title
+        node.color = self._color
+        node.archived = self._archived
+        node.pinned = self._pinned
+        node.sort = self._sort
+        for label in self.labels.all():
+            node.labels.add(label)
+        for email in self.collaborators.all():
+            node.collaborators.add(email)
+
+        node.text = "\n".join(item.text for item in self.items)
         return node
         
 
